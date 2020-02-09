@@ -1,0 +1,2 @@
+obj-y = pic_cpu.o
+obj-$(CONFIG_TMS320C28X_SIM) += tms320c28x_sim.o

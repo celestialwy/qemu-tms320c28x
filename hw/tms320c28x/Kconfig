@@ -1,0 +1,2 @@
+config TMS320C28X_SIM
+    bool
