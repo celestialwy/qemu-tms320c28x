@@ -37,3 +37,6 @@ DEF_HELPER_2(ld_low_sxm, i32, env, i32)
 
 DEF_HELPER_2(print, void, env, i32)
 DEF_HELPER_1(print_env, void, env)
+
+//interrupt
+DEF_HELPER_1(aborti, void, env)

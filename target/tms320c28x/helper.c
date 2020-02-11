@@ -6,6 +6,7 @@
 #ifndef CONFIG_USER_ONLY
 #include "hw/boards.h"
 #include "exception.h"
+#include "hw/irq.h"
 #endif
 
 void HELPER(exception)(CPUTms320c28xState *env, uint32_t excp)
@@ -417,4 +418,11 @@ void HELPER(print_env)(CPUTms320c28xState *env) {
     qemu_log_mask(CPU_LOG_INT, "ACC=%08x DP =%08x IFR=%08x IER=%08x\n", env->acc, env->dp, env->ifr, env->ier);
     qemu_log_mask(CPU_LOG_INT, "P  =%08x SP =%08x ST0=%08x ST1=%08x\n", env->p, env->sp, env->st0, env->st1);
     qemu_log_mask(CPU_LOG_INT, "DBGIER=%08x XT = %08x\n", env->dbgier, env->xt);
+}
+
+void HELPER(aborti)(CPUTms320c28xState *env) {
+    //todo ??
+    cpu_set_dbgm(env, 1);
+
+    // qemu_set_irq(env->irq[15], 1);
 }

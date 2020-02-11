@@ -17,7 +17,8 @@
         "array": "c",
         "tuple": "c",
         "type_traits": "c",
-        "utility": "c"
+        "utility": "c",
+        "irq.h": "c"
     },
     "files.exclude": {
         "**/.git": true,

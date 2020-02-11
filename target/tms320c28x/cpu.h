@@ -64,6 +64,38 @@ enum {
 /* Interrupt */
 #define NR_IRQS  32 //max irq number
 
+/* st0 */
+enum {
+    ST0_SXM = 1 << 0,
+    ST0_OVM = 1 << 1,
+    ST0_TC = 1 << 2,
+    ST0_C = 1 << 3,
+    ST0_Z = 1 << 4,
+    ST0_N = 1 << 5,
+    ST0_V = 1 << 6,
+    ST0_PM = 0b111 << 7,
+    ST0_OVC = 0b111111 << 10,
+};
+
+/* st1 */
+enum {
+    ST1_INTM = 1 << 0,
+    ST1_DBGM = 1 << 1,
+    ST1_PAGE0 = 1 << 2,
+    ST1_VMAP = 1 << 3,
+    ST1_SPA = 1 << 4,
+    ST1_LOOP = 1 << 5,
+    ST1_EALLOW = 1 << 6,
+    ST1_IDLESTAT = 1 << 7,
+    ST1_AMODE = 1 << 8,
+    ST1_OBJMODE = 1 << 9,
+    ST1_Reserved = 1 << 10,
+    ST1_MOM1MAP = 1 << 11,
+    ST1_XF = 1 << 12,
+    ST1_ARP = 0b111 << 13,
+};
+
+/* loc */
 enum {
     LOC16 = 1,
     LOC32 = 2,
@@ -87,9 +119,11 @@ typedef struct CPUTms320c28xState {
 
     target_ulong xt;         /* Multiplicand register, todo:t,tl*/
 
+    uint32_t irq_index;
     /* Fields up to this point are cleared by a CPU reset */
     struct {} end_reset_fields;
 
+    void *irq[NR_IRQS];          /* Interrupt irq input */
 } CPUTms320c28xState;
 
 /**
@@ -167,6 +201,66 @@ static inline void cpu_set_arp(CPUTms320c28xState *env, uint32_t val)
     env->st1 = (env->st1 & 0x1fff) | (val << 13);
 }
 
+static inline uint32_t cpu_get_xf(const CPUTms320c28xState *env)
+{
+    return (env->st1 >> 12) & 1;
+}
+
+static inline uint32_t cpu_get_mom1map(const CPUTms320c28xState *env)
+{
+    return (env->st1 >> 11) & 1;
+}
+
+static inline uint32_t cpu_get_objmode(const CPUTms320c28xState *env)
+{
+    return (env->st1 >> 9) & 1;
+}
+
+static inline uint32_t cpu_get_idlestat(const CPUTms320c28xState *env)
+{
+    return (env->st1 >> 7) & 1;
+}
+
+static inline uint32_t cpu_get_eallow(const CPUTms320c28xState *env)
+{
+    return (env->st1 >> 6) & 1;
+}
+
+static inline uint32_t cpu_get_loop(const CPUTms320c28xState *env)
+{
+    return (env->st1 >> 5) & 1;
+}
+
+static inline uint32_t cpu_get_spa(const CPUTms320c28xState *env)
+{
+    return (env->st1 >> 4) & 1;
+}
+
+static inline uint32_t cpu_get_vmap(const CPUTms320c28xState *env)
+{
+    return (env->st1 >> 3) & 1;
+}
+
+static inline uint32_t cpu_get_page0(const CPUTms320c28xState *env)
+{
+    return (env->st1 >> 2) & 1;
+}
+
+static inline uint32_t cpu_get_dbgm(const CPUTms320c28xState *env)
+{
+    return (env->st1 >> 1) & 1;
+}
+
+static inline void cpu_set_dbgm(CPUTms320c28xState *env, uint32_t value) {
+    value = value & 1;
+    env->st1 = (env->st1 & 0xfffd) | (value << 1);
+}
+
+static inline uint32_t cpu_get_intm(const CPUTms320c28xState *env)
+{
+    return (env->st1) & 1;
+}
+
 static inline uint32_t cpu_get_sxm(const CPUTms320c28xState *env)
 {
     return (env->st0 & 0x1);
@@ -182,6 +276,11 @@ static inline uint32_t cpu_get_ovm(const CPUTms320c28xState *env)
     return (env->st0 >> 1) & 1;
 }
 
+static inline uint32_t cpu_get_pm(const CPUTms320c28xState *env)
+{
+    return (env->st0 >> 7) & 0b111;
+}
+
 static inline int32_t cpu_get_ovc(const CPUTms320c28xState *env)
 {
     return (env->st0 >> 10) & 0b111111;
@@ -193,10 +292,25 @@ static inline void cpu_set_ovc(CPUTms320c28xState *env, uint32_t value)
     env->st0 = (env->st0 & 0x03ff) | (value << 10);
 }
 
+static inline uint32_t cpu_get_v(const CPUTms320c28xState *env)
+{
+    return (env->st0 >> 6) & 1;
+}
+
 static inline void cpu_set_v(CPUTms320c28xState *env, uint32_t v)
 {
     v = v & 1;
     env->st0 = (env->st0 & 0xffbf) | (v << 6);
+}
+
+static inline uint32_t cpu_get_tc(const CPUTms320c28xState *env)
+{
+    return (env->st0 >> 2) & 1;
+}
+
+static inline uint32_t cpu_get_c(const CPUTms320c28xState *env)
+{
+    return (env->st0 >> 3) & 1;
 }
 
 static inline void cpu_set_c(CPUTms320c28xState *env, uint32_t c)
@@ -205,10 +319,20 @@ static inline void cpu_set_c(CPUTms320c28xState *env, uint32_t c)
     env->st0 = (env->st0 & 0xfff7) | (c << 3);
 }
 
+static inline uint32_t cpu_get_n(const CPUTms320c28xState *env)
+{
+    return (env->st0 >> 5) & 1;
+}
+
 static inline void cpu_set_n(CPUTms320c28xState *env, uint32_t n)
 {
     n = n & 1;
     env->st0 = (env->st0 & 0xffdf) | (n << 5);
+}
+
+static inline uint32_t cpu_get_z(const CPUTms320c28xState *env)
+{
+    return (env->st0 >> 4) & 1;
 }
 
 static inline void cpu_set_z(CPUTms320c28xState *env, uint32_t z)
@@ -216,8 +340,6 @@ static inline void cpu_set_z(CPUTms320c28xState *env, uint32_t z)
     z = z & 1;
     env->st0 = (env->st0 & 0xffef) | (z << 4);
 }
-
-
 
 // 获取cpu状态，在查找tb时会比较pc,cs_base,flags
 static inline void cpu_get_tb_cpu_state(CPUTms320c28xState *env,
@@ -237,6 +359,12 @@ static inline int cpu_mmu_index(CPUTms320c28xState *env, bool ifetch)
     return ret;
 }
 
-#define CPU_INTERRUPT_TIMER   CPU_INTERRUPT_TGT_INT_0
+#define CPU_INTERRUPT_INT   CPU_INTERRUPT_TGT_EXT_0
+#define CPU_INTERRUPT_DLOGINT   CPU_INTERRUPT_TGT_EXT_1
+#define CPU_INTERRUPT_RTLOGINT   CPU_INTERRUPT_TGT_EXT_2
+
+#define CPU_INTERRUPT_NMI   CPU_INTERRUPT_TGT_INT_0
+#define CPU_INTERRUPT_ILLEGAL   CPU_INTERRUPT_TGT_INT_1
+#define CPU_INTERRUPT_USER   CPU_INTERRUPT_TGT_INT_2
 
 #endif /* TMS320C28X_CPU_H */

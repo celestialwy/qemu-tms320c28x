@@ -24,6 +24,7 @@
 #include "hw/loader.h"
 #endif
 
+// handle exception
 void tms320c28x_cpu_do_interrupt(CPUState *cs)
 {
 #ifndef CONFIG_USER_ONLY

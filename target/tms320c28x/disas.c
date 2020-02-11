@@ -216,9 +216,27 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 case 0b0000: //0000 0000 .... ....
                     switch ((insn & 0x00c0) >> 6) {
                         case 0b00:
-                            //todo 
-                            if(insn == 0) {
-                                fprintf_func(stream, "0x%04x;     EXIT", insn);
+                            if(((insn >> 5) & 1) == 0) { //0000 0000 000. ....
+                                if(((insn >> 4) & 1) == 0) { //0000 0000 0000 ....
+                                    switch(insn & 0x000f) {
+                                        case 0: //0000 0000 0000 0000
+                                            break;
+                                        case 1: //0000 0000 0000 0001, ABORTI P124
+                                            fprintf_func(stream, "0x%04x;     ABORTI", insn);
+                                            break;
+                                        case 2: //0000 0000 0000 0010, POP IFR
+                                            fprintf_func(stream, "0x%04x;     POP IFR", insn);
+                                            break;
+                                        default: //0000 0000 0000 1nnn, BANZ 16bitOffset,ARn--
+                                            break;
+                                    }
+                                }
+                                else { //0000 0000 0001 CCCC INTR INTx
+
+                                }
+                            }
+                            else {// 0000 0000 001C CCCC, TRAP #VectorNumber
+
                             }
                             break;
                         case 0b01: /*0000 0000 01.. .... LB 22bit */
@@ -228,9 +246,9 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             length = 4;
                             break;
                         }
-                        case 0b10:
+                        case 0b10: // 0000 0000 10CC CCCC, LC 22bit
                             break;
-                        case 0b11:
+                        case 0b11: // 0000 0000 11CC CCCC, FFC XAR7,22bit
                             break;
                     }
                     break;

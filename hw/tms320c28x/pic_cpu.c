@@ -22,39 +22,46 @@
 /* pic handler */
 static void tms320c28x_pic_cpu_handler(void *opaque, int irq, int level)
 {
-    // Tms320c28xCPU *cpu = (Tms320c28xCPU *)opaque;
-    // CPUState *cs = CPU(cpu);
+    Tms320c28xCPU *cpu = (Tms320c28xCPU *)opaque;
+    CPUState *cs = CPU(cpu);
     // uint32_t irq_bit;
 
-    // todo: handle irq
-    if (irq > 31 || irq < 0) {
-        return;
+    //todo irq priority
+
+    if (irq < 15 && irq >=0) {
+        cs->interrupt_request = CPU_INTERRUPT_INT; //trigger interrupt
+        cpu->env.irq_index = irq;
+    }
+    else if (irq  == 15) {
+        cs->interrupt_request = CPU_INTERRUPT_DLOGINT;
+        cpu->env.irq_index = irq;
+    }
+    else if (irq == 16) {
+        cs->interrupt_request = CPU_INTERRUPT_RTLOGINT;
+        cpu->env.irq_index = irq;
+    }
+    else if (irq == 18) {
+        cs->interrupt_request = CPU_INTERRUPT_NMI;
+        cpu->env.irq_index = irq;
+    }
+    else if (irq == 19) {
+        cs->interrupt_request = CPU_INTERRUPT_ILLEGAL;
+        cpu->env.irq_index = irq;
+    }
+    else if (irq >= 20 && irq <= 31) {
+        cs->interrupt_request = CPU_INTERRUPT_USER;
+        cpu->env.irq_index = irq;
     }
 
-    // irq_bit = 1U << irq;
-
-    // if (level) {
-    //     cpu->env.picsr |= irq_bit;
-    // } else {
-    //     cpu->env.picsr &= ~irq_bit;
-    // }
-
-    // if (cpu->env.picsr & cpu->env.picmr) {
-    //     cpu_interrupt(cs, CPU_INTERRUPT_HARD);
-    // } else {
-    //     cpu_reset_interrupt(cs, CPU_INTERRUPT_HARD);
-    //     cpu->env.picsr = 0;
-    // }
+    
 }
 
 void cpu_tms320c28x_pic_init(Tms320c28xCPU *cpu)
 {
-    // int i;
-    // qemu_irq *qi;
-    // qi = qemu_allocate_irqs(tms320c28x_pic_cpu_handler, cpu, NR_IRQS);
-    qemu_allocate_irqs(tms320c28x_pic_cpu_handler, cpu, NR_IRQS);
-
-    // for (i = 0; i < NR_IRQS; i++) {
-    //     cpu->env.irq[i] = qi[i];
-    // }
+    int i;
+    qemu_irq *qi;
+    qi = qemu_allocate_irqs(tms320c28x_pic_cpu_handler, cpu, NR_IRQS);
+    for (i = 0; i < NR_IRQS; i++) {
+        cpu->env.irq[i] = qi[i];
+    }
 }

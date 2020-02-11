@@ -111,6 +111,7 @@ void tms320c28x_translate_init(void)
 #include "decode-math.c"
 #include "decode-bitop.c"
 #include "decode-branch.c"
+#include "decode-interrupt.c"
 
 
 static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn) 
@@ -127,9 +128,27 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 case 0b0000: //0000 0000 .... ....
                     switch ((insn & 0x00c0) >> 6) {
                         case 0b00:
-                            //todo 
-                            if(insn == 0) {
-                                // ctx->base.is_jmp = DISAS_NORETURN;
+                            if(((insn >> 5) & 1) == 0) { //0000 0000 000. ....
+                                if(((insn >> 4) & 1) == 0) { //0000 0000 0000 ....
+                                    switch(insn & 0x000f) {
+                                        case 0: //0000 0000 0000 0000
+                                            break;
+                                        case 1: //0000 0000 0000 0001, ABORTI P124
+                                            gen_helper_aborti(cpu_env);
+                                            break;
+                                        case 2: //0000 0000 0000 0010, POP IFR
+                                            gen_pop_ifr(ctx);
+                                            break;
+                                        default: //0000 0000 0000 1nnn, BANZ 16bitOffset,ARn--
+                                            break;
+                                    }
+                                }
+                                else { //0000 0000 0001 CCCC INTR INTx
+
+                                }
+                            }
+                            else {// 0000 0000 001C CCCC, TRAP #VectorNumber
+
                             }
                             break;
                         case 0b01: /*0000 0000 01.. .... LB 22bit */
@@ -140,9 +159,9 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                             length = 4;
                             break;
                         }
-                        case 0b10:
+                        case 0b10: // 0000 0000 10CC CCCC, LC 22bit
                             break;
-                        case 0b11:
+                        case 0b11: // 0000 0000 11CC CCCC, FFC XAR7,22bit
                             break;
                     }
                     break;
@@ -558,12 +577,22 @@ void tms320c28x_cpu_dump_state(CPUState *cs, FILE *f, int flags)
     int i;
 
     qemu_fprintf(f, "PC =%08x RPC=%08x\n", env->pc, env->rpc);
+    qemu_fprintf(f, "ACC=%08x AH =%04x AL=%04x\n", env->acc, env->acc >> 16, env->acc & 0xffff);
     for (i = 0; i < 8; ++i) {
         qemu_fprintf(f, "XAR%01d=%08x%c", i, env->xar[i], (i % 4) == 3 ? '\n' : ' ');
     }
-    qemu_fprintf(f, "ACC=%08x DP =%08x IFR=%08x IER=%08x\n", env->acc, env->dp, env->ifr, env->ier);
-    qemu_fprintf(f, "P  =%08x SP =%08x ST0=%08x ST1=%08x\n", env->p, env->sp, env->st0, env->st1);
-    qemu_fprintf(f, "DBGIER=%08x XT = %08x\n", env->dbgier, env->xt);
+    for (i = 0; i < 8; ++i) {
+        qemu_fprintf(f, "AR%01d=%04x%c", i, env->xar[i] & 0xffff, (i % 4) == 3 ? '\n' : ' ');
+    }
+    qemu_fprintf(f, "DP =%04x IFR=%04x IER=%04x DBGIER=%04x\n", env->dp, env->ifr, env->ier, env->dbgier);
+    qemu_fprintf(f, "P  =%08x PH =%04x PH =%04x\n", env->p, env->p >> 16, env->p & 0xffff);
+    qemu_fprintf(f, "XT =%08x T  =%04x TL =%04x\n", env->xt, env->xt >> 16, env->xt & 0xffff);
+    qemu_fprintf(f, "SP =%04x ST0=%04x ST1=%04x\n", env->sp, env->st0, env->st1);
+    qemu_fprintf(f, "OVC=%x PM=%x V=%x N=%x Z=%x\n", cpu_get_ovm(env), cpu_get_pm(env), cpu_get_v(env), cpu_get_n(env), cpu_get_z(env));
+    qemu_fprintf(f, "C=%x TC=%x OVM=%x SXM=%x\n", cpu_get_c(env), cpu_get_tc(env), cpu_get_ovm(env), cpu_get_sxm(env));
+    qemu_fprintf(f, "ARP=%x XF=%x MOM1MAP=%x OBJMODE=%x\n", cpu_get_arp(env), cpu_get_xf(env), cpu_get_mom1map(env), cpu_get_objmode(env));
+    qemu_fprintf(f, "AMODE=%x IDLESTAT=%x EALLOW=%x LOOP=%x\n", cpu_get_amode(env), cpu_get_idlestat(env), cpu_get_eallow(env), cpu_get_loop(env));
+    qemu_fprintf(f, "SPA=%x VMAP=%x PAGE0=%x DBGM=%x INTM=%x\n", cpu_get_spa(env), cpu_get_vmap(env), cpu_get_page0(env), cpu_get_dbgm(env), cpu_get_intm(env));
 }
 
 void restore_state_to_opc(CPUTms320c28xState *env, TranslationBlock *tb,
