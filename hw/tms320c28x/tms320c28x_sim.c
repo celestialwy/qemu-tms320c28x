@@ -37,7 +37,7 @@
 #include "sysemu/reset.h"
 
 #define KERNEL_LOAD_ADDR 0x00
-#define EM_TI_C2000	141
+#define EM_TI_C2000	248
 
 static struct openrisc_boot_info {
     uint32_t bootstrap_pc;
@@ -56,31 +56,28 @@ static void main_cpu_reset(void *opaque)
 static void tms320c28x_load_kernel(ram_addr_t ram_size,
                                  const char *kernel_filename)
 {
-    long kernel_size;
-    // uint64_t elf_entry;
-    // hwaddr entry;
+    long kernel_size = -1;
+    uint64_t elf_entry;
+    hwaddr entry = -1;
 
     if (kernel_filename && !qtest_enabled()) {
-        // kernel_size = load_elf(kernel_filename, NULL, NULL, NULL,
-        //                        &elf_entry, NULL, NULL, 1, EM_TI_C2000,
-        //                        1, 0);
-        // entry = elf_entry;
-        // if (kernel_size < 0) {
+        kernel_size = load_elf(kernel_filename, NULL, NULL, NULL,
+                               &elf_entry, NULL, NULL, 0, EM_TI_C2000,
+                               1, 0);
+        entry = elf_entry;
+        if (kernel_size < 0) {
             kernel_size = load_image_targphys(kernel_filename,
                                               KERNEL_LOAD_ADDR,
                                               ram_size - KERNEL_LOAD_ADDR);
-        // }
-
-        // if (entry <= 0) {
-        //     entry = KERNEL_LOAD_ADDR;
-        // }
+            entry = KERNEL_LOAD_ADDR;
+        }
 
         if (kernel_size < 0) {
             error_report("couldn't load the kernel '%s'", kernel_filename);
             exit(1);
         }
-        // boot_info.bootstrap_pc = entry;
-        boot_info.bootstrap_pc = KERNEL_LOAD_ADDR;
+        boot_info.bootstrap_pc = entry;
+        // boot_info.bootstrap_pc = KERNEL_LOAD_ADDR;
     }
 }
 

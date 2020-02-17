@@ -24,98 +24,123 @@
 #include "hw/loader.h"
 #endif
 
-// handle exception
+static void st32_swap(CPUTms320c28xState *env, target_ulong addr, uint32_t value)
+{
+    uint32_t tmp, tmp2;
+
+    // ABCD -> CDAB
+    tmp = value << 16;
+    tmp2 = value >> 16;
+    value = tmp | tmp2;
+
+    //CDAB -> DCBA
+    tmp = value << 8;
+    tmp = tmp & 0xff00ff00;
+    tmp2 = value >> 8;
+    tmp2 = tmp2 & 0x00ff00ff;
+    value = tmp | tmp2;
+
+    cpu_stl_data(env, addr * 2, value);
+}
+
+static uint32_t ld32_swap(CPUTms320c28xState *env, target_ulong addr)
+{
+    uint32_t value = cpu_ldl_data(env, addr * 2);
+
+    uint32_t tmp, tmp2;
+    // ABCD -> BADC
+    tmp = value << 8;
+    tmp = tmp & 0xff00ff00;
+    tmp2 = value >> 8;
+    tmp2 = tmp2 & 0x00ff00ff;
+    value = tmp | tmp2;
+    // BADC -> DCBA
+    tmp = value << 16;
+    tmp2 = value >> 16;
+    value = tmp | tmp2;
+
+    return value;
+}
+
+
+// handle exception/interrupt, cs->exception_index
 void tms320c28x_cpu_do_interrupt(CPUState *cs)
 {
 #ifndef CONFIG_USER_ONLY
-    // Tms320c28xCPU *cpu = TMS320C28X_CPU(cs);
-    // CPUTms320c28xState *env = &cpu->env;
-    // int exception = cs->exception_index;
+    Tms320c28xCPU *cpu = TMS320C28X_CPU(cs);
+    CPUTms320c28xState *env = &cpu->env;
+    int exception = cs->exception_index;
 
-    // env->epcr = env->pc;
-    // if (exception == EXCP_SYSCALL) {
-    //     env->epcr += 4;
-    // }
-    // /* When we have an illegal instruction the error effective address
-    //    shall be set to the illegal instruction address.  */
-    // if (exception == EXCP_ILLEGAL) {
-    //     env->eear = env->pc;
-    // }
+    if (exception >= EXCP_INTERRUPT_RESET && exception <= EXCP_INTERRUPT_USER12) {
+        qemu_log_mask(CPU_LOG_INT, "INTERRUPT: %s\n", INTERRUPT_NAME[exception]);
 
-    // /* During exceptions esr is populared with the pre-exception sr.  */
-    // env->esr = cpu_get_sr(env);
-    // /* In parallel sr is updated to disable mmu, interrupts, timers and
-    //    set the delay slot exception flag.  */
-    // env->sr &= ~SR_DME;
-    // env->sr &= ~SR_IME;
-    // env->sr |= SR_SM;
-    // env->sr &= ~SR_IEE;
-    // env->sr &= ~SR_TEE;
-    // env->pmr &= ~PMR_DME;
-    // env->pmr &= ~PMR_SME;
-    // env->lock_addr = -1;
+        // temp = pc + 1
+        int temp = env->pc + 1; //todo: depends on insn length
+        // sp = sp + 1, for odd address
+        if ((env->sp & 1) == 1) {
+            env->sp += 1;
+        }
+        // [SP] = T:ST0
+        st32_swap(env, env->sp, (env->xt & 0xffff0000) | (env->st0 & 0xffff));
+        env->sp += 2;
+        // [SP] = AH:AL
+        st32_swap(env, env->sp, env->acc);
+        env->sp += 2;
+        // [SP] = PH:PL
+        st32_swap(env, env->sp, env->p);
+        env->sp += 2;
+        // [SP] = AR1:AR0
+        uint32_t ar1 = env->xar[1] & 0xffff;
+        uint32_t ar0 = env->xar[0] & 0xffff;
+        st32_swap(env, env->sp, (ar1<<16) | ar0);
+        env->sp += 2;
+        // [SP] = DP:ST1
+        st32_swap(env, env->sp, (env->dp<<16) | (env->st1 & 0xffff));
+        env->sp += 2;
+        // [SP] = DBGSTAT:IER
+        st32_swap(env, env->sp, (env->dbgier<<16) | (env->ier & 0xffff));
+        env->sp += 2;
+        // [SP] = temp
+        st32_swap(env, env->sp, temp);
+        env->sp += 2;
+        // sp = sp + 1, for even address
+        if ((env->sp & 1) == 0) {
+            env->sp += 1;
+        }
+        // INTM = 0
+        cpu_set_intm(env, 0);
+        // DBGM = 1
+        cpu_set_dbgm(env, 1);
+        // EALLOW = 0
+        cpu_set_eallow(env, 0);
+        // LOOP = 0
+        cpu_set_loop(env, 0);
+        // IDLESTAT = 0
+        cpu_set_idlestat(env, 0);
+        // PC = fetched vector
+        uint32_t vector_base = 0x3fffc0;
+        uint32_t addr = vector_base + exception*2;
+        env->pc = ld32_swap(env, addr);
 
-    // /* Set/clear dsx to indicate if we are in a delay slot exception.  */
-    // if (env->dflag) {
-    //     env->dflag = 0;
-    //     env->sr |= SR_DSX;
-    //     env->epcr -= 4;
-    // } else {
-    //     env->sr &= ~SR_DSX;
-    // }
+        if (exception <= EXCP_INTERRUPT_RTOSINT) {
+            //clear corresponding IER bit
+            uint32_t mask = 1 << (exception - 1);
+            env->ier = env->ier & (~mask);
+        }
 
-    // if (exception > 0 && exception < EXCP_NR) {
-    //     static const char * const int_name[EXCP_NR] = {
-    //         [EXCP_RESET]    = "RESET",
-    //         [EXCP_BUSERR]   = "BUSERR (bus error)",
-    //         [EXCP_DPF]      = "DFP (data protection fault)",
-    //         [EXCP_IPF]      = "IPF (code protection fault)",
-    //         [EXCP_TICK]     = "TICK (timer interrupt)",
-    //         [EXCP_ALIGN]    = "ALIGN",
-    //         [EXCP_ILLEGAL]  = "ILLEGAL",
-    //         [EXCP_INT]      = "INT (device interrupt)",
-    //         [EXCP_DTLBMISS] = "DTLBMISS (data tlb miss)",
-    //         [EXCP_ITLBMISS] = "ITLBMISS (code tlb miss)",
-    //         [EXCP_RANGE]    = "RANGE",
-    //         [EXCP_SYSCALL]  = "SYSCALL",
-    //         [EXCP_FPE]      = "FPE",
-    //         [EXCP_TRAP]     = "TRAP",
-    //     };
-
-    //     qemu_log_mask(CPU_LOG_INT, "INT: %s\n", int_name[exception]);
-
-    //     hwaddr vect_pc = exception << 8;
-    //     if (env->cpucfgr & CPUCFGR_EVBARP) {
-    //         vect_pc |= env->evbar;
-    //     }
-    //     if (env->sr & SR_EPH) {
-    //         vect_pc |= 0xf0000000;
-    //     }
-    //     env->pc = vect_pc;
-    // } else {
-    //     cpu_abort(cs, "Unhandled exception 0x%x\n", exception);
-    // }
+    } else {
+        cpu_abort(cs, "Unhandled exception 0x%x\n", exception);
+    }
 #endif
 
     cs->exception_index = -1;
 }
 
+
+// handle int from hw
 bool tms320c28x_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
 {
-    // Tms320c28xCPU *cpu = TMS320C28X_CPU(cs);
-    // CPUTms320c28xState *env = &cpu->env;
-    // cpu->parent_obj.interrupt_request == interrupt_request ??
-    // todo p59 in datasheet, standard operation for cpu maskable interrupts
-    int idx = -1;
-
-    // if ((interrupt_request & CPU_INTERRUPT_HARD) && (env->sr & SR_IEE)) {
-    //     idx = EXCP_INT;
-    // }
-    // if ((interrupt_request & CPU_INTERRUPT_TIMER) && (env->sr & SR_TEE)) {
-    //     idx = EXCP_TICK;
-    // }
-    if (idx >= 0) {
-        cs->exception_index = idx;
+    if (interrupt_request == CPU_INTERRUPT_INT) {
         tms320c28x_cpu_do_interrupt(cs);
         return true;
     }

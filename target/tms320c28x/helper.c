@@ -410,19 +410,47 @@ void HELPER(print)(CPUTms320c28xState *env, uint32_t value) {
 }
 
 void HELPER(print_env)(CPUTms320c28xState *env) {
-    qemu_log_mask(CPU_LOG_INT ,"PC =%08x RPC=%08x\n", env->pc, env->rpc);
     int i = 0;
+
+    qemu_log_mask(CPU_LOG_INT, "PC =%08x RPC=%08x\n", env->pc, env->rpc);
+    qemu_log_mask(CPU_LOG_INT, "ACC=%08x AH =%04x AL=%04x\n", env->acc, env->acc >> 16, env->acc & 0xffff);
     for (i = 0; i < 8; ++i) {
         qemu_log_mask(CPU_LOG_INT, "XAR%01d=%08x%c", i, env->xar[i], (i % 4) == 3 ? '\n' : ' ');
     }
-    qemu_log_mask(CPU_LOG_INT, "ACC=%08x DP =%08x IFR=%08x IER=%08x\n", env->acc, env->dp, env->ifr, env->ier);
-    qemu_log_mask(CPU_LOG_INT, "P  =%08x SP =%08x ST0=%08x ST1=%08x\n", env->p, env->sp, env->st0, env->st1);
-    qemu_log_mask(CPU_LOG_INT, "DBGIER=%08x XT = %08x\n", env->dbgier, env->xt);
+    for (i = 0; i < 8; ++i) {
+        qemu_log_mask(CPU_LOG_INT, "AR%01d=%04x%c", i, env->xar[i] & 0xffff, (i % 4) == 3 ? '\n' : ' ');
+    }
+    qemu_log_mask(CPU_LOG_INT, "DP =%04x IFR=%04x IER=%04x DBGIER=%04x\n", env->dp, env->ifr, env->ier, env->dbgier);
+    qemu_log_mask(CPU_LOG_INT, "P  =%08x PH =%04x PH =%04x\n", env->p, env->p >> 16, env->p & 0xffff);
+    qemu_log_mask(CPU_LOG_INT, "XT =%08x T  =%04x TL =%04x\n", env->xt, env->xt >> 16, env->xt & 0xffff);
+    qemu_log_mask(CPU_LOG_INT, "SP =%04x ST0=%04x ST1=%04x\n", env->sp, env->st0, env->st1);
+    qemu_log_mask(CPU_LOG_INT, "OVC=%x PM=%x V=%x N=%x Z=%x\n", cpu_get_ovm(env), cpu_get_pm(env), cpu_get_v(env), cpu_get_n(env), cpu_get_z(env));
+    qemu_log_mask(CPU_LOG_INT, "C=%x TC=%x OVM=%x SXM=%x\n", cpu_get_c(env), cpu_get_tc(env), cpu_get_ovm(env), cpu_get_sxm(env));
+    qemu_log_mask(CPU_LOG_INT, "ARP=%x XF=%x MOM1MAP=%x OBJMODE=%x\n", cpu_get_arp(env), cpu_get_xf(env), cpu_get_mom1map(env), cpu_get_objmode(env));
+    qemu_log_mask(CPU_LOG_INT, "AMODE=%x IDLESTAT=%x EALLOW=%x LOOP=%x\n", cpu_get_amode(env), cpu_get_idlestat(env), cpu_get_eallow(env), cpu_get_loop(env));
+    qemu_log_mask(CPU_LOG_INT, "SPA=%x VMAP=%x PAGE0=%x DBGM=%x INTM=%x\n", cpu_get_spa(env), cpu_get_vmap(env), cpu_get_page0(env), cpu_get_dbgm(env), cpu_get_intm(env));
 }
 
 void HELPER(aborti)(CPUTms320c28xState *env) {
     //todo ??
     cpu_set_dbgm(env, 1);
 
-    // qemu_set_irq(env->irq[15], 1);
+    // qemu_set_irq(env->irq[12], 1);
+
+        // CPUState *cs = env_cpu(env);
+
+
+    // cs->exception_index = 13;
+    // cpu_loop_exit_restore(cs, 0);
+}
+
+void HELPER(intr)(CPUTms320c28xState *env, uint32_t int_n, uint32_t pc) {
+
+    // cs->exception_index = 13;
+    // cpu_loop_exit_restore(cs, 0);
+    
+    Tms320c28xCPU *cpu = env_archcpu(env);
+
+    env->pc = pc;
+    raise_exception(cpu, int_n);
 }

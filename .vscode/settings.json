@@ -18,7 +18,8 @@
         "tuple": "c",
         "type_traits": "c",
         "utility": "c",
-        "irq.h": "c"
+        "irq.h": "c",
+        "loader.h": "c"
     },
     "files.exclude": {
         "**/.git": true,

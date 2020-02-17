@@ -198,7 +198,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
         info->memory_error_func(status, addr, info);
         return -1;
     }
-    char str[10];
+    char str[20];
 
     unsigned long v;
     v = (unsigned long) buffer[2];
@@ -232,7 +232,8 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                 }
                                 else { //0000 0000 0001 CCCC INTR INTx
-
+                                    uint32_t n = insn & 0xf;
+                                    fprintf_func(stream, "0x%04x;     INTR %s", insn, INTERRUPT_NAME[n]);
                                 }
                             }
                             else {// 0000 0000 001C CCCC, TRAP #VectorNumber
@@ -355,6 +356,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             }
             break;
         case 0b0011:
+            switch ((insn & 0xf00) >> 8) {
+                case 0b1010: //0011 1010 LLLL LLLL MOVL loc32, XAR0
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC32);
+                    fprintf_func(stream, "0x%04x;     MOVL %s,XAR0", insn, str);
+                    break;
+                }
+            }
             break;
         case 0b0100:
             break;
@@ -393,7 +403,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             int16_t imm = (uint16_t)(insn&0xff);
             int16_t cond = (insn>>8)&0xf;
             get_cond_string(str, cond);
-            fprintf_func(stream, "0x%04x;     SB %d,%s", insn32, imm, str);
+            fprintf_func(stream, "0x%04x;     SB %d,%s", insn, imm, str);
             break;
         }
         case 0b0111:
@@ -498,10 +508,65 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             }
             break;
         case 0b1010:
+            switch ((insn & 0xf00) >> 8) {
+                case 0b0000: //1010 0000 LLLL LLLL MOVL loc32, XAR5
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC32);
+                    fprintf_func(stream, "0x%04x;     MOVL %s,XAR5", insn, str);
+                    break;
+                }
+                case 0b0010: //1010 0010 LLLL LLLL MOVL loc32, XAR3
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC32);
+                    fprintf_func(stream, "0x%04x;     MOVL %s,XAR3", insn, str);
+                    break;
+                }
+                case 0b1000: //1010 1000 LLLL LLLL MOVL loc32, XAR4
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC32);
+                    fprintf_func(stream, "0x%04x;     MOVL %s,XAR4", insn, str);
+                    break;
+                }
+                case 0b1010: //1010 1010 LLLL LLLL MOVL loc32, XAR2
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC32);
+                    fprintf_func(stream, "0x%04x;     MOVL %s,XAR2", insn, str);
+                    break;
+                }
+            }
             break;
-        case 0b1011:
+        case 0b1011:            
+            switch ((insn & 0xf00) >> 8) {
+                case 0b0010: //1011 0010 LLLL LLLL MOVL loc32, XAR1
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC32);
+                    fprintf_func(stream, "0x%04x;     MOVL %s,XAR1", insn, str);
+                    break;
+                }
+            }
             break;
         case 0b1100:
+            switch ((insn & 0xf00) >> 8) {
+                case 0b0010: //1100 0010 LLLL LLLL MOVL loc32, XAR6
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC32);
+                    fprintf_func(stream, "0x%04x;     MOVL %s,XAR6", insn, str);
+                    break;
+                }
+                case 0b0011: //1100 0011 LLLL LLLL MOVL loc32, XAR7
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC32);
+                    fprintf_func(stream, "0x%04x;     MOVL %s,XAR7", insn, str);
+                    break;
+                }
+            }
             break;
         case 0b1101:
             break;

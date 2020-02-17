@@ -144,7 +144,8 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                     }
                                 }
                                 else { //0000 0000 0001 CCCC INTR INTx
-
+                                    uint32_t n = (insn & 0xf) + 1;//int1 = 0
+                                    gen_intr(ctx, cpu, n);
                                 }
                             }
                             else {// 0000 0000 001C CCCC, TRAP #VectorNumber
@@ -154,7 +155,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                         case 0b01: /*0000 0000 01.. .... LB 22bit */
                         {
                             uint32_t dest = ((insn32 & 0x3f)<< 16) | translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
-                            dest = dest * 2;
+                            // dest = dest * 2;
                             gen_lb_22bit(ctx, dest);
                             length = 4;
                             break;
@@ -264,6 +265,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             }
             break;
         case 0b0011:
+            switch ((insn & 0xf00) >> 8) {
+                case 0b1010: //0011 1010 LLLL LLLL MOVL loc32, XAR0
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_loc32_xarn(ctx, mode, 0);
+                    break;
+                }
+            }
             break;
         case 0b0100:
             break;
@@ -304,6 +313,9 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
         case 0b0110: //0110 COND CCCC CCCC SB 8bitOffset,COND
         {
             int16_t offset = insn & 0xff;
+            if ((offset >> 7) == 1) {
+                offset = offset | 0xff00;
+            }
             uint32_t cond = (insn >> 8) & 0xf;
             gen_sb_8bitOffset_cond(ctx, offset, cond);
             break;
@@ -406,10 +418,58 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             }
             break;
         case 0b1010:
+            switch ((insn & 0xf00) >> 8) {
+                case 0b0000: //1010 0000 LLLL LLLL MOVL loc32, XAR5
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_loc32_xarn(ctx, mode, 5);
+                    break;
+                }
+                case 0b0010: //1010 0010 LLLL LLLL MOVL loc32, XAR3
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_loc32_xarn(ctx, mode, 3);
+                    break;
+                }
+                case 0b1000: //1010 1000 LLLL LLLL MOVL loc32, XAR4
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_loc32_xarn(ctx, mode, 4);
+                    break;
+                }
+                case 0b1010: //1010 1010 LLLL LLLL MOVL loc32, XAR2
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_loc32_xarn(ctx, mode, 2);
+                    break;
+                }
+            }
             break;
         case 0b1011:
+            switch ((insn & 0xf00) >> 8) {
+                case 0b0010: //1011 0010 LLLL LLLL MOVL loc32, XAR1
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_loc32_xarn(ctx, mode, 1);
+                    break;
+                }
+            }
             break;
         case 0b1100:
+            switch ((insn & 0xf00) >> 8) {
+                case 0b0010: //1100 0010 LLLL LLLL MOVL loc32, XAR6
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_loc32_xarn(ctx, mode, 6);
+                    break;
+                }
+                case 0b0011: //1100 0011 LLLL LLLL MOVL loc32, XAR7
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_loc32_xarn(ctx, mode, 7);
+                    break;
+                }
+            }
             break;
         case 0b1101:
             break;

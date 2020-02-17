@@ -221,14 +221,29 @@ static inline uint32_t cpu_get_idlestat(const CPUTms320c28xState *env)
     return (env->st1 >> 7) & 1;
 }
 
+static inline void cpu_set_idlestat(CPUTms320c28xState *env, uint32_t value) {
+    value = value & 1;
+    env->st1 = (env->st1 & 0xff7f) | (value << 1);
+}
+
 static inline uint32_t cpu_get_eallow(const CPUTms320c28xState *env)
 {
     return (env->st1 >> 6) & 1;
 }
 
+static inline void cpu_set_eallow(CPUTms320c28xState *env, uint32_t value) {
+    value = value & 1;
+    env->st1 = (env->st1 & 0xffbf) | (value << 1);
+}
+
 static inline uint32_t cpu_get_loop(const CPUTms320c28xState *env)
 {
     return (env->st1 >> 5) & 1;
+}
+
+static inline void cpu_set_loop(CPUTms320c28xState *env, uint32_t value) {
+    value = value & 1;
+    env->st1 = (env->st1 & 0xffdf) | (value << 1);
 }
 
 static inline uint32_t cpu_get_spa(const CPUTms320c28xState *env)
@@ -259,6 +274,11 @@ static inline void cpu_set_dbgm(CPUTms320c28xState *env, uint32_t value) {
 static inline uint32_t cpu_get_intm(const CPUTms320c28xState *env)
 {
     return (env->st1) & 1;
+}
+
+static inline void cpu_set_intm(CPUTms320c28xState *env, uint32_t value) {
+    value = value & 1;
+    env->st1 = (env->st1 & 0xfffe) | (value << 1);
 }
 
 static inline uint32_t cpu_get_sxm(const CPUTms320c28xState *env)
@@ -346,7 +366,7 @@ static inline void cpu_get_tb_cpu_state(CPUTms320c28xState *env,
                                         target_ulong *pc,
                                         target_ulong *cs_base, uint32_t *flags)
 {
-    *pc = env->pc;
+    *pc = env->pc * 2;
     // todo: cs_base,flags
     *cs_base = 0;
     *flags = 0;
@@ -360,11 +380,45 @@ static inline int cpu_mmu_index(CPUTms320c28xState *env, bool ifetch)
 }
 
 #define CPU_INTERRUPT_INT   CPU_INTERRUPT_TGT_EXT_0
-#define CPU_INTERRUPT_DLOGINT   CPU_INTERRUPT_TGT_EXT_1
-#define CPU_INTERRUPT_RTLOGINT   CPU_INTERRUPT_TGT_EXT_2
 
-#define CPU_INTERRUPT_NMI   CPU_INTERRUPT_TGT_INT_0
-#define CPU_INTERRUPT_ILLEGAL   CPU_INTERRUPT_TGT_INT_1
-#define CPU_INTERRUPT_USER   CPU_INTERRUPT_TGT_INT_2
+#define EXCP_INTERRUPT_RESET 0
+#define EXCP_INTERRUPT_INT1 1
+#define EXCP_INTERRUPT_INT2 2
+#define EXCP_INTERRUPT_INT3 3
+#define EXCP_INTERRUPT_INT4 4
+#define EXCP_INTERRUPT_INT5 5
+#define EXCP_INTERRUPT_INT6 6
+#define EXCP_INTERRUPT_INT7 7
+#define EXCP_INTERRUPT_INT8 8
+#define EXCP_INTERRUPT_INT9 9
+#define EXCP_INTERRUPT_INT10 10
+#define EXCP_INTERRUPT_INT11 11
+#define EXCP_INTERRUPT_INT12 12
+#define EXCP_INTERRUPT_INT13 13
+#define EXCP_INTERRUPT_INT14 14
+#define EXCP_INTERRUPT_DLOGINT 15
+#define EXCP_INTERRUPT_RTOSINT 16
+#define EXCP_INTERRUPT_RESERVED 17
+#define EXCP_INTERRUPT_NMI 18
+#define EXCP_INTERRUPT_ILLEGAL 19
+#define EXCP_INTERRUPT_USER1 20
+#define EXCP_INTERRUPT_USER2 21
+#define EXCP_INTERRUPT_USER3 22
+#define EXCP_INTERRUPT_USER4 23
+#define EXCP_INTERRUPT_USER5 24
+#define EXCP_INTERRUPT_USER6 25
+#define EXCP_INTERRUPT_USER7 26
+#define EXCP_INTERRUPT_USER8 27
+#define EXCP_INTERRUPT_USER9 28
+#define EXCP_INTERRUPT_USER10 29
+#define EXCP_INTERRUPT_USER11 30
+#define EXCP_INTERRUPT_USER12 31
+
+static const char * const INTERRUPT_NAME[EXCP_INTERRUPT_USER12+1] = {
+    "RESET","INT1","INT2","INT3","INT4","INT5","INT6","INT7","INT8","INT9","INT10",
+    "INT11","INT12","INT13","INT14","DLOGINT","RTOSINT","Reserved","NMI",
+    "ILLEGAL","USER1","USER2","USER3","USER4","USER5","USER6","USER7","USER8","USER9",
+    "USER10","USER11","USER12"
+};
 
 #endif /* TMS320C28X_CPU_H */

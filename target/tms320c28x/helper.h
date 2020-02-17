@@ -40,3 +40,4 @@ DEF_HELPER_1(print_env, void, env)
 
 //interrupt
 DEF_HELPER_1(aborti, void, env)
+DEF_HELPER_3(intr, void, env, i32, i32)

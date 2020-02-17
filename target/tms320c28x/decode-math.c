@@ -128,6 +128,13 @@ static void gen_movl_loc32_acc(DisasContext *ctx, uint32_t mode) {
     }
 }
 
+// MOVL loc32,XARn
+static void gen_movl_loc32_xarn(DisasContext *ctx, uint32_t mode, uint32_t n) {
+    gen_st_loc32(mode, cpu_xar[n]);
+    if (mode == 0b10101001) { //if loc32 == @ACC, test N,Z with ACC
+        gen_test_N_Z_acc();
+    }
+}
 
 // MOVL XARn,#22bit
 static void gen_movl_xarn_22bit(DisasContext *ctx, uint32_t n, uint32_t imm) {

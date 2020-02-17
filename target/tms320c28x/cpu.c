@@ -27,20 +27,14 @@ static void tms320c28x_cpu_set_pc(CPUState *cs, vaddr value)
 {
     Tms320c28xCPU *cpu = TMS320C28X_CPU(cs);
 
-    cpu->env.pc = value;
+    cpu->env.pc = value << 1;
     //todo: is there other work?
 }
 
 //是否在工作 ？?
 static bool tms320c28x_cpu_has_work(CPUState *cs)
 {
-    return cs->interrupt_request & (CPU_INTERRUPT_INT |
-                                    CPU_INTERRUPT_DLOGINT |
-                                    CPU_INTERRUPT_RTLOGINT |
-                                    CPU_INTERRUPT_NMI |
-                                    CPU_INTERRUPT_ILLEGAL |
-                                    CPU_INTERRUPT_USER
-                                    );
+    return cs->interrupt_request & (CPU_INTERRUPT_INT);
 }
 
 // 打印指令反汇编码

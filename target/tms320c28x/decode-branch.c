@@ -2,8 +2,8 @@
 // BF 16bitOffset,COND
 static void gen_bf_16bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t cond) 
 {
-    TCGv pc1 = tcg_const_i32((uint32_t)ctx->base.pc_next + offset*2);
-    TCGv pc2 = tcg_const_i32((uint32_t)ctx->base.pc_next + 4);
+    TCGv pc1 = tcg_const_i32(((uint32_t)ctx->base.pc_next >> 1) + offset);
+    TCGv pc2 = tcg_const_i32(((uint32_t)ctx->base.pc_next >> 1) + 2);
     ctx->base.is_jmp = DISAS_JUMP;
     TCGv cond_tcg = tcg_const_i32(cond);
     gen_helper_branch_cond(cpu_env, cond_tcg, pc1, pc2);
@@ -20,8 +20,8 @@ static void gen_lb_22bit(DisasContext *ctx, uint32_t imm) {
 
 // SB 8bitOffset,COND
 static void gen_sb_8bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t cond) {
-    TCGv pc1 = tcg_const_i32((uint32_t)ctx->base.pc_next + offset*2);
-    TCGv pc2 = tcg_const_i32((uint32_t)ctx->base.pc_next + 2);
+    TCGv pc1 = tcg_const_i32(((uint32_t)ctx->base.pc_next >> 1) + offset);
+    TCGv pc2 = tcg_const_i32(((uint32_t)ctx->base.pc_next >> 1) + 1);
     ctx->base.is_jmp = DISAS_JUMP;
     TCGv cond_tcg = tcg_const_i32(cond);
     gen_helper_branch_cond(cpu_env, cond_tcg, pc1, pc2);

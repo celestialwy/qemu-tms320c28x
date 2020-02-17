@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "/home/liwb/qemu-4.2.0-rc1/test/qemu-system-tms320c28x",
             "args": [
-                "-kernel","test.bin","-s","-monitor","stdio","-d","in_asm"
+                "-kernel","test.bin","-s","-monitor","stdio","-d","in_asm,int"
             ],
             "stopAtEntry": false,
             "cwd": "/home/liwb/qemu-4.2.0-rc1/test/",
