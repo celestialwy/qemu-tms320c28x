@@ -1,5 +1,7 @@
-static void gen_ld16u_swap(TCGv value, TCGv addr) 
+static void gen_ld16u_swap(TCGv value, TCGv addr_param) 
 {
+    TCGv addr = tcg_temp_local_new();
+    tcg_gen_shli_i32(addr, addr_param, 1);// addr*2
     tcg_gen_qemu_ld16u(value, addr, 0);
 
     TCGv_i32 tmp = tcg_const_i32(0);
@@ -8,10 +10,13 @@ static void gen_ld16u_swap(TCGv value, TCGv addr)
     tcg_gen_shri_tl(value, value, 8);
     tcg_gen_or_i32(value, value, tmp);
     tcg_temp_free_i32(tmp);
+    tcg_temp_free_i32(addr);
 }
 
-static void gen_ld32u_swap(TCGv value, TCGv addr) 
+static void gen_ld32u_swap(TCGv value, TCGv addr_param) 
 {
+    TCGv addr = tcg_temp_local_new();
+    tcg_gen_shli_i32(addr, addr_param, 1);// addr*2
     tcg_gen_qemu_ld32u(value, addr, 0);
 
     TCGv_i32 tmp = tcg_const_i32(0);
@@ -27,10 +32,14 @@ static void gen_ld32u_swap(TCGv value, TCGv addr)
     tcg_gen_or_i32(value, value, tmp);
 
     tcg_temp_free_i32(tmp);
+    tcg_temp_free_i32(addr);
 }
 
-static void gen_st16u_swap(TCGv value, TCGv addr)
+static void gen_st16u_swap(TCGv value, TCGv addr_param)
 {
+    TCGv addr = tcg_temp_local_new();
+    tcg_gen_shli_i32(addr, addr_param, 1);// addr*2
+
     TCGv_i32 tmp = tcg_const_i32(0);
     TCGv_i32 tmp2 = tcg_const_i32(0);
 
@@ -41,9 +50,14 @@ static void gen_st16u_swap(TCGv value, TCGv addr)
     tcg_gen_qemu_st16(tmp2, addr, 0);
     tcg_temp_free_i32(tmp);
     tcg_temp_free_i32(tmp2);
+    tcg_temp_free_i32(addr);
 }
 
-static void gen_st32u_swap(TCGv value, TCGv addr) {
+static void gen_st32u_swap(TCGv value, TCGv addr_param) 
+{
+    TCGv addr = tcg_temp_local_new();
+    tcg_gen_shli_i32(addr, addr_param, 1);// addr*2
+
     TCGv_i32 tmp = tcg_const_i32(0);
     TCGv_i32 tmp2 = tcg_const_i32(0);
     // ABCD -> CDAB
@@ -60,6 +74,7 @@ static void gen_st32u_swap(TCGv value, TCGv addr) {
     tcg_gen_qemu_st32(tmp2, addr, 0);
     tcg_temp_free_i32(tmp);
     tcg_temp_free_i32(tmp2);
+    tcg_temp_free_i32(addr);
 }
 
 // load loc16 value to retval
@@ -209,7 +224,7 @@ static void gen_st_reg_high_half(TCGv reg, TCGv_i32 oprand)
     TCGv_i32 tmp = tcg_const_i32(0x0000ffff);
     tcg_gen_and_tl(reg, reg, tmp);// get low 16bit
     tcg_gen_shli_tl(oprand, oprand, 16); // shift imm value
-    tcg_gen_or_tl(cpu_acc, cpu_acc, oprand);// concat high 16bit
+    tcg_gen_or_tl(reg, reg, oprand);// concat high 16bit
     tcg_temp_free_i32(tmp);
 }
 
@@ -219,7 +234,7 @@ static void gen_sti_reg_high_half(TCGv reg, uint32_t oprand)
     TCGv_i32 tmp = tcg_const_i32(0x0000ffff);
     tcg_gen_and_tl(reg, reg, tmp);// get low 16bit
     oprand = oprand << 16; // shift imm value
-    tcg_gen_ori_tl(cpu_acc, cpu_acc, oprand);// concat high 16bit
+    tcg_gen_ori_tl(reg, reg, oprand);// concat high 16bit
     tcg_temp_free_i32(tmp);
 }
 

@@ -18,6 +18,24 @@ static void gen_lb_22bit(DisasContext *ctx, uint32_t imm) {
     ctx->base.is_jmp = DISAS_JUMP;
 }
 
+// LRETR
+static void gen_lretr(DisasContext *ctx)
+{
+    tcg_gen_mov_i32(cpu_pc, cpu_rpc); // PC = RPC
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1); // SP = SP - 1
+    TCGv tmp = tcg_temp_local_new();
+    gen_ld16u_swap(tmp, cpu_sp); //temp[31:16] = [SP]
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1); // SP = SP - 1
+    TCGv tmp2 = tcg_temp_local_new();
+    gen_ld16u_swap(tmp2, cpu_sp); //temp[15:0] = [SP]
+    tcg_gen_shli_i32(tmp, tmp ,16);
+    tcg_gen_andi_i32(tmp2, tmp2, 0xffff);
+    tcg_gen_or_i32(tmp, tmp, tmp2);
+    tcg_gen_andi_i32(cpu_rpc, tmp, 0x3fffff);//22bit
+    
+    ctx->base.is_jmp = DISAS_JUMP;
+}
+
 // SB 8bitOffset,COND
 static void gen_sb_8bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t cond) {
     TCGv pc1 = tcg_const_i32(((uint32_t)ctx->base.pc_next >> 1) + offset);

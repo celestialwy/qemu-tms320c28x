@@ -227,6 +227,21 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         case 2: //0000 0000 0000 0010, POP IFR
                                             fprintf_func(stream, "0x%04x;     POP IFR", insn);
                                             break;
+                                        case 3: //0000 0000 0000 0011 POP AR1H:AR0H
+                                            fprintf_func(stream, "0x%04x;     POP AR1H:AR0H", insn);
+                                            break;
+                                        case 4: //0000 0000 0000 0100 PUSH RPC
+                                            fprintf_func(stream, "0x%04x;     PUSH RPC", insn);
+                                            break;
+                                        case 5: //0000 0000 0000 0101 PUSH AR1H:AR0H
+                                            fprintf_func(stream, "0x%04x;     PUSH AR1H:AR0H", insn);
+                                            break;
+                                        case 6: //0000 0000 0000 0110 LRETR
+                                            fprintf_func(stream, "0x%04x;     LRETR", insn);
+                                            break;
+                                        case 7: //0000 0000 0000 0111 POP RPC
+                                            fprintf_func(stream, "0x%04x;     POP RPC", insn);
+                                            break;
                                         default: //0000 0000 0000 1nnn, BANZ 16bitOffset,ARn--
                                             break;
                                     }
@@ -400,10 +415,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b0110: //0110 COND CCCC CCCC SB 8bitOffset,COND
         {
-            int16_t imm = (uint16_t)(insn&0xff);
+            int16_t offset = insn & 0xff;
+            if ((offset >> 7) == 1) {
+                offset = offset | 0xff00;
+            }
             int16_t cond = (insn>>8)&0xf;
             get_cond_string(str, cond);
-            fprintf_func(stream, "0x%04x;     SB %d,%s", insn, imm, str);
+            fprintf_func(stream, "0x%04x;     SB %d,%s", insn, offset, str);
             break;
         }
         case 0b0111:

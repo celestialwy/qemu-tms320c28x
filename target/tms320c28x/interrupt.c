@@ -119,7 +119,7 @@ void tms320c28x_cpu_do_interrupt(CPUState *cs)
         cpu_set_idlestat(env, 0);
         // PC = fetched vector
         uint32_t vector_base = 0x3fffc0;
-        uint32_t addr = vector_base + exception*2;
+        uint32_t addr = vector_base + exception * 2;
         env->pc = ld32_swap(env, addr);
 
         if (exception <= EXCP_INTERRUPT_RTOSINT) {

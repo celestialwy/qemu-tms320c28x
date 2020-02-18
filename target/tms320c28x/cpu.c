@@ -27,7 +27,7 @@ static void tms320c28x_cpu_set_pc(CPUState *cs, vaddr value)
 {
     Tms320c28xCPU *cpu = TMS320C28X_CPU(cs);
 
-    cpu->env.pc = value << 1;
+    cpu->env.pc = (value  & 0x3fffff) >> 1;
     //todo: is there other work?
 }
 

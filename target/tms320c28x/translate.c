@@ -108,6 +108,7 @@ void tms320c28x_translate_init(void)
 #include "decode-status.c"
 #include "decode-base.c"
 
+#include "decode-mov.c"
 #include "decode-math.c"
 #include "decode-bitop.c"
 #include "decode-branch.c"
@@ -138,6 +139,21 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                             break;
                                         case 2: //0000 0000 0000 0010, POP IFR
                                             gen_pop_ifr(ctx);
+                                            break;
+                                        case 3: //0000 0000 0000 0011 POP AR1H:AR0H
+                                            gen_pop_ar1h_ar0h(ctx);
+                                            break;
+                                        case 4: //0000 0000 0000 0100 PUSH RPC
+                                            gen_push_rpc(ctx);
+                                            break;
+                                        case 5: //0000 0000 0000 0101 PUSH AR1H:AR0H
+                                            gen_push_ar1h_ar0h(ctx);
+                                            break;
+                                        case 6: //0000 0000 0000 0110 LRETR
+                                            gen_lretr(ctx);
+                                            break;
+                                        case 7: //0000 0000 0000 0111 POP RPC
+                                            gen_pop_rpc(ctx);
                                             break;
                                         default: //0000 0000 0000 1nnn, BANZ 16bitOffset,ARn--
                                             break;

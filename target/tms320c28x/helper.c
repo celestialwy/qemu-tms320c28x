@@ -246,7 +246,8 @@ uint32_t HELPER(addressing_mode)(CPUTms320c28xState *env, uint32_t loc, uint32_t
     else {
         //todo amode==1
     }
-    return dest<<1;
+    // return dest<<1;
+    return dest;
 }
 
 void HELPER(branch_cond)(CPUTms320c28xState *env, uint32_t cond, uint32_t pc1, uint32_t pc2) {
