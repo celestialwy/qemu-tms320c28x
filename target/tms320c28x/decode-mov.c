@@ -9,8 +9,11 @@ static void gen_mov_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t s
 }
 
 // MOV ACC, #16bit<<#0...15
-static void gen_mov_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t shift) {
+static void gen_mov_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t shift) 
+{
     TCGv oprand = tcg_const_i32(imm);
+    gen_helper_ld_low_sxm(oprand, cpu_env, oprand);//16bit signed extend with sxm
+    
     tcg_gen_shli_i32(cpu_acc, oprand, shift); // shift left, save to acc
     // set N,Z
     gen_test_N_Z_acc();

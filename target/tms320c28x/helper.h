@@ -21,23 +21,25 @@ DEF_HELPER_3(addressing_mode, i32, env, i32, i32)
 
 DEF_HELPER_4(branch_cond,void,env,i32,i32,i32)
 
+// test bit
 DEF_HELPER_3(test_N, void, env, i32, i32)
 DEF_HELPER_3(test_Z, void, env, i32, i32)
+DEF_HELPER_4(test_C_V_16, void, env, i32, i32, i32)
+DEF_HELPER_4(test_C_V_32, void, env, i32, i32, i32)
+DEF_HELPER_4(test_OVC_OVM_32, void, env, i32, i32, i32) // affect acc value
 
-DEF_HELPER_2(test_C_V_16, void, env, i32)
-DEF_HELPER_3(test_C_V_32, void, env, i32, i32)
-DEF_HELPER_3(test_sub_C_V_32, void, env, i32, i32)
-
-//affect acc value
-DEF_HELPER_3(test_OVC_32_set_acc, void, env, i32, i32)
-
-
+//load with cond
 DEF_HELPER_2(ld_high_sxm, i32, env, i32)
 DEF_HELPER_2(ld_low_sxm, i32, env, i32)
 
+//print
 DEF_HELPER_2(print, void, env, i32)
 DEF_HELPER_1(print_env, void, env)
 
 //interrupt
 DEF_HELPER_1(aborti, void, env)
 DEF_HELPER_3(intr, void, env, i32, i32)
+
+//math
+DEF_HELPER_1(abs_acc, void, env)
+DEF_HELPER_1(abstc_acc, void, env)

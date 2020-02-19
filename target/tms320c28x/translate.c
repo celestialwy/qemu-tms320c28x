@@ -288,6 +288,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     gen_movl_loc32_xarn(ctx, mode, 0);
                     break;
                 }
+                case 0b1011: //0011 1011 CCCC CCCC SETC mode
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_setc_mode(ctx, mode);
+                    break;
+                }
             }
             break;
         case 0b0100:
@@ -312,6 +318,17 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                             }
                             break;
+                        case 0b0101: //0101 0110 0101 ....
+                        {
+                            switch (insn & 0xf) {
+                                case 0b1111: //0101 0110 0101 1111 ABSTC  ACC
+                                {
+                                    gen_abstc_acc(ctx);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case 0b1100: //0101 0110 1100 COND  BF 16bitOffset,COND
                         {
                             int16_t offset = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
@@ -495,7 +512,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             switch ((insn & 0x0f00) >> 8) { 
                 case 0b1111://1111 1111 .... ....
                     switch ((insn & 0x00f0) >> 4) {
-                        case 0b0010: /*1111 1111 0010 .... MOV ACC, #16bit<#0...15 */
+                        case 0b0001: //1111 1111 0001 SHFT 32bit ADD ACC, #16bit<#0...15
+                        {
+                            uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                            uint32_t shift = insn & 0x000f;
+                            gen_add_acc_16bit_shift(ctx, imm, shift);
+                            length = 4;
+                            break;
+                        }
+                        case 0b0010: //1111 1111 0010 SHFT 32bit MOV ACC, #16bit<#0...15
                         {
                             uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                             uint32_t shift = insn & 0x000f;
@@ -503,6 +528,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                             length = 4;
                             break;
                         }
+                        case 0b0101: //1111 1111 0101 ....
+                            switch (insn & 0xf) {
+                                case 0b0110: //1111 1111 0101 0110 ABS ACC
+                                {
+                                    gen_abs_acc(ctx);
+                                    break;
+                                }
+                            }
+                            break;
                     }
                     break;
             }
@@ -664,7 +698,7 @@ void tms320c28x_cpu_dump_state(CPUState *cs, FILE *f, int flags)
     qemu_fprintf(f, "P  =%08x PH =%04x PH =%04x\n", env->p, env->p >> 16, env->p & 0xffff);
     qemu_fprintf(f, "XT =%08x T  =%04x TL =%04x\n", env->xt, env->xt >> 16, env->xt & 0xffff);
     qemu_fprintf(f, "SP =%04x ST0=%04x ST1=%04x\n", env->sp, env->st0, env->st1);
-    qemu_fprintf(f, "OVC=%x PM=%x V=%x N=%x Z=%x\n", cpu_get_ovm(env), cpu_get_pm(env), cpu_get_v(env), cpu_get_n(env), cpu_get_z(env));
+    qemu_fprintf(f, "OVC=%x PM=%x V=%x N=%x Z=%x\n", cpu_get_ovc(env), cpu_get_pm(env), cpu_get_v(env), cpu_get_n(env), cpu_get_z(env));
     qemu_fprintf(f, "C=%x TC=%x OVM=%x SXM=%x\n", cpu_get_c(env), cpu_get_tc(env), cpu_get_ovm(env), cpu_get_sxm(env));
     qemu_fprintf(f, "ARP=%x XF=%x MOM1MAP=%x OBJMODE=%x\n", cpu_get_arp(env), cpu_get_xf(env), cpu_get_mom1map(env), cpu_get_objmode(env));
     qemu_fprintf(f, "AMODE=%x IDLESTAT=%x EALLOW=%x LOOP=%x\n", cpu_get_amode(env), cpu_get_idlestat(env), cpu_get_eallow(env), cpu_get_loop(env));

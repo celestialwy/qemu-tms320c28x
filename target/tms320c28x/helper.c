@@ -283,97 +283,79 @@ void HELPER(test_Z)(CPUTms320c28xState *env, uint32_t val1, uint32_t val2) {
     }
 }
 
-void HELPER(test_C_V_16)(CPUTms320c28xState *env, uint32_t val) {
-    uint32_t carry = (val>>16) & 1;
-    uint32_t sign = (val>>15) & 1;
-    if (carry == 1) { //set C
+void HELPER(test_C_V_16)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) {
+    uint32_t bit1 = (a >> 15) & 1;
+    uint32_t bit2 = (b >> 15) & 1;
+    uint32_t bit3 = (result >> 15) & 1;
+    uint32_t tmp = a + b;
+    if ((tmp >> 16) & 1) {
         cpu_set_c(env, 1);
-        // env->st0 = env->st0 | 0b1000;
     }
     else {
         cpu_set_c(env, 0);
-        // env->st0 = env->st0 & 0xfff7;
     }
-    if (carry != sign) { //set V
+    if (bit1 == 1 && bit2 == 1 && bit3 == 0) {//neg overflow
         cpu_set_v(env, 1);
-        // env->st0 = env->st0 | 0b1000000;
+    }
+    else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
+        cpu_set_v(env, 1);
     }
     else {
         cpu_set_v(env, 0);
-        // env->st0 = env->st0 & 0xffbf;
     }
 }
 
-void HELPER(test_sub_C_V_32)(CPUTms320c28xState *env, uint32_t high, uint32_t low) {
-    uint32_t carry = high & 1;
-    uint32_t sign = (low>>31) & 1;
-    if (carry == 0) { //set C, because carry bit set to 1 before sub
+void HELPER(test_C_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
+{
+    uint32_t bit1 = a >> 31;
+    uint32_t bit2 = b >> 31;
+    uint32_t bit3 = result >> 31;
+    uint64_t tmp = (uint64_t)a + (uint64_t)b;
+    if ((tmp >> 32) & 1) {
         cpu_set_c(env, 1);
-        // env->st0 = env->st0 | 0b1000;
     }
     else {
         cpu_set_c(env, 0);
-        // env->st0 = env->st0 & 0xfff7;
     }
-    if (carry != sign) { //set V
-        cpu_set_v(env, 1);
-        // env->st0 = env->st0 | 0b1000000;
-    }
-    else {
-        cpu_set_v(env, 0);
-        // env->st0 = env->st0 & 0xffbf;
-    }
-}
 
-void HELPER(test_C_V_32)(CPUTms320c28xState *env, uint32_t high, uint32_t low) {
-    uint32_t carry = high & 1;
-    uint32_t sign = (low>>31) & 1;
-    if (carry == 1) { //set C
-        cpu_set_c(env, 1);
-        // env->st0 = env->st0 | 0b1000;
-    }
-    else {
-        cpu_set_c(env, 0);
-        // env->st0 = env->st0 & 0xfff7;
-    }
-    if (carry != sign) { //set V
+    if (bit1 == 1 && bit2 == 1 && bit3 == 0) {//neg overflow
         cpu_set_v(env, 1);
-        // env->st0 = env->st0 | 0b1000000;
+    }
+    else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
+        cpu_set_v(env, 1);
     }
     else {
         cpu_set_v(env, 0);
-        // env->st0 = env->st0 & 0xffbf;
     }
 }
 
 // affect acc value
-void HELPER(test_OVC_32_set_acc)(CPUTms320c28xState *env, uint32_t high, uint32_t low) {
-    uint32_t carry = high & 1;
-    uint32_t sign = (low>>31) & 1;
+void HELPER(test_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) {
+    uint32_t bit1 = a >> 31;
+    uint32_t bit2 = b >> 31;
+    uint32_t bit3 = result >> 31;
 
     if (cpu_get_ovm(env)) { //ovm = 1
-        if ((carry == 0) & (sign == 1)) //positive overflow
+        if (bit1 == 0 && bit2 == 0 && bit3 == 1)//pos overflow
         {
             env->acc = 0x7fffffff;
         }
-        if ((carry == 1) & (sign == 0)) //neg overflow
+        if (bit1 == 1 && bit2 == 1 && bit3 == 0)//neg overflow
         {
             env->acc = 0x80000000;
         }
     }
     else {
-        int32_t ovc = cpu_get_ovm(env);
-        if ((carry == 0) & (sign == 1)) //positive overflow
+        int32_t ovc = cpu_get_ovc(env);
+        if (bit1 == 0 && bit2 == 0 && bit3 == 1)//pos overflow
         {
             ovc += 1;
             cpu_set_ovc(env, ovc);
-            // env->st0 = (env->st0 & 0xfc00) | (ovc << 10);
         }
-        if ((carry == 1) & (sign == 0)) //neg overflow
+        if (bit1 == 1 && bit2 == 1 && bit3 == 0)//neg overflow
         {
             ovc -= 1;
             cpu_set_ovc(env, ovc);
-            // env->st0 = (env->st0 & 0xfc00) | (ovc << 10);
         }
     }    
 }
@@ -425,7 +407,7 @@ void HELPER(print_env)(CPUTms320c28xState *env) {
     qemu_log_mask(CPU_LOG_INT, "P  =%08x PH =%04x PH =%04x\n", env->p, env->p >> 16, env->p & 0xffff);
     qemu_log_mask(CPU_LOG_INT, "XT =%08x T  =%04x TL =%04x\n", env->xt, env->xt >> 16, env->xt & 0xffff);
     qemu_log_mask(CPU_LOG_INT, "SP =%04x ST0=%04x ST1=%04x\n", env->sp, env->st0, env->st1);
-    qemu_log_mask(CPU_LOG_INT, "OVC=%x PM=%x V=%x N=%x Z=%x\n", cpu_get_ovm(env), cpu_get_pm(env), cpu_get_v(env), cpu_get_n(env), cpu_get_z(env));
+    qemu_log_mask(CPU_LOG_INT, "OVC=%x PM=%x V=%x N=%x Z=%x\n", cpu_get_ovc(env), cpu_get_pm(env), cpu_get_v(env), cpu_get_n(env), cpu_get_z(env));
     qemu_log_mask(CPU_LOG_INT, "C=%x TC=%x OVM=%x SXM=%x\n", cpu_get_c(env), cpu_get_tc(env), cpu_get_ovm(env), cpu_get_sxm(env));
     qemu_log_mask(CPU_LOG_INT, "ARP=%x XF=%x MOM1MAP=%x OBJMODE=%x\n", cpu_get_arp(env), cpu_get_xf(env), cpu_get_mom1map(env), cpu_get_objmode(env));
     qemu_log_mask(CPU_LOG_INT, "AMODE=%x IDLESTAT=%x EALLOW=%x LOOP=%x\n", cpu_get_amode(env), cpu_get_idlestat(env), cpu_get_eallow(env), cpu_get_loop(env));
@@ -454,4 +436,52 @@ void HELPER(intr)(CPUTms320c28xState *env, uint32_t int_n, uint32_t pc) {
 
     env->pc = pc;
     raise_exception(cpu, int_n);
+}
+
+void HELPER(abs_acc)(CPUTms320c28xState *env)
+{
+    if (env->acc == 0x80000000) {
+        cpu_set_v(env, 1);
+        if (cpu_get_ovm(env) == 1) {
+            env->acc = 0x7fffffff;
+        }
+        else {
+            env->acc = 0x80000000;
+        }
+    }
+    else {
+        int32_t tmp = env->acc;
+        if (tmp < 0)
+        {
+            tmp = -tmp;
+            env->acc = tmp;
+        }
+    }
+}
+
+void HELPER(abstc_acc)(CPUTms320c28xState *env)
+{
+    if (env->acc == 0x80000000) {
+        if (cpu_get_ovm(env) == 1) {
+            env->acc = 0x7fffffff;
+        }
+        else {
+            env->acc = 0x80000000;
+        }
+        cpu_set_v(env, 1);
+        uint32_t tc = cpu_get_tc(env);
+        tc = tc ^ 1;//TC = TC XOR 1
+        cpu_set_tc(env, tc);
+    }
+    else {
+        int32_t tmp = env->acc;
+        if (tmp < 0)
+        {
+            tmp = -tmp;
+            env->acc = tmp;
+        }
+        uint32_t tc = cpu_get_tc(env);
+        tc = tc ^ 1;//TC = TC XOR 1
+        cpu_set_tc(env, tc);
+    }
 }

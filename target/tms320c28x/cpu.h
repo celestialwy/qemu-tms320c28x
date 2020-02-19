@@ -223,7 +223,7 @@ static inline uint32_t cpu_get_idlestat(const CPUTms320c28xState *env)
 
 static inline void cpu_set_idlestat(CPUTms320c28xState *env, uint32_t value) {
     value = value & 1;
-    env->st1 = (env->st1 & 0xff7f) | (value << 1);
+    env->st1 = (env->st1 & 0xff7f) | (value << 7);
 }
 
 static inline uint32_t cpu_get_eallow(const CPUTms320c28xState *env)
@@ -233,7 +233,7 @@ static inline uint32_t cpu_get_eallow(const CPUTms320c28xState *env)
 
 static inline void cpu_set_eallow(CPUTms320c28xState *env, uint32_t value) {
     value = value & 1;
-    env->st1 = (env->st1 & 0xffbf) | (value << 1);
+    env->st1 = (env->st1 & 0xffbf) | (value << 6);
 }
 
 static inline uint32_t cpu_get_loop(const CPUTms320c28xState *env)
@@ -243,7 +243,7 @@ static inline uint32_t cpu_get_loop(const CPUTms320c28xState *env)
 
 static inline void cpu_set_loop(CPUTms320c28xState *env, uint32_t value) {
     value = value & 1;
-    env->st1 = (env->st1 & 0xffdf) | (value << 1);
+    env->st1 = (env->st1 & 0xffdf) | (value << 5);
 }
 
 static inline uint32_t cpu_get_spa(const CPUTms320c28xState *env)
@@ -278,7 +278,7 @@ static inline uint32_t cpu_get_intm(const CPUTms320c28xState *env)
 
 static inline void cpu_set_intm(CPUTms320c28xState *env, uint32_t value) {
     value = value & 1;
-    env->st1 = (env->st1 & 0xfffe) | (value << 1);
+    env->st1 = (env->st1 & 0xfffe) | (value);
 }
 
 static inline uint32_t cpu_get_sxm(const CPUTms320c28xState *env)
@@ -326,6 +326,12 @@ static inline void cpu_set_v(CPUTms320c28xState *env, uint32_t v)
 static inline uint32_t cpu_get_tc(const CPUTms320c28xState *env)
 {
     return (env->st0 >> 2) & 1;
+}
+
+static inline void cpu_set_tc(CPUTms320c28xState *env, uint32_t value)
+{
+    value = value & 0b111111;
+    env->st0 = (env->st0 & 0xfffb) | (value << 2);
 }
 
 static inline uint32_t cpu_get_c(const CPUTms320c28xState *env)

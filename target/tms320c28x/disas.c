@@ -185,6 +185,44 @@ static void get_cond_string(char *str, uint32_t cond) {
     }
 }
 
+static void get_setc_string(char *str, uint32_t mode) {
+    mode = mode & 0xff;
+    uint32_t i = 0;
+    if (((mode>>0) & 1) == 1) {
+        sprintf(str+i, "SXM,");
+        i += 4;
+    }
+    if (((mode>>1) & 1) == 1) {
+        sprintf(str+i, "OVM,");
+        i += 4;
+    }
+    if (((mode>>2) & 1) == 1) {
+        sprintf(str+i, "TC,");
+        i += 3;
+    }
+    if (((mode>>3) & 1) == 1) {
+        sprintf(str+i, "C,");
+        i += 2;
+    }
+    if (((mode>>4) & 1) == 1) {
+        sprintf(str+i, "INTM,");
+        i += 5;
+    }
+    if (((mode>>5) & 1) == 1) {
+        sprintf(str+i, "DBGM,");
+        i += 5;
+    }
+    if (((mode>>6) & 1) == 1) {
+        sprintf(str+i, "PAGE0,");
+        i += 6;
+    }
+    if (((mode>>7) & 1) == 1) {
+        sprintf(str+i, "VMAP,");
+        i += 5;
+    }
+    str[i-1] = 0;
+}
+
 int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
 {
     fprintf_function fprintf_func = info->fprintf_func;
@@ -198,7 +236,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
         info->memory_error_func(status, addr, info);
         return -1;
     }
-    char str[20];
+    char str[40];
 
     unsigned long v;
     v = (unsigned long) buffer[2];
@@ -379,6 +417,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOVL %s,XAR0", insn, str);
                     break;
                 }
+                case 0b1011: //0011 1011 CCCC CCCC SETC mode
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_setc_string(str, mode);
+                    fprintf_func(stream, "0x%04x;     SETC %s", insn, str);
+                    break;
+                }
             }
             break;
         case 0b0100:
@@ -400,6 +445,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 }
                             }
                             break;
+                        case 0b0101: //0101 0110 0101 ....
+                        {
+                            switch (insn & 0xf) {
+                                case 0b1111: //0101 0110 0101 1111 ABSTC  ACC
+                                {
+                                    fprintf_func(stream, "0x%04x;     ABCTC ACC", insn);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case 0b1100: //0101 0110 1100 COND  BF 16bitOffset,COND
                         {
                             int16_t imm = (uint16_t)(insn32&0xffff);
@@ -594,6 +650,14 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             switch ((insn & 0x0f00) >> 8) { 
                 case 0b1111://1111 1111 .... ....
                     switch ((insn & 0x00f0) >> 4) {
+                        case 0b0001: //1111 1111 0001 SHFT 32bit ADD ACC, #16bit<#0...15
+                        {
+                            uint32_t imm = insn32 & 0xffff;
+                            uint32_t shift = insn & 0x000f;
+                            fprintf_func(stream, "0x%08x; ADD ACC, #0x%x<<#%d", insn32, imm, shift);
+                            length = 4;
+                            break;
+                        }
                         case 0b0010: /*1111 1111 0010 .... MOV ACC, #16bit<#0...15 */
                         {
                             uint32_t imm = insn32 & 0xffff;
@@ -602,6 +666,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             length = 4;
                             break;
                         }
+                        case 0b0101: //1111 1111 0101 ....
+                            switch (insn & 0xf) {
+                                case 0b0110: //1111 1111 0101 0110 ABS ACC
+                                {
+                                    fprintf_func(stream, "0x%04x;     ABS ACC", insn);
+                                    break;
+                                }
+                            }
+                            break;
                     }
                     break;
             }
