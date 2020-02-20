@@ -25,6 +25,8 @@ DEF_HELPER_4(branch_cond,void,env,i32,i32,i32)
 DEF_HELPER_3(test_N, void, env, i32, i32)
 DEF_HELPER_3(test_Z, void, env, i32, i32)
 DEF_HELPER_4(test_C_V_16, void, env, i32, i32, i32)
+DEF_HELPER_4(test_C_32, void, env, i32, i32, i32)
+DEF_HELPER_4(test_V_32, void, env, i32, i32, i32)
 DEF_HELPER_4(test_C_V_32, void, env, i32, i32, i32)
 DEF_HELPER_4(test_OVC_OVM_32, void, env, i32, i32, i32) // affect acc value
 

@@ -39,18 +39,8 @@
 
 typedef struct DisasContext {
     DisasContextBase base;
-    uint32_t repeat_counter;
-    // uint32_t mem_idx;
-    // uint32_t tb_flags;
-    // uint32_t delayed_branch;
-    // uint32_t cpucfgr;
-    // uint32_t avr;
 
-    // /* If not -1, jmp_pc contains this value and so is a direct jump.  */
-    // target_ulong jmp_pc_imm;
-
-    // /* The temporary corresponding to register 0 for this compilation.  */
-    // TCGv R0;
+    TCGv temp[8];
 } DisasContext;
 
 static TCGv cpu_acc; /* Accumulator todo:ah,al */
@@ -66,13 +56,24 @@ static TCGv cpu_sp; /* Stack pointer, reset to 0x0400 */
 static TCGv cpu_st0; /* Status register 0 */
 static TCGv cpu_st1; /* Status register 1, reset to 0x080b */
 static TCGv cpu_xt;         /* Multiplicand register, todo:t,tl*/
+static TCGv cpu_rptc; 
+// static TCGv cpu_tmp[8]; 
 
+static void gen_goto_tb(DisasContext *dc, int n, target_ulong dest)
+{
+    tcg_gen_goto_tb(n);
+    tcg_gen_movi_tl(cpu_pc, dest);
+    tcg_gen_exit_tb(dc->base.tb, n);
+}
 
 void tms320c28x_translate_init(void)
 {
     static const char * const regnames[] = {
         "xar0", "xar1", "xar2", "xar3", "xar4", "xar5", "xar6", "xar7",
     };
+    // static const char * const regnames2[] = {
+    //     "tmp0", "tmp1", "tmp2", "tmp3", "tmp4", "tmp5", "tmp6", "tmp7",
+    // };
     int i;
 
     cpu_acc = tcg_global_mem_new(cpu_env,
@@ -99,9 +100,12 @@ void tms320c28x_translate_init(void)
                                 offsetof(CPUTms320c28xState, st1), "st1");
     cpu_xt = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUTms320c28xState, xt), "xt");
-                                
+    cpu_rptc = tcg_global_mem_new(cpu_env,
+                                offsetof(CPUTms320c28xState, rptc), "rptc");
+                                                                
     for (i = 0; i < 8; i++) {
         cpu_xar[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,xar[i]),regnames[i]);
+        // cpu_tmp[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,tmp[i]),regnames2[i]);
     }
 }
 
@@ -114,13 +118,12 @@ void tms320c28x_translate_init(void)
 #include "decode-branch.c"
 #include "decode-interrupt.c"
 
-
 static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn) 
 {
     /* Set the default instruction length.  */
     int length = 2;
     uint32_t insn32 = insn;
-    bool set_repeat_counter = false;
+    // bool set_repeat_counter = false;
     // qemu_log_mask(CPU_LOG_TB_IN_ASM ,"insn is: 0x%x \n",insn);
 
     switch ((insn & 0xf000) >> 12) {
@@ -313,6 +316,24 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                         uint32_t shift = (insn2 & 0x0f00) >> 8;
                                         uint32_t mode = (insn2 & 0xff);
                                         gen_mov_acc_loc16_shift(ctx, mode, shift);
+                                    }
+                                    break;
+                                }
+                                case 0b0100: // 0101 0110 0000 0100 
+                                {
+                                    break;
+                                }
+                            }
+                            break;
+                        case 0b0010: //0101 0110 0010 ....
+                            switch (insn & 0xf) {
+                                case 0b0011: //0101 0110 0010 0011 32bit ADD ACC,loc16<<T
+                                {
+                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                                    length = 4;
+                                    if ((insn2 & 0xff00) == 0) { //this 8bit should be 0
+                                        uint32_t loc16 = (insn2 & 0xff);
+                                        gen_add_acc_loc16_t(ctx, loc16);
                                     }
                                     break;
                                 }
@@ -509,7 +530,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
         case 0b1110:
             break;
         case 0b1111:
-            switch ((insn & 0x0f00) >> 8) { 
+            switch ((insn & 0x0f00) >> 8) {
+                case 0b0110: //1111 0110 CCCC CCCC RPT #8bit
+                {
+                    uint32_t value = insn & 0xff;
+                    gen_rpt_8bit(ctx, value);
+                    // set_repeat_counter = true;
+                }
                 case 0b1111://1111 1111 .... ....
                     switch ((insn & 0x00f0) >> 4) {
                         case 0b0001: //1111 1111 0001 SHFT 32bit ADD ACC, #16bit<#0...15
@@ -542,9 +569,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             }
             break;
     }
-    if (!set_repeat_counter) {
-        ctx->repeat_counter = 0;
-    }
+    // if (!set_repeat_counter) {
+    //     ctx->isRPT = false;
+    // }
+    // else {
+    //     ctx->isRPT = true;
+    // }
     // 16bit -> 2; 32bit -> 4
     return length;
 }
@@ -555,8 +585,10 @@ static void tms320c28x_tr_init_disas_context(DisasContextBase *dcb, CPUState *cs
 {
     DisasContext *dc = container_of(dcb, DisasContext, base);
     // CPUTms320c28xState *env = cs->env_ptr;
-    // int bound;
-    dc->repeat_counter = 0;
+    // dc->isRPT = false;
+    for (int i = 0; i < 8; i++) {
+        dc->temp[i] = tcg_const_local_i32(0);
+    }
 }
 
 // Emit any code required before the start of the main loop,

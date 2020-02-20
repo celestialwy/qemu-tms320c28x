@@ -34,6 +34,75 @@ static void gen_add_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t sh
     tcg_temp_free_i32(b);
 }
 
+// ADD ACC,loc16<<T
+static void gen_add_acc_loc16_t(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    TCGv b = tcg_temp_new();
+    TCGv shift = tcg_temp_new();
+    // TCGv tmp = tcg_temp_new();
+
+    TCGLabel *repeat = gen_new_label();
+
+        tcg_gen_mov_i32(a, cpu_acc);//get a
+        gen_ld_loc16(b, mode); //get b
+        gen_helper_ld_low_sxm(b, cpu_env, b);//16bit signed extend with sxm
+        tcg_gen_shri_i32(shift, cpu_xt, 16);
+        tcg_gen_andi_i32(shift, shift, 0x7);//T(3:0)
+        tcg_gen_shl_i32(b, b, shift);//b = b<<T
+
+        tcg_gen_add_i32(cpu_acc, a, b);//add
+
+        gen_helper_test_V_32(cpu_env, a, b, cpu_acc);
+        gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+
+        tcg_gen_mov_i32(ctx->temp[0], a);
+        tcg_gen_mov_i32(ctx->temp[1], b);
+
+    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
+
+        gen_helper_test_C_32(cpu_env, ctx->temp[0], ctx->temp[1], cpu_acc);
+        gen_test_N_Z_acc();
+        gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
+
+    gen_set_label(repeat);
+        tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+        gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+    tcg_temp_free_i32(shift);
+    
+    ctx->base.is_jmp = DISAS_NORETURN;
+}
+
+// ADD ACC,loc16<<#0...16
+// static void gen_add_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t shift_imm)
+// {
+//     TCGv a = tcg_temp_new();
+//     TCGv b = tcg_temp_new();
+//     TCGv shift = tcg_const_i32(shift_imm);
+
+//     for (int i = 0; i <= ctx->repeat_counter; i++) {// repeat
+//         tcg_gen_mov_i32(a, cpu_acc);//get a
+//         gen_ld_loc16(b, mode); //get b
+//         gen_helper_ld_low_sxm(b, cpu_env, b);//16bit signed extend with sxm
+//         tcg_gen_shl_i32(b, b, shift);//b = b<<shift_imm
+
+//         tcg_gen_add_i32(cpu_acc, a, b);//add
+
+//         gen_helper_test_V_32(cpu_env, a, b, cpu_acc);
+//         gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+//     }
+//     gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
+//     gen_test_N_Z_acc();
+
+//     tcg_temp_free_i32(a);
+//     tcg_temp_free_i32(b);
+//     tcg_temp_free_i32(shift);
+// }
+
+
 // ADD AH,loc16
 static void gen_add_ah_loc16(DisasContext *ctx, uint32_t mode) {
     TCGv b = tcg_temp_new();

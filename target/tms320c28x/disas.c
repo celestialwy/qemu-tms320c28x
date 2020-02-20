@@ -445,6 +445,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 }
                             }
                             break;
+                        case 0b0010: //0101 0110 0010 ....
+                            switch (insn & 0xf) {
+                                case 0b0011: //0101 0110 0010 0011 32bit ADD ACC,loc16<<T
+                                {
+                                    length = 4;
+                                    if ((insn32 & 0xff00) == 0) { //this 8bit should be 0
+                                        uint32_t loc16 = (insn32 & 0xff);
+                                        get_loc_string(str,loc16,LOC16);
+                                        fprintf_func(stream, "0x%08x; ADD ACC,%s<<T", insn32, str);
+                                    }
+                                    break;
+                                }
+                            }
+                            break;
                         case 0b0101: //0101 0110 0101 ....
                         {
                             switch (insn & 0xf) {
@@ -613,7 +627,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 }
             }
             break;
-        case 0b1011:            
+        case 0b1011:
             switch ((insn & 0xf00) >> 8) {
                 case 0b0010: //1011 0010 LLLL LLLL MOVL loc32, XAR1
                 {

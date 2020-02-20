@@ -36,6 +36,15 @@ static void gen_lretr(DisasContext *ctx)
     ctx->base.is_jmp = DISAS_JUMP;
 }
 
+// RPT #8bit
+static void gen_rpt_8bit(DisasContext *ctx, uint32_t imm)
+{
+    // tcg_gen_movi_i32(ctx->rptc, imm);
+    tcg_gen_movi_i32(cpu_rptc, imm);
+    // ctx->base.is_jmp = DISAS_JUMP;
+        // tcg_gen_movi_i32(cpu_pc, ((uint32_t)ctx->base.pc_next >> 1) + 1);
+}
+
 // SB 8bitOffset,COND
 static void gen_sb_8bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t cond) {
     TCGv pc1 = tcg_const_i32(((uint32_t)ctx->base.pc_next >> 1) + offset);

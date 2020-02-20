@@ -13,7 +13,7 @@ static void gen_mov_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t sh
 {
     TCGv oprand = tcg_const_i32(imm);
     gen_helper_ld_low_sxm(oprand, cpu_env, oprand);//16bit signed extend with sxm
-    
+
     tcg_gen_shli_i32(cpu_acc, oprand, shift); // shift left, save to acc
     // set N,Z
     gen_test_N_Z_acc();
@@ -45,9 +45,9 @@ static void gen_mov_al_loc16(DisasContext *ctx, uint32_t mode) {
 
 // MOV loc16,16bit
 static void gen_mov_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm) {
-    for (int i = 0; i <= ctx->repeat_counter; i++) {// repeat
+    // for (int i = 0; i <= ctx->repeat_counter; i++) {// repeat
         gen_sti_loc16(mode, imm);
-    }
+    // }
     if (imm == 0b10101000) { //loc16 == @AH
         gen_test_N_Z_ah();
     }
