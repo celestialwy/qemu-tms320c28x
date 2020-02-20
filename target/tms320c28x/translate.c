@@ -40,7 +40,7 @@
 typedef struct DisasContext {
     DisasContextBase base;
 
-    TCGv temp[8];
+    // TCGv temp[8];
 } DisasContext;
 
 static TCGv cpu_acc; /* Accumulator todo:ah,al */
@@ -583,12 +583,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
 // The generic DisasContextBase has already been initialized.
 static void tms320c28x_tr_init_disas_context(DisasContextBase *dcb, CPUState *cs)
 {
-    DisasContext *dc = container_of(dcb, DisasContext, base);
+    // DisasContext *dc = container_of(dcb, DisasContext, base);
     // CPUTms320c28xState *env = cs->env_ptr;
     // dc->isRPT = false;
-    for (int i = 0; i < 8; i++) {
-        dc->temp[i] = tcg_const_local_i32(0);
-    }
+    // for (int i = 0; i < 8; i++) {
+    //     dc->temp[i] = tcg_const_local_i32(0);
+    // }
 }
 
 // Emit any code required before the start of the main loop,

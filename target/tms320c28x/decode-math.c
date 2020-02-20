@@ -37,10 +37,9 @@ static void gen_add_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t sh
 // ADD ACC,loc16<<T
 static void gen_add_acc_loc16_t(DisasContext *ctx, uint32_t mode)
 {
-    TCGv a = tcg_temp_new();
-    TCGv b = tcg_temp_new();
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
     TCGv shift = tcg_temp_new();
-    // TCGv tmp = tcg_temp_new();
 
     TCGLabel *repeat = gen_new_label();
 
@@ -56,12 +55,9 @@ static void gen_add_acc_loc16_t(DisasContext *ctx, uint32_t mode)
         gen_helper_test_V_32(cpu_env, a, b, cpu_acc);
         gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 
-        tcg_gen_mov_i32(ctx->temp[0], a);
-        tcg_gen_mov_i32(ctx->temp[1], b);
-
     tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
 
-        gen_helper_test_C_32(cpu_env, ctx->temp[0], ctx->temp[1], cpu_acc);
+        gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
         gen_test_N_Z_acc();
         gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
 

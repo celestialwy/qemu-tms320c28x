@@ -476,7 +476,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             int16_t cond = (insn&0xf);
                             length = 4;
                             get_cond_string(str, cond);
-                            fprintf_func(stream, "0x%08x; BF %d,%s", insn32, imm, str);
+                            fprintf_func(stream, "0x%08x; BF #%d,%s", insn32, imm, str);
                             break;
                         }
                     }
@@ -491,7 +491,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             }
             int16_t cond = (insn>>8)&0xf;
             get_cond_string(str, cond);
-            fprintf_func(stream, "0x%04x;     SB %d,%s", insn, offset, str);
+            fprintf_func(stream, "0x%04x;     SB #%d,%s", insn, offset, str);
             break;
         }
         case 0b0111:
@@ -662,6 +662,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b1111:
             switch ((insn & 0x0f00) >> 8) { 
+                case 0b0110: //1111 0110 CCCC CCCC RPT #8bit
+                {
+                    uint32_t value = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     RPT #%d", insn,value);
+                }
                 case 0b1111://1111 1111 .... ....
                     switch ((insn & 0x00f0) >> 4) {
                         case 0b0001: //1111 1111 0001 SHFT 32bit ADD ACC, #16bit<#0...15

@@ -25,7 +25,7 @@ static inline uint32_t bit_inverse_low_half(uint32_t n) {
     return n;
 }
 
-static bool test_cond(CPUTms320c28xState *env, uint32_t cond)
+uint32_t HELPER(test_cond)(CPUTms320c28xState *env, uint32_t cond)
 {
     cond = cond & 0xf;
     uint32_t z = (env->st0 >> 4) & 1;
@@ -248,15 +248,6 @@ uint32_t HELPER(addressing_mode)(CPUTms320c28xState *env, uint32_t loc, uint32_t
     }
     // return dest<<1;
     return dest;
-}
-
-void HELPER(branch_cond)(CPUTms320c28xState *env, uint32_t cond, uint32_t pc1, uint32_t pc2) {
-    if (test_cond(env, cond)) {
-        env->pc = pc1;
-    }
-    else {
-        env->pc = pc2;
-    }
 }
 
 void HELPER(test_N)(CPUTms320c28xState *env, uint32_t val1, uint32_t val2) {

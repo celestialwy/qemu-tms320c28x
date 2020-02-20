@@ -19,7 +19,7 @@
 DEF_HELPER_FLAGS_2(exception, TCG_CALL_NO_WG, void, env, i32)
 DEF_HELPER_3(addressing_mode, i32, env, i32, i32)
 
-DEF_HELPER_4(branch_cond,void,env,i32,i32,i32)
+DEF_HELPER_2(test_cond,i32,env,i32)
 
 // test bit
 DEF_HELPER_3(test_N, void, env, i32, i32)
