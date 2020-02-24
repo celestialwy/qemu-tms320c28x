@@ -289,6 +289,51 @@ static void gen_addb_sp_7bit(DisasContext *ctx, uint32_t imm)
     tcg_gen_addi_i32(cpu_sp, cpu_sp, imm);
 }
 
+// ADDB XARn,#7bit
+static void gen_addb_xarn_7bit(DisasContext *ctx, uint32_t n, uint32_t imm)
+{
+    tcg_gen_addi_i32(cpu_xar[n], cpu_xar[n], imm);
+}
+
+// ADDCL ACC,loc32
+static void gen_addcl_acc_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new();
+    tcg_gen_mov_i32(a, cpu_acc);
+
+    TCGv b = tcg_temp_local_new();
+    gen_ld_loc32(b, mode);
+
+    TCGv c = tcg_temp_local_new();
+    tcg_gen_shri_i32(c, cpu_st0, 3);
+    tcg_gen_andi_i32(c, c, 1);
+
+    TCGv tmp = tcg_temp_local_new();
+    tcg_gen_add_i32(tmp, a, b);
+    tcg_gen_add_i32(cpu_acc, tmp, c);
+
+    gen_helper_test_N_Z_32(cpu_env, tmp);
+    gen_helper_test_C_V_32(cpu_env, a, b, tmp);
+    gen_helper_test_OVC_OVM_32(cpu_env, a, b, tmp);
+
+
+    TCGLabel *label_test = gen_new_label();
+    TCGLabel *label_done = gen_new_label();
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, tmp, 0xffffffff, label_test);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, tmp, 0x7fffffff, label_test);
+    tcg_gen_br(label_done);
+    gen_set_label(label_test);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_C_V_32(cpu_env, tmp, c, cpu_acc);
+    gen_helper_test_OVC_OVM_32(cpu_env, tmp, c, cpu_acc);
+    gen_set_label(label_done);
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+    tcg_temp_free_i32(tmp);
+}
+
 // SUBB ACC,#8bit
 static void gen_subb_acc_8bit(DisasContext *ctx, uint32_t imm) {
     imm = -imm;
@@ -310,4 +355,10 @@ static void gen_subb_acc_8bit(DisasContext *ctx, uint32_t imm) {
 static void gen_subb_sp_7bit(DisasContext *ctx, uint32_t imm)
 {
     tcg_gen_subi_i32(cpu_sp, cpu_sp, imm);
+}
+
+// SUBB XARn,#7bit
+static void gen_subb_xarn_7bit(DisasContext *ctx, uint32_t n, uint32_t imm)
+{
+    tcg_gen_subi_i32(cpu_xar[n], cpu_xar[n], imm);
 }

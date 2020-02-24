@@ -361,6 +361,20 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                             }
                             break;
+                        case 0b0100: //0101 0110 0100 ....
+                        {
+                            switch (insn & 0xf) {
+                                case 0b0000: //0101 0110 0100 0000 ADDCL ACC,loc32
+                                {
+                                    uint32_t mode = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                                    mode = mode & 0xff;
+                                    length = 4;
+                                    gen_addcl_acc_loc32(ctx, mode);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case 0b0101: //0101 0110 0101 ....
                         {
                             switch (insn & 0xf) {
@@ -576,6 +590,19 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             }
             break;
         case 0b1101:
+            if (((insn >> 11) & 1) == 0) {//1101 0... .... ....
+
+            }
+            else {//1101 1... .... ....
+                uint32_t imm = insn & 0x7f;
+                uint32_t n = (insn >> 8) & 0b111;
+                if (((insn & 0xff) >> 7) == 0) { //ADDB XARn,#7bit
+                    gen_addb_xarn_7bit(ctx, n, imm);
+                }
+                else { //SUBB XARn,#7bit
+                    gen_subb_xarn_7bit(ctx, n, imm);
+                }
+            }
             break;
         case 0b1110:
             break;

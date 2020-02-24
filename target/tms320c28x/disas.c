@@ -496,6 +496,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 }
                             }
                             break;
+                        case 0b0100: //0101 0110 0100 ....
+                        {
+                            switch (insn & 0xf) {
+                                case 0b0000: //0101 0110 0100 0000 ADDCL ACC,loc32
+                                {
+                                    uint32_t mode = insn32 & 0xff;
+                                    length = 4;
+                                    get_loc_string(str,mode,LOC32);
+                                    fprintf_func(stream, "0x%08x; ADDCL ACC,%s", insn32, str);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case 0b0101: //0101 0110 0101 ....
                         {
                             switch (insn & 0xf) {
@@ -728,6 +742,19 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             }
             break;
         case 0b1101:
+            if (((insn >> 11) & 1) == 0) {//1101 0... .... ....
+
+            }
+            else {//1101 1... .... ....
+                uint32_t imm = insn & 0x7f;
+                uint32_t n = (insn >> 8) & 0b111;
+                if (((insn & 0xff) >> 7) == 0) { //ADDB XARn,#7bit
+                    fprintf_func(stream, "0x%04x;     ADDB XAR[%d],#%d", insn, n, imm);
+                }
+                else { //SUBB XARn,#7bit
+                    fprintf_func(stream, "0x%04x;     SUBB XAR[%d],#%d", insn, n, imm);
+                }
+            }
             break;
         case 0b1110:
             break;
