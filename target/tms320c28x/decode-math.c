@@ -212,6 +212,81 @@ static void gen_add_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm)
     gen_helper_test_N_Z_16(cpu_env, tmp);
 
     gen_st_loc16(mode, tmp);
+    
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+    tcg_temp_free_i32(tmp);
+}
+
+// ADDB ACC,#8bit
+static void gen_addb_acc_8bit(DisasContext *ctx, uint32_t imm)
+{
+    TCGv a = tcg_temp_new();
+    tcg_gen_mov_i32(a, cpu_acc);
+    TCGv b = tcg_const_i32(imm);
+
+    tcg_gen_add_i32(cpu_acc, a, b);
+
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_C_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+}
+
+// ADDB AH,#8bitSigned
+static void gen_addb_ah_8bit(DisasContext *ctx, uint32_t imm)
+{
+    if ((imm >> 7) == 1) {
+        imm = imm | 0xff00;
+    }
+    TCGv b = tcg_const_i32(imm);
+
+    TCGv a = tcg_temp_new();
+    tcg_gen_shri_i32(a, cpu_acc, 16);
+
+    TCGv tmp = tcg_temp_new();
+    tcg_gen_add_i32(tmp, a, b);
+
+    gen_helper_test_N_Z_16(cpu_env, tmp);
+    gen_helper_test_C_V_16(cpu_env, a, b, tmp);
+
+    gen_st_reg_high_half(cpu_acc, tmp);
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+    tcg_temp_free_i32(tmp);
+}
+
+// ADDB AL,#8bitSigned
+static void gen_addb_al_8bit(DisasContext *ctx, uint32_t imm)
+{
+    if ((imm >> 7) == 1) {
+        imm = imm | 0xff00;
+    }
+    TCGv b = tcg_const_i32(imm);
+
+    TCGv a = tcg_temp_new();
+    tcg_gen_andi_i32(a, cpu_acc, 0xffff);
+
+    TCGv tmp = tcg_temp_new();
+    tcg_gen_add_i32(tmp, a, b);
+
+    gen_helper_test_N_Z_16(cpu_env, tmp);
+    gen_helper_test_C_V_16(cpu_env, a, b, tmp);
+    
+    gen_st_reg_low_half(cpu_acc, tmp);
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+    tcg_temp_free_i32(tmp);
+}
+
+// ADDB SP,#7bit
+static void gen_addb_sp_7bit(DisasContext *ctx, uint32_t imm)
+{
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, imm);
 }
 
 // SUBB ACC,#8bit
@@ -229,4 +304,10 @@ static void gen_subb_acc_8bit(DisasContext *ctx, uint32_t imm) {
 
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
+}
+
+// SUBB SP,#7bit
+static void gen_subb_sp_7bit(DisasContext *ctx, uint32_t imm)
+{
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, imm);
 }

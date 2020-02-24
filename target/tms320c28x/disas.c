@@ -347,8 +347,12 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%08x; ADD %s, #%d", insn32, str, imm);
                     break;
                 }
-                case 0b1001:
+                case 0b1001: //0000 1001 CCCC CCCC ADDB ACC,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%08x; ADDB ACC,#%d", insn32, imm);
                     break;
+                }
                 case 0b1010:
                     break;
                 case 0b1011:
@@ -646,6 +650,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     }
                     break;
                 }
+                case 0b110: //1001 110A CCCC CCCC ADDB AX,#8bitSigned
+                {
+                    int32_t imm = insn & 0xff;
+                    if ((imm >> 7) == 1) {
+                        imm = imm | 0xffffffffff00;
+                    }
+                    if (((insn >> 8) & 1) == 1){ //1001 0011 .... .... ah
+                        fprintf_func(stream, "0x%04x;     ADDB AH,#%d", insn, imm);
+                    }
+                    else { // al
+                        fprintf_func(stream, "0x%04x;     ADDB AL,#%d", insn, imm);
+                    }
+                    break;
+                }
             }
             break;
         case 0b1010:
@@ -719,6 +737,25 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 {
                     uint32_t value = insn & 0xff;
                     fprintf_func(stream, "0x%04x;     RPT #%d", insn,value);
+                    break;
+                }
+                case 0b0111: //1111 0111 CCCC CCCC RPT loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     RPT %s", insn, str);
+                    break;
+                }
+                case 0b1110: //1111 1110 .... ....
+                {
+                    uint32_t imm = insn & 0x7f;
+                    if (((insn & 0xff) >> 7) == 0) { //ADDB SP,#7bit
+                        fprintf_func(stream, "0x%04x;     ADDB SP,#%d", insn, imm);
+                    }
+                    else { //SUBB SP,#7bit
+                        fprintf_func(stream, "0x%04x;     SUBB SP,#%d", insn, imm);
+                    }
+                    break;
                 }
                 case 0b1111://1111 1111 .... ....
                     switch ((insn & 0x00f0) >> 4) {

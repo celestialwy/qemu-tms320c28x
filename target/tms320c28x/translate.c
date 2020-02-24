@@ -216,8 +216,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     gen_add_loc16_16bit(ctx, mode, imm);
                     break;
                 }
-                case 0b1001:
+                case 0b1001: //0000 1001 CCCC CCCC ADDB ACC,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    gen_addb_acc_8bit(ctx, imm);
                     break;
+                }
                 case 0b1010:
                     break;
                 case 0b1011:
@@ -504,6 +508,17 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     }
                     break;
                 }
+                case 0b110: //1001 110A CCCC CCCC ADDB AX,#8bitSigned
+                {
+                    uint32_t imm = insn & 0xff;
+                    if (((insn >> 8) & 1) == 1){ // ah
+                        gen_addb_ah_8bit(ctx, imm);
+                    }
+                    else { // al
+                        gen_addb_al_8bit(ctx, imm);
+                    }
+                    break;
+                }
             }
             break;
         case 0b1010:
@@ -571,12 +586,25 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     uint32_t value = insn & 0xff;
                     gen_rpt_8bit(ctx, value);
                     set_repeat_counter = true;
+                    break;
                 }
                 case 0b0111: //1111 0111 CCCC CCCC RPT loc16
                 {
                     uint32_t mode = insn & 0xff;
                     gen_rpt_loc16(ctx, mode);
                     set_repeat_counter = true;
+                    break;
+                }
+                case 0b1110: //1111 1110 .... ....
+                {
+                    uint32_t imm = insn & 0x7f;
+                    if (((insn & 0xff) >> 7) == 0) { //ADDB SP,#7bit
+                        gen_addb_sp_7bit(ctx, imm);
+                    }
+                    else { //SUBB SP,#7bit
+                        gen_subb_sp_7bit(ctx, imm);
+                    }
+                    break;
                 }
                 case 0b1111://1111 1111 .... ....
                     switch ((insn & 0x00f0) >> 4) {
