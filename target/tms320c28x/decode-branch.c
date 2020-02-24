@@ -49,6 +49,14 @@ static void gen_rpt_8bit(DisasContext *ctx, uint32_t imm)
     tcg_gen_movi_i32(cpu_rptc, imm);
 }
 
+// RPT loc16
+static void gen_rpt_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv val = tcg_temp_new_i32();
+    gen_ld_loc16(val, mode);
+    tcg_gen_mov_i32(cpu_rptc, val);
+}
+
 // SB 8bitOffset,COND
 static void gen_sb_8bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t cond) {
     TCGv cond_tcg = tcg_const_i32(cond);

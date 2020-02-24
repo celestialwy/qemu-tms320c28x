@@ -45,7 +45,12 @@ static void get_loc_string(char* str, uint32_t loc, uint32_t loc_type) {
                     sprintf(str, "*+XAR%d[AR1]", loc & 0b00000111);
                     break;
                 case 0b100: //@XARn @ARn
-                    sprintf(str, "@XAR%d", loc & 0b00000111);
+                    if (loc_type == LOC16) {
+                        sprintf(str, "@AR%d", loc & 0b00000111);
+                    }
+                    else {
+                        sprintf(str, "@XAR%d", loc & 0b00000111);
+                    }
                     break;
                 case 0b101: //b10 101 ...
                     switch(loc & 0b00000111) {
@@ -314,8 +319,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     break;
                 case 0b0100:
                     break;
-                case 0b0101:
+                case 0b0101: //0000 0101 LLLL LLLL ADD ACC,loc16<<#16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     ADD ACC,%s<<#16", insn, str);
                     break;
+                }
                 case 0b0110: //0000 0110 .... .... MOVL ACC,loc32
                 {
                     uint32_t mode = insn & 0xff;
@@ -436,11 +446,24 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             switch (insn & 0x000f) {
                                 case 0b0011: /* 0101 0110 0000 0011  MOV ACC, loc16<<#1...15 */
                                 {
-                                    uint32_t shift = (insn32 & 0x0f00) >> 8;
-                                    uint32_t mode = (insn32 & 0xff);
-                                    get_loc_string(str,mode,LOC16);
-                                    fprintf_func(stream, "0x%08x; MOV ACC,%s<<#%d", insn32, str,shift);
-                                    length = 4;
+                                    if ((insn32 & 0xf000) == 0) { //this 4bit should be 0
+                                        uint32_t shift = (insn32 & 0x0f00) >> 8;
+                                        uint32_t mode = (insn32 & 0xff);
+                                        get_loc_string(str,mode,LOC16);
+                                        fprintf_func(stream, "0x%08x; MOV ACC,%s<<#%d", insn32, str,shift);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
+                                case 0b0100: // 0101 0110 0000 0100 ADD ACC,loc16<<#1...15
+                                {
+                                    if ((insn32 & 0xf000) == 0) { //this 4bit should be 0
+                                        uint32_t shift = (insn32 & 0x0f00) >> 8;
+                                        uint32_t mode = (insn32 & 0xff);
+                                        get_loc_string(str,mode,LOC16);
+                                        fprintf_func(stream, "0x%08x; ADD ACC,%s<<#%d", insn32, str,shift);
+                                        length = 4;
+                                    }
                                     break;
                                 }
                             }
@@ -524,7 +547,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b1000:
             switch ((insn & 0x0f00) >> 8) {
-                case 0b0101: /*1000 0101 .... .... MOV ACC, loc16<<0 */
+                case 0b0001: //1000 0001 LLLL LLLL ADD ACC,loc16<<#0
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     ADD ACC,%s<<#0", insn, str);
+                }
+                case 0b0101: /*1000 0101 .... .... MOV ACC, loc16<<#0 */
                 {                  
                     uint32_t mode = insn & 0xff;
                     get_loc_string(str,mode,LOC16);

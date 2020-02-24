@@ -45,15 +45,32 @@ static void gen_mov_al_loc16(DisasContext *ctx, uint32_t mode) {
 
 // MOV loc16,16bit
 static void gen_mov_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm) {
-    // for (int i = 0; i <= ctx->repeat_counter; i++) {// repeat
-        gen_sti_loc16(mode, imm);
-    // }
+    TCGLabel *repeat = gen_new_label();
+
+    gen_sti_loc16(mode, imm);
+
+    if (ctx->rpt_set) {
+        tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
+    }
+
     if (imm == 0b10101000) { //loc16 == @AH
         gen_test_N_Z_ah();
     }
     if (imm == 0b10101001) { //loc16 == @AL
         gen_test_N_Z_al();
     }
+
+    if (ctx->rpt_set) {
+        gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
+
+        gen_set_label(repeat);
+        tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+        gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+    }
+    if (ctx->rpt_set) {
+        ctx->base.is_jmp = DISAS_NORETURN;
+    }
+
 }
 
 // MOV loc16,AH
