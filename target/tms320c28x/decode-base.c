@@ -178,30 +178,21 @@ static void gen_ld_loc32(TCGv retval, uint32_t mode)
     switch ((mode>>3) & 0b11111) {
         case 0b10100:
         {
-            //@ar[n]
+            //@xar[n]
             uint32_t idx = mode & 0b111;
-            tcg_gen_andi_tl(retval, cpu_xar[idx], 0x0000ffff);
+            tcg_gen_mov_tl(retval, cpu_xar[idx]);
             break;            
         }
         default:
             switch(mode) {
-                case 0b10101000: //@AH
-                    tcg_gen_shri_i32(retval, cpu_acc, 16);
+                case 0b10101001: //@ACC
+                    tcg_gen_mov_tl(retval, cpu_acc);
                     break;
-                case 0b10101001: //@AL
-                    tcg_gen_andi_tl(retval, cpu_acc, 0x0000ffff);
+                case 0b10101011: //@P
+                    tcg_gen_mov_tl(retval, cpu_p);
                     break;
-                case 0b10101010: //@PH
-                    tcg_gen_shri_i32(retval, cpu_p, 16);
-                    break;
-                case 0b10101011: //@PL
-                    tcg_gen_andi_tl(retval, cpu_p, 0x0000ffff);
-                    break;
-                case 0b10101100: //@TH
-                    tcg_gen_shri_i32(retval, cpu_xt, 16);
-                    break;
-                case 0b10101101: //@SP
-                    tcg_gen_andi_tl(retval, cpu_sp, 0x0000ffff);
+                case 0b10101100: //@XT
+                    tcg_gen_mov_tl(retval, cpu_xt);
                     break;
                 default:
                 {

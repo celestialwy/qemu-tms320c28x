@@ -386,6 +386,46 @@ void HELPER(test_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, ui
     }    
 }
 
+void HELPER(test2_C_V_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t c, uint32_t result) 
+{
+    uint32_t bit1 = a >> 31;
+    uint32_t bit2 = (b + c) >> 31;
+    uint32_t bit3 = result >> 31;
+    uint64_t tmp = (uint64_t)a + (uint64_t)b + (uint64_t)c;
+    if ((tmp >> 32) & 1) {
+        cpu_set_c(env, 1);
+    }
+    else {
+        cpu_set_c(env, 0);
+    }
+
+    if (bit1 == 1 && bit2 == 1 && bit3 == 0) {//neg overflow
+        cpu_set_v(env, 1);
+        if (cpu_get_ovm(env)) { //ovm = 1
+            env->acc = 0x80000000;
+        }
+        else {
+            int32_t ovc = cpu_get_ovc(env);
+            ovc -= 1;
+            cpu_set_ovc(env, ovc);
+        }
+    }
+    else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
+        cpu_set_v(env, 1);
+        if (cpu_get_ovm(env)) { //ovm = 1
+            env->acc = 0x7fffffff;
+        }
+        else {
+            int32_t ovc = cpu_get_ovc(env);
+            ovc += 1;
+            cpu_set_ovc(env, ovc);
+        }
+    }
+    else {
+        cpu_set_v(env, 0);
+    }
+}
+
 uint32_t HELPER(ld_high_sxm)(CPUTms320c28xState *env, uint32_t value)
 {
     uint32_t sxm = cpu_get_sxm(env);

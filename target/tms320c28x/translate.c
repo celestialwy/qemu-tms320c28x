@@ -126,6 +126,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
     uint32_t insn32 = insn;
     bool set_repeat_counter = false;
     // qemu_log_mask(CPU_LOG_TB_IN_ASM ,"insn is: 0x%x \n",insn);
+    if (insn == 0x2ba9) {
+        gen_sti_reg_low_half(cpu_acc, 0);
+    }
+    if (insn == 0x8EA9) {
+        tcg_gen_mov_i32(cpu_xar[0], cpu_acc);
+    }
 
     switch ((insn & 0xf000) >> 12) {
         case 0b0000:
