@@ -250,27 +250,58 @@ uint32_t HELPER(addressing_mode)(CPUTms320c28xState *env, uint32_t loc, uint32_t
     return dest;
 }
 
-void HELPER(test_N)(CPUTms320c28xState *env, uint32_t val1, uint32_t val2) {
-    if (val1 == val2) {
+// void HELPER(test_N)(CPUTms320c28xState *env, uint32_t val1, uint32_t val2) {
+//     if (val1 == val2) {
+//         cpu_set_n(env, 1);
+//         // env->st0 = env->st0 | 0b100000;
+//     }
+//     else
+//     {
+//         cpu_set_n(env, 0);
+//         // env->st0 = env->st0 & 0xffdf;
+//     }
+// }
+
+// void HELPER(test_Z)(CPUTms320c28xState *env, uint32_t val1, uint32_t val2) {
+//     if (val1 == val2) {
+//         cpu_set_z(env, 1);
+//         // env->st0 = env->st0 | 0b10000;
+//     }
+//     else
+//     {
+//         cpu_set_z(env, 0);
+//         // env->st0 = env->st0 & 0xffef;
+//     }
+// }
+
+void HELPER(test_N_Z_16)(CPUTms320c28xState *env, uint32_t value) {
+    value = value & 0xffff;
+    if ((value >> 15) == 1) {
         cpu_set_n(env, 1);
-        // env->st0 = env->st0 | 0b100000;
     }
-    else
-    {
+    else {
         cpu_set_n(env, 0);
-        // env->st0 = env->st0 & 0xffdf;
+    }
+    if (value == 0) {
+        cpu_set_z(env, 1);
+    }
+    else {
+        cpu_set_z(env, 0);
     }
 }
 
-void HELPER(test_Z)(CPUTms320c28xState *env, uint32_t val1, uint32_t val2) {
-    if (val1 == val2) {
-        cpu_set_z(env, 1);
-        // env->st0 = env->st0 | 0b10000;
+void HELPER(test_N_Z_32)(CPUTms320c28xState *env, uint32_t value) {
+    if ((value >> 31) == 1) {
+        cpu_set_n(env, 1);
     }
-    else
-    {
+    else {
+        cpu_set_n(env, 0);
+    }
+    if (value == 0) {
+        cpu_set_z(env, 1);
+    }
+    else {
         cpu_set_z(env, 0);
-        // env->st0 = env->st0 & 0xffef;
     }
 }
 

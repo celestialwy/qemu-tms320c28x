@@ -2,7 +2,7 @@
 static void gen_abs_acc(DisasContext *ctx)
 {
     gen_helper_abs_acc(cpu_env);
-    gen_test_N_Z_acc();
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     tcg_gen_andi_i32(cpu_st0, cpu_st0, ~ST0_C);//clear C bit
 }
 
@@ -10,7 +10,7 @@ static void gen_abs_acc(DisasContext *ctx)
 static void gen_abstc_acc(DisasContext *ctx)
 {
     gen_helper_abstc_acc(cpu_env);
-    gen_test_N_Z_acc();
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     tcg_gen_andi_i32(cpu_st0, cpu_st0, ~ST0_C);//clear C bit
 }
 
@@ -26,7 +26,7 @@ static void gen_add_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t sh
 
     tcg_gen_add_i32(cpu_acc, a, b);
 
-    gen_test_N_Z_acc();
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     gen_helper_test_C_V_32(cpu_env, a, b, cpu_acc);
     gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 
@@ -58,7 +58,7 @@ static void gen_add_acc_loc16_t(DisasContext *ctx, uint32_t mode)
     tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
     }
         gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
-        gen_test_N_Z_acc();
+        gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     if (ctx->rpt_set) {
         gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
     gen_set_label(repeat);
@@ -94,7 +94,8 @@ static void gen_add_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t s
     tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
     }
         gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
-        gen_test_N_Z_acc();
+        gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
     if (ctx->rpt_set) {
         gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
 
@@ -120,10 +121,11 @@ static void gen_add_ah_loc16(DisasContext *ctx, uint32_t mode) {
     tcg_gen_shri_tl(a, cpu_acc, 16);//get ah
 
     tcg_gen_add_i32(ax, a, b);//add
-    gen_st_reg_high_half(cpu_acc, ax);
 
+    gen_helper_test_N_Z_16(cpu_env, ax);
     gen_helper_test_C_V_16(cpu_env, a, b, ax);
-    gen_test_N_Z_ah();
+
+    gen_st_reg_high_half(cpu_acc, ax);
 
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
@@ -140,16 +142,77 @@ static void gen_add_al_loc16(DisasContext *ctx, uint32_t mode) {
     tcg_gen_andi_i32(a, cpu_acc, 0xffff);
 
     tcg_gen_add_i32(ax, a, b);//add
+
+    gen_helper_test_N_Z_16(cpu_env, ax);
+    gen_helper_test_C_V_16(cpu_env, a, b, ax);
+    
     gen_st_reg_low_half(cpu_acc, ax);
 
-    gen_helper_test_C_V_16(cpu_env, a, b, ax);
-    gen_test_N_Z_al();
-    
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
     tcg_temp_free_i32(ax);
 }
 
+// ADD loc16,AL
+static void gen_add_loc16_al(DisasContext *ctx, uint32_t mode) 
+{
+    TCGv a = tcg_temp_new();
+    TCGv b = tcg_temp_new();
+    TCGv ax = tcg_temp_new();
+    gen_ld_loc16(b, mode);
+
+    tcg_gen_andi_i32(a, cpu_acc, 0xffff); //AL
+
+    tcg_gen_add_i32(ax, a, b);//add
+
+
+    gen_helper_test_C_V_16(cpu_env, a, b, ax);
+    gen_helper_test_N_Z_16(cpu_env, ax);
+    
+    gen_st_loc16(mode, ax);
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+    tcg_temp_free_i32(ax);
+}
+
+// ADD loc16,AH
+static void gen_add_loc16_ah(DisasContext *ctx, uint32_t mode) 
+{
+    TCGv b = tcg_temp_new();
+    TCGv ax = tcg_temp_new();
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(b, mode);
+
+    tcg_gen_shri_tl(a, cpu_acc, 16);//get ah
+
+    tcg_gen_add_i32(ax, a, b);//add
+
+    gen_helper_test_C_V_16(cpu_env, a, b, ax);
+    gen_helper_test_N_Z_16(cpu_env, ax);
+
+    gen_st_loc16(mode, ax);
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+    tcg_temp_free_i32(ax);
+}
+
+// ADD loc16,#16bitSigned
+static void gen_add_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    TCGv b = tcg_const_i32(imm);
+    TCGv tmp = tcg_temp_new();
+
+    tcg_gen_add_i32(tmp, a, b);
+
+    gen_helper_test_C_V_16(cpu_env, a, b, tmp);
+    gen_helper_test_N_Z_16(cpu_env, tmp);
+
+    gen_st_loc16(mode, tmp);
+}
 
 // SUBB ACC,#8bit
 static void gen_subb_acc_8bit(DisasContext *ctx, uint32_t imm) {
@@ -160,7 +223,7 @@ static void gen_subb_acc_8bit(DisasContext *ctx, uint32_t imm) {
     tcg_gen_mov_i32(a, cpu_acc);
     tcg_gen_add_i32(cpu_acc, a, b);
 
-    gen_test_N_Z_acc();
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     gen_helper_test_C_V_32(cpu_env, a, b, cpu_acc);
     gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 

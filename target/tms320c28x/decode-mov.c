@@ -5,7 +5,7 @@ static void gen_mov_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t s
     tcg_gen_shli_i32(cpu_acc, oprand, shift); // shift left, save to acc
 
     // set N,Z
-    gen_test_N_Z_acc();
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 }
 
 // MOV ACC, #16bit<<#0...15
@@ -16,7 +16,7 @@ static void gen_mov_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t sh
 
     tcg_gen_shli_i32(cpu_acc, oprand, shift); // shift left, save to acc
     // set N,Z
-    gen_test_N_Z_acc();
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 }
 
 // MOV AH, loc16
@@ -25,7 +25,7 @@ static void gen_mov_ah_loc16(DisasContext *ctx, uint32_t mode) {
     gen_ld_loc16(ax, mode);
 
     gen_st_reg_high_half(cpu_acc, ax);
-    gen_test_N_Z_ah();
+    gen_helper_test_N_Z_16(cpu_env, ax);
 
     tcg_temp_free_i32(ax);
 }
@@ -36,7 +36,7 @@ static void gen_mov_al_loc16(DisasContext *ctx, uint32_t mode) {
     gen_ld_loc16(ax, mode);
 
     gen_st_reg_low_half(cpu_acc, ax);
-    gen_test_N_Z_al();
+    gen_helper_test_N_Z_16(cpu_env, ax);
     
     tcg_temp_free_i32(ax);
 
@@ -54,11 +54,18 @@ static void gen_mov_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm) 
     }
 
     if (imm == 0b10101000) { //loc16 == @AH
-        gen_test_N_Z_ah();
+        TCGv ah = tcg_temp_new();
+        tcg_gen_shri_i32(ah, cpu_acc, 16);
+        gen_helper_test_N_Z_16(cpu_env, ah);
+        tcg_temp_free(ah);
     }
     if (imm == 0b10101001) { //loc16 == @AL
-        gen_test_N_Z_al();
+        TCGv al = tcg_temp_new();
+        tcg_gen_andi_i32(al, cpu_acc, 0xffff);
+        gen_helper_test_N_Z_16(cpu_env, cpu_acc);
+        tcg_temp_free(al);
     }
+
 
     if (ctx->rpt_set) {
         gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
@@ -79,7 +86,9 @@ static void gen_mov_loc16_ah(DisasContext *ctx, uint32_t mode)
     TCGv ax = tcg_temp_new();
     tcg_gen_sari_tl(ax, cpu_acc, 16);//get ah, signed
     gen_st_loc16(mode, ax);
-    gen_test_N_Z_ah();
+    if ((mode == 0xa8) || (mode == 0xa9)) {
+        gen_helper_test_N_Z_16(cpu_env, ax);
+    }
 }
 
 // MOV loc16,AL
@@ -90,20 +99,22 @@ static void gen_mov_loc16_al(DisasContext *ctx, uint32_t mode)
     tcg_gen_shli_i32(ax, cpu_acc, 16);// shift left acc 16
     tcg_gen_sari_tl(ax, ax, 16);//get al, signed
     gen_st_loc16(mode, ax);
-    gen_test_N_Z_al();
+    if ((mode == 0xa8) || (mode == 0xa9)) {
+        gen_helper_test_N_Z_16(cpu_env, ax);
+    }
 }
 
 // MOVL ACC,loc32
 static void gen_movl_acc_loc32(DisasContext *ctx, uint32_t mode) {
     gen_ld_loc32(cpu_acc, mode);
-    gen_test_N_Z_acc();
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 }
 
 // MOVL loc32,ACC
 static void gen_movl_loc32_acc(DisasContext *ctx, uint32_t mode) {
     gen_st_loc32(mode,cpu_acc);
     if (mode == 0b10101001) { //if loc32 == @ACC, test N,Z with ACC
-        gen_test_N_Z_acc();
+        gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     }
 }
 
@@ -111,7 +122,7 @@ static void gen_movl_loc32_acc(DisasContext *ctx, uint32_t mode) {
 static void gen_movl_loc32_xarn(DisasContext *ctx, uint32_t mode, uint32_t n) {
     gen_st_loc32(mode, cpu_xar[n]);
     if (mode == 0b10101001) { //if loc32 == @ACC, test N,Z with ACC
-        gen_test_N_Z_acc();
+        gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     }
 }
 

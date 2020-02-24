@@ -335,8 +335,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 }
                 case 0b0111:
                     break;
-                case 0b1000:
+                case 0b1000: //0000 1000 LLLL LLLL 32bit ADD loc16,#16bitSigned
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    uint32_t imm = insn32 & 0xffff;
+                    if ((imm & 0x8000) >> 15) { //neg value
+                        imm = imm | 0xffff0000;
+                    }
+                    length = 4;
+                    fprintf_func(stream, "0x%08x; ADD %s, #%d", insn32, str, imm);
                     break;
+                }
                 case 0b1001:
                     break;
                 case 0b1010:
@@ -519,6 +529,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
         }
         case 0b0111:
             switch((insn & 0x0f00) >> 8) {
+                case 0b0010: //0111 0010 LLLL LLLL ADD loc16,AL
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     ADD %s,AL", insn, str);
+                    break;
+                }
+                case 0b0011: //0111 0011 LLLL LLLL ADD loc16,AH
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     ADD %s,AH", insn, str);
+                    break;
+                }
                 case 0b0110: //0111 0110 .... ....
                     if (((insn >> 7) & 0x1) == 1) { //0111 0110 1... .... MOVL XARn,#22bit 
                         uint32_t n = ((insn >> 6) & 0b11) + 6;//XAR6,XAR7
@@ -700,7 +724,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     switch ((insn & 0x00f0) >> 4) {
                         case 0b0001: //1111 1111 0001 SHFT 32bit ADD ACC, #16bit<#0...15
                         {
-                            uint32_t imm = insn32 & 0xffff;
+                            int32_t imm = insn32 & 0xffff;
                             uint32_t shift = insn & 0x000f;
                             fprintf_func(stream, "0x%08x; ADD ACC, #0x%x<<#%d", insn32, imm, shift);
                             length = 4;

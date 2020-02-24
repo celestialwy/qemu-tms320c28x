@@ -259,6 +259,8 @@ static void gen_sti_reg_low_half(TCGv reg, uint32_t oprand)
 // store oprand to loc16
 static void gen_sti_loc16(uint32_t mode, uint32_t oprand)
 {
+    oprand = oprand & 0xffff;
+
     switch ((mode>>3) & 0b11111) {
         case 0b10100:
         {
@@ -307,6 +309,8 @@ static void gen_sti_loc16(uint32_t mode, uint32_t oprand)
 
 static void gen_st_loc16(uint32_t mode, TCGv oprand)
 {
+    tcg_gen_andi_i32(oprand, oprand, 0xffff);
+    
     switch ((mode>>3) & 0b11111) {
         case 0b10100:
         {

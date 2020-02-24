@@ -53,11 +53,11 @@ static void tms320c28x_cpu_reset(CPUState *s)
 
     memset(&cpu->env, 0, offsetof(CPUTms320c28xState, end_reset_fields));
 
-    // cpu->env.pc = 0x3fffc0;
-    // cpu->env.sp = 0x0400;
+    cpu->env.pc = 0x3fffc0;
+    cpu->env.sp = 0x0400;
     cpu->env.st1 = 0x0a0b;
 
-    s->exception_index = -1;// ??
+    s->exception_index = -1;// reset exception/interrupt
 }
 
 // cpu实现？？

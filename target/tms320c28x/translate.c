@@ -110,7 +110,7 @@ void tms320c28x_translate_init(void)
     }
 }
 
-#include "decode-status.c"
+// #include "decode-status.c"
 #include "decode-base.c"
 
 #include "decode-mov.c"
@@ -208,8 +208,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 }
                 case 0b0111:
                     break;
-                case 0b1000:
+                case 0b1000: //0000 1000 LLLL LLLL 32bit ADD loc16,#16bitSigned
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                    length = 4;
+                    gen_add_loc16_16bit(ctx, mode, imm);
                     break;
+                }
                 case 0b1001:
                     break;
                 case 0b1010:
@@ -388,6 +394,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
         }
         case 0b0111:
             switch((insn & 0x0f00) >> 8) {
+                case 0b0010: //0111 0010 LLLL LLLL ADD loc16,AL
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_add_loc16_al(ctx, mode);
+                    break;
+                }
+                case 0b0011: //0111 0011 LLLL LLLL ADD loc16,AH
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_add_loc16_ah(ctx, mode);
+                    break;
+                }
                 case 0b0110: //0111 0110 .... ....
                     if (((insn >> 7) & 0x1) == 1) { //0111 0110 1... .... MOVL XARn,#22bit 
                         uint32_t n = ((insn >> 6) & 0b11) + 6;//XAR6,XAR7
