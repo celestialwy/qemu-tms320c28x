@@ -41,7 +41,7 @@ typedef struct DisasContext {
     DisasContextBase base;
 
     bool rpt_set;
-    bool rpt_exec;
+    // int rpt_counter;
     // TCGv temp[8];
 } DisasContext;
 
@@ -656,6 +656,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             break;
         case 0b1111:
             switch ((insn & 0x0f00) >> 8) {
+                case 0b0100: //1111 0100 LLLL LLLL 32bit MOV *(0:16bit),loc16
+                {
+                    uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                    uint32_t mode = insn & 0xff;
+                    gen_16bit_loc16(ctx, mode, imm);
+                    length = 4;
+                    break;
+                }
                 case 0b0110: //1111 0110 CCCC CCCC RPT #8bit
                 {
                     uint32_t value = insn & 0xff;
@@ -747,7 +755,7 @@ static void tms320c28x_tr_init_disas_context(DisasContextBase *dcb, CPUState *cs
     //     dc->temp[i] = tcg_const_local_i32(0);
     // }
     dc->rpt_set = false;
-    dc->rpt_exec = false;
+    // dc->rpt_counter = 0;
 }
 
 // Emit any code required before the start of the main loop,

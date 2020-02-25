@@ -20,48 +20,7 @@
 #include "exec/exec-all.h"
 #include "exec/gdbstub.h"
 #include "qemu/host-utils.h"
-#ifndef CONFIG_USER_ONLY
-#include "hw/loader.h"
-#endif
-
-static void st32_swap(CPUTms320c28xState *env, target_ulong addr, uint32_t value)
-{
-    uint32_t tmp, tmp2;
-
-    // ABCD -> CDAB
-    tmp = value << 16;
-    tmp2 = value >> 16;
-    value = tmp | tmp2;
-
-    //CDAB -> DCBA
-    tmp = value << 8;
-    tmp = tmp & 0xff00ff00;
-    tmp2 = value >> 8;
-    tmp2 = tmp2 & 0x00ff00ff;
-    value = tmp | tmp2;
-
-    cpu_stl_data(env, addr * 2, value);
-}
-
-static uint32_t ld32_swap(CPUTms320c28xState *env, target_ulong addr)
-{
-    uint32_t value = cpu_ldl_data(env, addr * 2);
-
-    uint32_t tmp, tmp2;
-    // ABCD -> BADC
-    tmp = value << 8;
-    tmp = tmp & 0xff00ff00;
-    tmp2 = value >> 8;
-    tmp2 = tmp2 & 0x00ff00ff;
-    value = tmp | tmp2;
-    // BADC -> DCBA
-    tmp = value << 16;
-    tmp2 = value >> 16;
-    value = tmp | tmp2;
-
-    return value;
-}
-
+#include "ldst.h"
 
 // handle exception/interrupt, cs->exception_index
 void tms320c28x_cpu_do_interrupt(CPUState *cs)

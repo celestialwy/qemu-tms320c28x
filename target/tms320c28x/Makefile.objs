@@ -1,4 +1,4 @@
 obj-$(CONFIG_SOFTMMU) += machine.o
 obj-y += cpu.o interrupt.o mmu.o translate.o disas.o exception.o
-obj-y += gdbstub.o helper.o
+obj-y += gdbstub.o helper.o helper-address_mode.o
 

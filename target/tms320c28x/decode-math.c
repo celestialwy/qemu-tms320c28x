@@ -18,7 +18,7 @@ static void gen_abstc_acc(DisasContext *ctx)
 static void gen_add_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t shift)
 {
     TCGv b = tcg_const_i32(imm);
-    gen_helper_ld_low_sxm(b, cpu_env, b);//16bit signed extend with sxm
+    gen_helper_extend_low_sxm(b, cpu_env, b);//16bit signed extend with sxm
     tcg_gen_shli_i32(b, b, shift);
     
     TCGv a = tcg_const_i32(0);
@@ -45,7 +45,7 @@ static void gen_add_acc_loc16_t(DisasContext *ctx, uint32_t mode)
 
         tcg_gen_mov_i32(a, cpu_acc);//get a
         gen_ld_loc16(b, mode); //get b
-        gen_helper_ld_low_sxm(b, cpu_env, b);//16bit signed extend with sxm
+        gen_helper_extend_low_sxm(b, cpu_env, b);//16bit signed extend with sxm
         tcg_gen_shri_i32(shift, cpu_xt, 16);
         tcg_gen_andi_i32(shift, shift, 0x7);//T(3:0)
         tcg_gen_shl_i32(b, b, shift);//b = b<<T
@@ -87,7 +87,7 @@ static void gen_add_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t s
 
         tcg_gen_mov_i32(a, cpu_acc);//get a
         gen_ld_loc16(b, mode); //get b
-        gen_helper_ld_low_sxm(b, cpu_env, b);//16bit signed extend with sxm
+        gen_helper_extend_low_sxm(b, cpu_env, b);//16bit signed extend with sxm
         tcg_gen_shli_i32(b, b, shift_imm);//b = b<<shift
 
         tcg_gen_add_i32(cpu_acc, a, b);//add

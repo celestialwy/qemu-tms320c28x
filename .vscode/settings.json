@@ -19,7 +19,10 @@
         "type_traits": "c",
         "utility": "c",
         "irq.h": "c",
-        "loader.h": "c"
+        "loader.h": "c",
+        "algorithm": "c",
+        "ldst.h": "c",
+        "helper-proto.h": "c"
     },
     "files.exclude": {
         "**/.git": true,
