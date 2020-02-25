@@ -49,9 +49,7 @@ static void gen_mov_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm) 
 
     gen_sti_loc16(mode, imm);
 
-    if (ctx->rpt_set) {
-        tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
-    }
+    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
 
     if (imm == 0b10101000) { //loc16 == @AH
         TCGv ah = tcg_temp_new();
@@ -66,17 +64,13 @@ static void gen_mov_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm) 
         tcg_temp_free(al);
     }
 
+    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
 
-    if (ctx->rpt_set) {
-        gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
+    gen_set_label(repeat);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
 
-        gen_set_label(repeat);
-        tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
-        gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
-
-        ctx->base.is_jmp = DISAS_NORETURN;
-    }
-
+    ctx->base.is_jmp = DISAS_NORETURN;
 }
 
 // MOV loc16,AH
@@ -124,28 +118,24 @@ static void gen_mova_t_loc16(DisasContext *ctx, uint32_t mode)
     tcg_gen_add_i32(cpu_acc, a, b);
 
     gen_helper_test_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 
-    if (ctx->rpt_set) {
-        tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
-    }
+    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
 
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
-    gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 
-    if (ctx->rpt_set) {
-        gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
-        gen_set_label(repeat);
-        tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
-        gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
-    }
+    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
+    gen_set_label(repeat);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
     tcg_temp_free_i32(t);
     tcg_temp_free_i32(pm);
-    if (ctx->rpt_set) {
-        ctx->base.is_jmp = DISAS_NORETURN;
-    }
+
+    ctx->base.is_jmp = DISAS_NORETURN;
 }
 
 // MOVL ACC,loc32

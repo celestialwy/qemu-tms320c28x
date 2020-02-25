@@ -426,6 +426,15 @@ void HELPER(test2_C_V_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t 
     }
 }
 
+void HELPER(test_OVCU_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) {
+    uint64_t tmp = (uint64_t)a + (uint64_t)b;
+    if ((tmp >> 32) & 1) {
+        int32_t ovc = cpu_get_ovc(env);
+        ovc += 1;
+        cpu_set_ovc(env, ovc);
+    }
+}
+
 uint32_t HELPER(ld_high_sxm)(CPUTms320c28xState *env, uint32_t value)
 {
     uint32_t sxm = cpu_get_sxm(env);

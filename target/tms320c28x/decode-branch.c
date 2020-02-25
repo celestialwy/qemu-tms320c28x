@@ -2,6 +2,8 @@
 // BF 16bitOffset,COND
 static void gen_bf_16bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t cond) 
 {
+    gen_reset_rptc(ctx);
+
     TCGv cond_tcg = tcg_const_i32(cond);
     TCGv test = tcg_temp_new();
 
@@ -21,6 +23,8 @@ static void gen_bf_16bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t 
 
 // LB 22bit
 static void gen_lb_22bit(DisasContext *ctx, uint32_t imm) {
+    gen_reset_rptc(ctx);
+
     tcg_gen_movi_tl(cpu_pc, imm);
     ctx->base.is_jmp = DISAS_JUMP;
 }
@@ -28,6 +32,8 @@ static void gen_lb_22bit(DisasContext *ctx, uint32_t imm) {
 // LRETR
 static void gen_lretr(DisasContext *ctx)
 {
+    gen_reset_rptc(ctx);
+
     tcg_gen_mov_i32(cpu_pc, cpu_rpc); // PC = RPC
     tcg_gen_subi_i32(cpu_sp, cpu_sp, 1); // SP = SP - 1
     TCGv tmp = tcg_temp_local_new();
@@ -46,12 +52,16 @@ static void gen_lretr(DisasContext *ctx)
 // RPT #8bit
 static void gen_rpt_8bit(DisasContext *ctx, uint32_t imm)
 {
+    gen_reset_rptc(ctx);
+
     tcg_gen_movi_i32(cpu_rptc, imm);
 }
 
 // RPT loc16
 static void gen_rpt_loc16(DisasContext *ctx, uint32_t mode)
 {
+    gen_reset_rptc(ctx);
+
     TCGv val = tcg_temp_new_i32();
     gen_ld_loc16(val, mode);
     tcg_gen_mov_i32(cpu_rptc, val);
@@ -59,6 +69,8 @@ static void gen_rpt_loc16(DisasContext *ctx, uint32_t mode)
 
 // SB 8bitOffset,COND
 static void gen_sb_8bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t cond) {
+    gen_reset_rptc(ctx);
+
     TCGv cond_tcg = tcg_const_i32(cond);
     TCGv test = tcg_temp_new();
 

@@ -369,8 +369,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%08x; ADDCU ACC,%s", insn32, str);
                     break;
                 }
-                case 0b1101:
+                case 0b1101: //0000 1101 LLLL LLLL ADDU ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str, mode, LOC16);
+                    fprintf_func(stream, "0x%08x; ADDU ACC,%s", insn32, str);
                     break;
+                }
                 case 0b1110:
                     break;
                 case 0b1111:
@@ -480,6 +485,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     switch ((insn & 0x00f0) >> 4) {
                         case 0b0000: //0101 0110 0000 ....
                             switch (insn & 0x000f) {
+                                case 0b0001: //0101 0110 0000 0001 0000 0000 LLLL LLLL ADDL loc32,ACC
+                                {
+                                    if (((insn32 & 0xff00) >> 16) == 0) {
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str,mode,LOC32);
+                                        fprintf_func(stream, "0x%08x; ADDL %s,ACC", insn32, str);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b0011: /* 0101 0110 0000 0011  MOV ACC, loc16<<#1...15 */
                                 {
                                     if ((insn32 & 0xf000) == 0) { //this 4bit should be 0
@@ -535,6 +550,24 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         case 0b0101: //0101 0110 0101 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0011: //0101 0110 0101 0011 xxxx xxxx LLLL LLLL ADDUL ACC,loc32
+                                {
+                                    uint32_t mode = insn32 & 0xff;
+                                    get_loc_string(str, mode, LOC32);
+                                    fprintf_func(stream, "0x%08x; ADDUL ACC,%s", insn, str);
+                                    length = 4;
+                                    break;
+                                }
+                                case 0b0111: //0101 0110 0101 0111 0000 0000 LLLL LLLL ADDUL P,loc32
+                                {
+                                    if (((insn32 & 0xff00) >> 8) == 0) {
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC32);
+                                        fprintf_func(stream, "0x%08x; ADDUL P,%s", insn, str);
+                                    }
+                                    length = 4;
+                                    break;
+                                }
                                 case 0b1111: //0101 0110 0101 1111 ABSTC  ACC
                                 {
                                     fprintf_func(stream, "0x%04x;     ABCTC ACC", insn);

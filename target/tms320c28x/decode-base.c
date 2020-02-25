@@ -387,3 +387,11 @@ static void gen_st_loc32(uint32_t mode, TCGv_i32 oprand)
             }
     }
 }
+
+static void gen_reset_rptc(DisasContext *ctx)
+{
+    if (ctx->rpt_set) {
+        tcg_gen_movi_i32(cpu_rptc, 0);
+        // gen_helper_print(cpu_env, cpu_rptc);
+    }
+}

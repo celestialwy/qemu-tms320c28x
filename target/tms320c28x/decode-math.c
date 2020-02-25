@@ -54,23 +54,22 @@ static void gen_add_acc_loc16_t(DisasContext *ctx, uint32_t mode)
 
         gen_helper_test_V_32(cpu_env, a, b, cpu_acc);
         gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
-    if (ctx->rpt_set) {
+
     tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
-    }
+    
         gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
         gen_helper_test_N_Z_32(cpu_env, cpu_acc);
-    if (ctx->rpt_set) {
+
         gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
     gen_set_label(repeat);
         tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
         gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
-    }
+    
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
     tcg_temp_free_i32(shift);
-    if (ctx->rpt_set) {
+
     ctx->base.is_jmp = DISAS_NORETURN;
-    }
 }
 
 // ADD ACC,loc16<<#0...16
@@ -95,24 +94,24 @@ static void gen_add_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t s
 
         gen_helper_test_V_32(cpu_env, a, b, cpu_acc);
         gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
-    if (ctx->rpt_set) {
+
     tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
-    }
+    
         gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
         gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 
-    if (ctx->rpt_set) {
+
         gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + insn_length);
 
     gen_set_label(repeat);
         tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
         gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
-    }
+    
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
-    if (ctx->rpt_set) {
+
     ctx->base.is_jmp = DISAS_NORETURN;
-    }
+    
 }
 
 
@@ -347,6 +346,7 @@ static void gen_addcu_acc_loc16(DisasContext *ctx, uint32_t mode)
 
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
+    tcg_temp_free_i32(c);
     tcg_temp_free_i32(tmp);
 }
 
@@ -367,6 +367,107 @@ static void gen_addl_acc_loc32(DisasContext *ctx, uint32_t mode)
 
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
+}
+
+// ADDL loc32,ACC
+static void gen_addl_loc32_acc(DisasContext *ctx, uint32_t mode)
+{
+    TCGv b = tcg_temp_local_new();
+    gen_ld_loc32(b, mode);
+
+    TCGv tmp = tcg_temp_local_new();
+    tcg_gen_add_i32(tmp, cpu_acc, b);
+
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_C_V_32(cpu_env, cpu_acc, b, tmp);
+    gen_helper_test_OVC_OVM_32(cpu_env, cpu_acc, b, tmp);
+
+    gen_st_loc32(mode, tmp);
+
+    tcg_temp_free_i32(tmp);
+    tcg_temp_free_i32(b);
+}
+
+// ADDU ACC,loc16
+static void gen_addu_acc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGLabel *repeat = gen_new_label();
+
+    TCGv a = tcg_temp_local_new();
+    tcg_gen_mov_i32(a, cpu_acc);
+
+    TCGv b = tcg_temp_local_new();
+    gen_ld_loc16(b, mode);
+
+    tcg_gen_add_i32(cpu_acc, a, b);
+    gen_helper_test_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+
+    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
+
+    gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
+    gen_set_label(repeat);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+
+    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+
+    ctx->base.is_jmp = DISAS_NORETURN;
+}
+
+// ADDUL P,loc32
+static void gen_addul_p_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc32(a, mode);
+
+    TCGv b = tcg_temp_new();
+    tcg_gen_mov_i32(b, cpu_p);
+
+    tcg_gen_add_i32(cpu_p, a, b);
+
+    gen_helper_test_N_Z_32(cpu_env, cpu_p);
+    gen_helper_test_C_V_32(cpu_env, a, b, cpu_p);
+    gen_helper_test_OVCU_32(cpu_env, a, b, cpu_p);
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+}
+
+// ADDUL ACC,loc32
+static void gen_addul_acc_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGLabel *repeat = gen_new_label();
+
+    TCGv a = tcg_temp_local_new();
+    gen_ld_loc32(a, mode);
+
+    TCGv b = tcg_temp_local_new();
+    tcg_gen_mov_i32(b, cpu_acc);
+
+    tcg_gen_add_i32(cpu_acc, a, b);
+    gen_helper_test_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_OVCU_32(cpu_env, a, b, cpu_acc);
+
+    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
+
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
+
+    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
+    gen_set_label(repeat);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+
+    ctx->base.is_jmp = DISAS_NORETURN;
 }
 
 // SUBB ACC,#8bit

@@ -41,6 +41,7 @@ typedef struct DisasContext {
     DisasContextBase base;
 
     bool rpt_set;
+    bool rpt_exec;
     // TCGv temp[8];
 } DisasContext;
 
@@ -126,10 +127,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
     uint32_t insn32 = insn;
     bool set_repeat_counter = false;
     // qemu_log_mask(CPU_LOG_TB_IN_ASM ,"insn is: 0x%x \n",insn);
-
-    if (insn == 0x3102) {
-        tcg_gen_movi_i32(cpu_p, 0x14);
-    }
 
     switch ((insn & 0xf000) >> 12) {
         case 0b0000:
@@ -240,8 +237,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     gen_addcu_acc_loc16(ctx, mode);
                     break;
                 }
-                case 0b1101:
+                case 0b1101: //0000 1101 LLLL LLLL ADDU ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_addu_acc_loc16(ctx, mode);
+                    set_repeat_counter = true;
                     break;
+                }
                 case 0b1110:
                     break;
                 case 0b1111:
@@ -340,6 +342,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     switch ((insn & 0x00f0) >> 4) {
                         case 0b0000: //0101 0110 0000 ....
                             switch (insn & 0x000f) {
+                                case 0b0001: //0101 0110 0000 0001 0000 0000 LLLL LLLL ADDL loc32,ACC
+                                {
+                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                                    if (((insn2 & 0xff00) >> 16) == 0) {
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_addl_loc32_acc(ctx, mode);
+                                    }
+                                    length = 4;
+                                    break;
+                                }
                                 case 0b0011: /* 0101 0110 0000 0011  MOV ACC, loc16<<#1...15 */
                                 {
                                     uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
@@ -396,6 +408,24 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                         case 0b0101: //0101 0110 0101 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0011: //0101 0110 0101 0011 xxxx xxxx LLLL LLLL ADDUL ACC,loc32
+                                {
+                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                                    uint32_t mode = insn2 & 0xff;
+                                    gen_addul_acc_loc32(ctx, mode);
+                                    length = 4;
+                                    break;
+                                }
+                                case 0b0111: //0101 0110 0101 0111 0000 0000 LLLL LLLL ADDUL P,loc32
+                                {
+                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                                    if (((insn2 & 0xff00) >> 8) == 0) {
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_addul_p_loc32(ctx, mode);
+                                    }
+                                    length = 4;
+                                    break;
+                                }
                                 case 0b1111: //0101 0110 0101 1111 ABSTC  ACC
                                 {
                                     gen_abstc_acc(ctx);
@@ -693,10 +723,8 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             }
             break;
     }
-    if (ctx->rpt_set) {
-        tcg_gen_movi_i32(cpu_rptc, 0);
-        // gen_helper_print(cpu_env, cpu_rptc);
-    }
+
+    gen_reset_rptc(ctx);
 
     if (!set_repeat_counter) {
         ctx->rpt_set = false;
@@ -719,6 +747,7 @@ static void tms320c28x_tr_init_disas_context(DisasContextBase *dcb, CPUState *cs
     //     dc->temp[i] = tcg_const_local_i32(0);
     // }
     dc->rpt_set = false;
+    dc->rpt_exec = false;
 }
 
 // Emit any code required before the start of the main loop,
@@ -865,6 +894,8 @@ void tms320c28x_cpu_dump_state(CPUState *cs, FILE *f, int flags)
     qemu_fprintf(f, "ARP=%x XF=%x MOM1MAP=%x OBJMODE=%x\n", cpu_get_arp(env), cpu_get_xf(env), cpu_get_mom1map(env), cpu_get_objmode(env));
     qemu_fprintf(f, "AMODE=%x IDLESTAT=%x EALLOW=%x LOOP=%x\n", cpu_get_amode(env), cpu_get_idlestat(env), cpu_get_eallow(env), cpu_get_loop(env));
     qemu_fprintf(f, "SPA=%x VMAP=%x PAGE0=%x DBGM=%x INTM=%x\n", cpu_get_spa(env), cpu_get_vmap(env), cpu_get_page0(env), cpu_get_dbgm(env), cpu_get_intm(env));
+
+    qemu_fprintf(f, "RPTC=%x\n",env->rptc);
 }
 
 void restore_state_to_opc(CPUTms320c28xState *env, TranslationBlock *tb,
