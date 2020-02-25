@@ -333,8 +333,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOVL ACC,%s", insn, str);
                     break;
                 }
-                case 0b0111:
+                case 0b0111: //0000 0111 LLLL LLLL ADDL ACC,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC32);
+                    fprintf_func(stream, "0x%04x;     ADDL ACC,%s", insn, str);
                     break;
+                }
                 case 0b1000: //0000 1000 LLLL LLLL 32bit ADD loc16,#16bitSigned
                 {
                     uint32_t mode = insn & 0xff;
@@ -357,8 +362,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     break;
                 case 0b1011:
                     break;
-                case 0b1100:
+                case 0b1100: //0000 1100 LLLL LLLL ADDCU ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str, mode, LOC16);
+                    fprintf_func(stream, "0x%08x; ADDCU ACC,%s", insn32, str);
                     break;
+                }
                 case 0b1101:
                     break;
                 case 0b1110:
@@ -369,6 +379,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b0001:
             switch ((insn & 0x0f00) >> 8) {
+                case 0b0000: //0001 0000 LLLL LLLL MOVA T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    if (mode == 0b10101100) {
+                        fprintf_func(stream, "0x%04x;     ADDL ACC,P<<PM", insn);
+                    }
+                    else {
+                        get_loc_string(str,mode,LOC16);
+                        fprintf_func(stream, "0x%04x;     MOVA T,%s", insn, str);
+                    }
+                    break;
+                }
                 case 0b1001: //0001 1001 CCCC CCCC SUBB ACC,#8bit
                 {
                     uint32_t imm = insn & 0xff;
@@ -811,6 +833,22 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 }
                             }
                             break;
+                        case 0b0110: //1111 1111 0110 ....
+                        {
+                            if (((insn & 0xf) >> 3) == 1) { //1111 1111 0110 1... SPM shift
+                                int32_t pm = insn & 0b111;
+                                pm = 1 - pm;
+                                if (pm > 0) {
+                                    fprintf_func(stream, "0x%04x;     SPF +%d", insn, pm);
+                                }
+                                else {
+                                    fprintf_func(stream, "0x%04x;     SPF %d", insn, pm);
+                                }
+                            }
+                            else {
+
+                            }
+                        }
                     }
                     break;
             }

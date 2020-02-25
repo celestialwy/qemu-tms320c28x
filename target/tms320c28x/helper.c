@@ -551,3 +551,15 @@ void HELPER(abstc_acc)(CPUTms320c28xState *env)
         cpu_set_tc(env, tc);
     }
 }
+
+uint32_t HELPER(shift_by_pm)(CPUTms320c28xState *env, uint32_t value)
+{
+    int32_t pm = cpu_get_pm(env);
+    pm = 1 - pm;
+    if (pm > 0) {
+        return value << pm;
+    }
+    else {
+        return value >> -pm;
+    }
+}

@@ -76,6 +76,11 @@ static void gen_add_acc_loc16_t(DisasContext *ctx, uint32_t mode)
 // ADD ACC,loc16<<#0...16
 static void gen_add_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t shift_imm)
 {
+    uint32_t insn_length = 2;
+    if ((shift_imm == 16) || (shift_imm == 0))
+        insn_length = 1;
+
+
     TCGv a = tcg_temp_local_new();
     TCGv b = tcg_temp_local_new();
 
@@ -97,7 +102,7 @@ static void gen_add_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t s
         gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 
     if (ctx->rpt_set) {
-        gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
+        gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + insn_length);
 
     gen_set_label(repeat);
         tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
@@ -318,6 +323,50 @@ static void gen_addcl_acc_loc32(DisasContext *ctx, uint32_t mode)
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
     tcg_temp_free_i32(tmp);
+}
+
+// ADDCU ACC,loc16
+static void gen_addcu_acc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new();
+    tcg_gen_mov_i32(a, cpu_acc);
+
+    TCGv b = tcg_temp_local_new();
+    gen_ld_loc16(b, mode);
+
+    TCGv c = tcg_temp_local_new();
+    tcg_gen_shri_i32(c, cpu_st0, 3);
+    tcg_gen_andi_i32(c, c, 1);
+
+    TCGv tmp = tcg_temp_local_new();
+    tcg_gen_add_i32(tmp, a, b);
+    tcg_gen_add_i32(cpu_acc, tmp, c);
+
+    gen_helper_test2_C_V_OVC_OVM_32(cpu_env, a, b,c, cpu_acc);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+    tcg_temp_free_i32(tmp);
+}
+
+// ADDL ACC,loc32
+static void gen_addl_acc_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new();
+    tcg_gen_mov_i32(a, cpu_acc);
+
+    TCGv b = tcg_temp_local_new();
+    gen_ld_loc32(b, mode);
+
+    tcg_gen_add_i32(cpu_acc, a, b);
+
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_C_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
 }
 
 // SUBB ACC,#8bit

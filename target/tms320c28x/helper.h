@@ -47,3 +47,4 @@ DEF_HELPER_3(intr, void, env, i32, i32)
 //math
 DEF_HELPER_1(abs_acc, void, env)
 DEF_HELPER_1(abstc_acc, void, env)
+DEF_HELPER_2(shift_by_pm, i32, env, i32)

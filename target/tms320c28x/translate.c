@@ -126,11 +126,9 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
     uint32_t insn32 = insn;
     bool set_repeat_counter = false;
     // qemu_log_mask(CPU_LOG_TB_IN_ASM ,"insn is: 0x%x \n",insn);
-    if (insn == 0x2ba9) {
-        gen_sti_reg_low_half(cpu_acc, 0);
-    }
-    if (insn == 0x8EA9) {
-        tcg_gen_mov_i32(cpu_xar[0], cpu_acc);
+
+    if (insn == 0x3102) {
+        tcg_gen_movi_i32(cpu_p, 0x14);
     }
 
     switch ((insn & 0xf000) >> 12) {
@@ -212,8 +210,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     gen_movl_acc_loc32(ctx, mode);
                     break;
                 }
-                case 0b0111:
+                case 0b0111: //0000 0111 LLLL LLLL ADDL ACC,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_addl_acc_loc32(ctx, mode);
                     break;
+                }
                 case 0b1000: //0000 1000 LLLL LLLL 32bit ADD loc16,#16bitSigned
                 {
                     uint32_t mode = insn & 0xff;
@@ -232,8 +234,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     break;
                 case 0b1011:
                     break;
-                case 0b1100:
+                case 0b1100: //0000 1100 LLLL LLLL ADDCU ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_addcu_acc_loc16(ctx, mode);
                     break;
+                }
                 case 0b1101:
                     break;
                 case 0b1110:
@@ -244,6 +250,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             break;
         case 0b0001:
             switch ((insn & 0x0f00) >> 8) {
+                case 0b0000: //0001 0000 LLLL LLLL MOVA T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mova_t_loc16(ctx, mode);
+                    break;
+                }
                 case 0b1001: //0001 1001 CCCC CCCC SUBB ACC,#8bit
                 {
                     int32_t imm = insn & 0xff;
@@ -666,11 +678,26 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                             }
                             break;
+                        case 0b0110: //1111 1111 0110 ....
+                        {
+                            if (((insn & 0xf) >> 3) == 1) { //1111 1111 0110 1... SPM shift
+                                uint32_t pm = insn & 0b111;
+                                gen_spm_shift(ctx, pm);
+                            }
+                            else {
+
+                            }
+                        }
                     }
                     break;
             }
             break;
     }
+    if (ctx->rpt_set) {
+        tcg_gen_movi_i32(cpu_rptc, 0);
+        // gen_helper_print(cpu_env, cpu_rptc);
+    }
+
     if (!set_repeat_counter) {
         ctx->rpt_set = false;
     }
