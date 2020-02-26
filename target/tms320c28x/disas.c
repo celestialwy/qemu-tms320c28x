@@ -803,6 +803,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b1011:
             switch ((insn & 0xf00) >> 8) {
+                case 0b0001: //1011 0001 LLLL LLLL MOV loc16,ACC<<1
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MOV %s,ACC<<1", insn, str);
+                    break;
+                }
                 case 0b0010: //1011 0010 LLLL LLLL MOVL loc32, XAR1
                 {
                     uint32_t mode = insn & 0xff;
