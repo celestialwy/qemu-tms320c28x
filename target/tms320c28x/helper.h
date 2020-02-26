@@ -57,3 +57,4 @@ DEF_HELPER_2(shift_by_pm, i32, env, i32)
 
 //mov
 DEF_HELPER_4(mov_16bit_loc16, void, env, i32, i32, i32)// MOV *(0:16bit),loc16
+DEF_HELPER_4(mov_loc16_16bit, void, env, i32, i32, i32)// MOV loc16,*(0:16bit)

@@ -280,8 +280,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     break;
                 case 0b0010:
                     break;
-                case 0b0011:
+                case 0b0011: //0010 0011 LLLL LLLL MOV IER,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mov_ier_loc16(ctx, mode);
                     break;
+                }
                 case 0b0100:
                     break;
                 case 0b0101: /* 0010 0101 .... .... MOV ACC, loc16<<#16 */
@@ -306,8 +310,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     break;
                 case 0b1010:
                     break;
-                case 0b1011:
+                case 0b1011: //0010 1011 LLLL LLLL MOV loc16,#0
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mov_loc16_0(ctx, mode);   
                     break;
+                }
                 case 0b1100:
                     break;
                 case 0b1101:
@@ -373,6 +381,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                         uint32_t mode = (insn2 & 0xff);
                                         gen_add_acc_loc16_shift(ctx, mode, shift);
                                     }
+                                    break;
+                                }
+                                case 0b0110: //0101 0110 0000 0110 0000 0000 LLLL LLLL MOV ACC,loc16<<T
+                                {
+                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                                    if (((insn2 & 0xff00) >> 16) == 0) {
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_mov_acc_loc16_t(ctx, mode);
+                                    }
+                                    length = 4;
                                     break;
                                 }
                             }
@@ -444,8 +462,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                         }
                     }
                     break;
-                case 0b0111:
+                case 0b1110://0101 1110 LLLL LLLL MOV AR6,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mov_arn_loc16(ctx, mode, 6);
                     break;
+                }
+                case 0b1111://0101 1111 LLLL LLLL MOV AR7,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mov_arn_loc16(ctx, mode, 7);
+                    break;
+                }
             }
             break;
         case 0b0110: //0110 COND CCCC CCCC SB 8bitOffset,COND
@@ -664,6 +692,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     length = 4;
                     break;
                 }
+                case 0b0101: //1111 0101 LLLL LLLL 32bit MOV loc16,*(0:16bit)
+                {
+                    uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                    uint32_t mode = insn & 0xff;
+                    gen_loc16_16bit(ctx, mode, imm);
+                    length = 4;
+                    break;
+                }
                 case 0b0110: //1111 0110 CCCC CCCC RPT #8bit
                 {
                     uint32_t value = insn & 0xff;
@@ -676,6 +712,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     uint32_t mode = insn & 0xff;
                     gen_rpt_loc16(ctx, mode);
                     set_repeat_counter = true;
+                    break;
+                }
+                case 0b1000: //1111 10CC CCCC CCCC MOV DP,#10bit
+                case 0b1001: //1111 10CC CCCC CCCC MOV DP,#10bit
+                case 0b1010: //1111 10CC CCCC CCCC MOV DP,#10bit
+                case 0b1011: //1111 10CC CCCC CCCC MOV DP,#10bit
+                {
+                    uint32_t imm = insn & 0x3ff;// 10bit
+                    gen_mov_dp_10bit(ctx, imm);
                     break;
                 }
                 case 0b1110: //1111 1110 .... ....

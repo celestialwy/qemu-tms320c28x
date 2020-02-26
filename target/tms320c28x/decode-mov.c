@@ -5,31 +5,14 @@ static void gen_16bit_loc16(DisasContext *ctx, uint32_t mode, uint32_t imm)
     TCGv mode_tcg = tcg_const_i32(mode);
     TCGv is_rpt_tcg = tcg_const_i32(ctx->rpt_set);
     gen_helper_mov_16bit_loc16(cpu_env,mode_tcg,imm_tcg,is_rpt_tcg);
-
-    // TCGLabel *repeat = gen_new_label();
-
-    // TCGv addr = tcg_temp_local_new();
-    // tcg_gen_movi_i32(addr, imm);
-
-    // TCGv value = tcg_temp_local_new();
-    // gen_ld_loc16(value, mode);
-
-
-    // gen_st16u_swap(value, addr);
-
-    // tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
-
-    // gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
-    // gen_set_label(repeat);
-    // tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
-    // gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
-
-    // ctx->rpt_counter += 1;
-    // ctx->base.is_jmp = DISAS_NORETURN;
+    tcg_temp_free(imm_tcg);
+    tcg_temp_free(mode_tcg);
+    tcg_temp_free(is_rpt_tcg);
 }
 
 // MOV ACC, loc16<<#0...15
-static void gen_mov_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t shift) {
+static void gen_mov_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t shift) 
+{
     TCGv oprand = tcg_temp_new();
     gen_ld_loc16(oprand, mode);
     gen_helper_extend_low_sxm(oprand, cpu_env, oprand);
@@ -37,6 +20,26 @@ static void gen_mov_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t s
 
     // set N,Z
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    tcg_temp_free(oprand);
+}
+
+// MOV ACC,loc16<<T
+static void gen_mov_acc_loc16_t(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    gen_helper_extend_low_sxm(a, cpu_env, a);
+
+    TCGv shift = tcg_temp_new();
+    tcg_gen_shri_i32(shift, cpu_xt, 16);
+    tcg_gen_andi_i32(shift, shift, 0x7);//T(3:0)
+    tcg_gen_shl_i32(cpu_acc, a, shift);//acc = a<<T
+    
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    tcg_temp_free(a);
+    tcg_temp_free(shift);
 }
 
 // MOV ACC, #16bit<<#0...15
@@ -48,6 +51,18 @@ static void gen_mov_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t sh
     tcg_gen_shli_i32(cpu_acc, oprand, shift); // shift left, save to acc
     // set N,Z
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    tcg_temp_free(oprand);
+}
+
+// MOV ARn,loc16
+static void gen_mov_arn_loc16(DisasContext *ctx, uint32_t mode, uint32_t n)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    gen_st_reg_low_half(cpu_xar[n], a);
+
+    tcg_temp_free(a);
 }
 
 // MOV AH, loc16
@@ -70,11 +85,24 @@ static void gen_mov_al_loc16(DisasContext *ctx, uint32_t mode) {
     gen_helper_test_N_Z_16(cpu_env, ax);
     
     tcg_temp_free_i32(ax);
-
 }
 
+// MOV DP,#10bit
+static void gen_mov_dp_10bit(DisasContext *ctx, uint32_t imm)
+{
+    TCGv a = tcg_const_i32(imm);
+    tcg_gen_andi_i32(cpu_dp, cpu_dp, 0xfc00);
+    tcg_gen_or_i32(cpu_dp, cpu_dp, a);
+    tcg_temp_free(a);
+}
 
-// MOV loc16,16bit
+// MOV IER,loc16
+static void gen_mov_ier_loc16(DisasContext *ctx, uint32_t mode)
+{
+    gen_ld_loc16(cpu_ier, mode);
+}
+
+// MOV loc16,#16bit
 static void gen_mov_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm) {
     TCGLabel *repeat = gen_new_label();
 
@@ -83,18 +111,7 @@ static void gen_mov_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm) 
 
     tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
 
-    if (imm == 0b10101000) { //loc16 == @AH
-        TCGv ah = tcg_temp_new();
-        tcg_gen_shri_i32(ah, cpu_acc, 16);
-        gen_helper_test_N_Z_16(cpu_env, ah);
-        tcg_temp_free(ah);
-    }
-    if (imm == 0b10101001) { //loc16 == @AL
-        TCGv al = tcg_temp_new();
-        tcg_gen_andi_i32(al, cpu_acc, 0xffff);
-        gen_helper_test_N_Z_16(cpu_env, cpu_acc);
-        tcg_temp_free(al);
-    }
+    gen_test_ax_N_Z(mode);
 
     gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
 
@@ -104,6 +121,29 @@ static void gen_mov_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm) 
 
     tcg_temp_free(imm_tcg);
     ctx->base.is_jmp = DISAS_NORETURN;
+}
+
+// MOV loc16,*(0:16bit)
+static void gen_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm)
+{
+    TCGv imm_tcg = tcg_const_i32(imm);
+    TCGv mode_tcg = tcg_const_i32(mode);
+    TCGv is_rpt_tcg = tcg_const_i32(ctx->rpt_set);
+    gen_helper_mov_loc16_16bit(cpu_env,mode_tcg,imm_tcg,is_rpt_tcg);
+    tcg_temp_free(imm_tcg);
+    tcg_temp_free(mode_tcg);
+    tcg_temp_free(is_rpt_tcg);
+
+    gen_test_ax_N_Z(mode);
+}
+
+// MOV loc16,#0
+static void gen_mov_loc16_0(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_const_i32(0);
+    gen_st_loc16(mode, a);
+    gen_test_ax_N_Z(mode);
+    tcg_temp_free(a);
 }
 
 // MOV loc16,AH

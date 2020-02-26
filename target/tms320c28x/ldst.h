@@ -72,7 +72,7 @@ static inline void st16_swap(CPUTms320c28xState *env, target_ulong addr, uint32_
     tmp2 = tmp2 & 0x00ff;
     value = tmp | tmp2;
 
-    cpu_stl_data(env, addr * 2, value);
+    cpu_stw_data(env, addr * 2, value);
 }
 
 static inline uint32_t st_low_half(uint32_t reg, uint32_t value)

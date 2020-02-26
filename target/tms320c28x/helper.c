@@ -378,19 +378,30 @@ void HELPER(mov_16bit_loc16)(CPUTms320c28xState *env, uint32_t mode, uint32_t ad
 {
     uint32_t max;
     if (is_rpt == 1)
-        max = env->rptc;
+        max = env->rptc + 1;
     else
         max = 1;
     for(int i = 0; i < max; i++) {
-        // addr = addr + i;
-        // uint32_t addr_loc16 = helper_addressing_mode(env, mode, LOC16);
-
+        uint32_t loc16_value = helper_ld_loc16(env, mode);
         
-        // uint32_t value = ld16_swap(env, addr_loc16);
-        // value = value;
-        // uint32_t a;
-        // a = value;
-        // a += 1;
+        st16_swap(env, addr, loc16_value);
+        addr = addr + 1;
+    }
+    env->rptc = 0;//reset rptc
+}
+
+void HELPER(mov_loc16_16bit)(CPUTms320c28xState *env, uint32_t mode, uint32_t addr, uint32_t is_rpt)
+{
+    uint32_t max;
+    if (is_rpt == 1)
+        max = env->rptc + 1;
+    else
+        max = 1;
+    for(int i = 0; i < max; i++) {
+        uint32_t mem_value = ld16_swap(env, addr);
+        helper_st_loc16(env, mode, mem_value);
+        
+        addr = addr + 1;
     }
     env->rptc = 0;//reset rptc
 }
