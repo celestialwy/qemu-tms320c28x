@@ -405,3 +405,36 @@ void HELPER(mov_loc16_16bit)(CPUTms320c28xState *env, uint32_t mode, uint32_t ad
     }
     env->rptc = 0;//reset rptc
 }
+
+void HELPER(cmp16_N_Z_C)(CPUTms320c28xState *env, uint32_t a, uint32_t b)
+{
+    uint32_t result2 = a + ((~b + 1) & 0xffff);
+    //test C
+    if ((result2 >> 16) & 1) {
+        cpu_set_c(env, 1);
+    }
+    else {
+        cpu_set_c(env, 0);
+    }
+
+    //sign extend
+    a = sign_extend_16(a);
+    b = sign_extend_16(b);
+    //sub
+    int32_t result = a - b;
+    //test N
+    if (result < 0) {
+        cpu_set_n(env, 1);
+    }
+    else {
+        cpu_set_n(env, 0);
+    }
+    //test Z
+    if (result == 0) {
+        cpu_set_z(env, 1);
+    }
+    else {
+        cpu_set_z(env, 0);
+    }
+
+}

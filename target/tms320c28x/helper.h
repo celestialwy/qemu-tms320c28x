@@ -25,7 +25,7 @@ DEF_HELPER_2(ld_loc32, i32, env, i32)
 DEF_HELPER_3(st_loc16, void, env, i32, i32)
 DEF_HELPER_3(st_loc32, void, env, i32, i32)
 
-DEF_HELPER_2(test_cond,i32,env,i32)
+DEF_HELPER_2(test_cond,i32,env,i32) //affect V bit
 
 // test bit
 DEF_HELPER_2(test_N_Z_16, void, env, i32)
@@ -58,3 +58,6 @@ DEF_HELPER_2(shift_by_pm, i32, env, i32)
 //mov
 DEF_HELPER_4(mov_16bit_loc16, void, env, i32, i32, i32)// MOV *(0:16bit),loc16
 DEF_HELPER_4(mov_loc16_16bit, void, env, i32, i32, i32)// MOV loc16,*(0:16bit)
+
+//cmp
+DEF_HELPER_3(cmp16_N_Z_C, void, env, i32, i32)// cmp, test N,Z,C

@@ -98,4 +98,12 @@ static inline uint32_t bit_inverse_low_half(uint32_t n) {
     return n;
 }
 
+static inline uint32_t sign_extend_16(uint32_t a) {
+    if ((a >> 15) & 1) {
+        return a | 0xffff0000;
+    }
+    else {
+        return a & 0xffff;
+    }
+}
 #endif

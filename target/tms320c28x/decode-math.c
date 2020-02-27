@@ -122,12 +122,7 @@ static void gen_add_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH) {
     TCGv a = tcg_temp_new();
     gen_ld_loc16(b, mode);
 
-    if (is_AH) {
-        tcg_gen_shri_tl(a, cpu_acc, 16);//get ah
-    }
-    else {
-        tcg_gen_andi_i32(a, cpu_acc, 0xffff);
-    }
+    gen_ld_reg_half(ax, cpu_acc, is_AH);
 
     tcg_gen_add_i32(ax, a, b);//add
 
@@ -237,12 +232,8 @@ static void gen_addb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
     TCGv b = tcg_const_i32(imm);
 
     TCGv a = tcg_temp_new();
-    if (is_AH) {
-        tcg_gen_shri_i32(a, cpu_acc, 16);
-    }
-    else {
-        tcg_gen_andi_i32(a, cpu_acc, 0xffff);
-    }
+    gen_ld_reg_half(a, cpu_acc, is_AH);
+
 
     TCGv tmp = tcg_temp_new();
     tcg_gen_add_i32(tmp, a, b);
@@ -443,6 +434,21 @@ static void gen_addul_acc_loc32(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(b);
 
     ctx->base.is_jmp = DISAS_NORETURN;
+}
+
+// CMP AX,loc16
+static void gen_cmp_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_reg_half(a, cpu_acc, is_AH);
+
+    TCGv b = tcg_temp_new();
+    gen_ld_loc16(b, mode);
+
+    gen_helper_cmp16_N_Z_C(cpu_env, a, b);
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
 }
 
 // SUBB ACC,#8bit

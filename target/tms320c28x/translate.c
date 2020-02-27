@@ -346,6 +346,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             break;
         case 0b0101:
             switch ((insn & 0x0f00) >> 8) {
+                case 0b0100:
+                case 0b0101://0101 010A LLLL LLLL CMP AX,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t is_AH = (insn >> 8) & 1;
+                    gen_cmp_ax_loc16(ctx, mode, is_AH);
+                }
                 case 0b0110://0101 0110 .... ....
                     switch ((insn & 0x00f0) >> 4) {
                         case 0b0000: //0101 0110 0000 ....
@@ -405,6 +412,17 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                         uint32_t loc16 = (insn2 & 0xff);
                                         gen_add_acc_loc16_t(ctx, loc16);
                                     }
+                                    break;
+                                }
+                                case 0b1010: //
+                                case 0b1011: //0101 0110 0010 101A 0000 COND LLLL LLLL MOV loc16,AX,COND
+                                {
+                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                                    uint32_t mode = insn2 & 0xff;
+                                    uint32_t cond = (insn2 >> 8) & 0xf;
+                                    uint32_t is_AH = insn & 1;
+                                    gen_mov_loc16_ax_cond(ctx, mode, cond, is_AH);
+                                    length = 4;
                                     break;
                                 }
                                 case 0b1101: //0101 0110 0010 1101 0000 0SHF LLLL LLLL MOV loc16,ACC<<2...8
@@ -609,6 +627,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     uint32_t mode = insn & 0xff;
                     uint32_t is_AH = ((insn >> 8) & 1);
                     gen_mov_loc16_ax(ctx, mode, is_AH);
+                    break;
+                }
+                case 0b101: //1001 101A CCCC CCCC MOVB AX,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    uint32_t is_AH = ((insn >> 8) & 1);
+                    gen_movb_ax_8bit(ctx, imm, is_AH);
                     break;
                 }
                 case 0b110: //1001 110A CCCC CCCC ADDB AX,#8bitSigned

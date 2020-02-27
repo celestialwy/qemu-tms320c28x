@@ -188,13 +188,8 @@ static void gen_mov_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
     TCGLabel *repeat = gen_new_label();
 
     TCGv ax = tcg_temp_new();
-    if (is_AH) {
-        tcg_gen_shri_tl(ax, cpu_acc, 16);//get ah
-    }
-    else
-    {
-        tcg_gen_andi_i32(ax, cpu_acc, 0xffff);// get al
-    }
+    gen_ld_reg_half(ax, cpu_acc, is_AH);
+
     gen_st_loc16(mode, ax);
 
     tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
@@ -208,6 +203,34 @@ static void gen_mov_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
 
     tcg_temp_free(ax);
     ctx->base.is_jmp = DISAS_NORETURN;
+}
+
+// MOV loc16,AX,COND
+static void gen_mov_loc16_ax_cond(DisasContext *ctx, uint32_t mode, uint32_t cond, bool is_AH)
+{
+    TCGLabel *loc16_modification = gen_new_label();
+    TCGLabel *done = gen_new_label();
+    TCGv cond_tcg = tcg_const_i32(cond);
+    TCGv test = tcg_temp_new();
+    gen_helper_test_cond(test, cpu_env, cond_tcg);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, test, 0, loc16_modification);
+    
+    TCGv ax = tcg_temp_new();
+    gen_ld_reg_half(ax, cpu_acc, is_AH);
+    gen_st_loc16(mode, ax);
+    gen_test_ax_N_Z(mode);
+    tcg_gen_br(done);
+
+//pre post modification addr mode
+    gen_set_label(loc16_modification);
+
+    gen_ld_loc16(test,mode);//pre and post mod for addr mode, by doing a load loc16
+    
+    gen_set_label(done);
+
+    tcg_temp_free(cond_tcg);
+    tcg_temp_free(test);
+    tcg_temp_free(ax);
 }
 
 // MOVA T,loc16
@@ -249,6 +272,21 @@ static void gen_mova_t_loc16(DisasContext *ctx, uint32_t mode)
     tcg_temp_free_i32(pm);
 
     ctx->base.is_jmp = DISAS_NORETURN;
+}
+
+// MOVB AX,#8bit
+static void gen_movb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
+{
+    TCGv a = tcg_const_i32(imm);
+    if (is_AH)
+    {
+        gen_st_reg_high_half(cpu_acc, a);
+    }
+    else {
+        gen_st_reg_low_half(cpu_acc, a);
+    }
+    gen_helper_test_N_Z_16(cpu_env, a);
+    tcg_temp_free(a);
 }
 
 // MOVL ACC,loc32
