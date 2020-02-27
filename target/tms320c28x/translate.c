@@ -536,6 +536,19 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                         }
                     }
                     break;
+                case 0b1000: 
+                case 0b1001: 
+                case 0b1010: 
+                case 0b1011: 
+                case 0b1100: 
+                case 0b1101: 
+                case 0b1110: 
+                case 0b1111: //0111 1nnn LLLL LLLL MOV loc16,ARn
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t n = (insn >> 8) & 0b111;
+                    gen_mov_loc16_arn(ctx, mode, n);
+                }
             }
             break;
         case 0b1000:
@@ -580,45 +593,29 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 case 0b001: //1001 001. .... ....  MOV AX,loc16
                 {
                     uint32_t mode = insn & 0xff;
-                    if (((insn >> 8) & 1) == 1){ //1001 0011 .... .... ah
-                        gen_mov_ah_loc16(ctx, mode);
-                    }
-                    else { // al
-                        gen_mov_al_loc16(ctx, mode);
-                    }
+                    uint32_t is_AH = ((insn >> 8) & 1);
+                    gen_mov_ax_loc16(ctx, mode, is_AH);
                     break;
                 }
                 case 0b010: //1001 010. .... .... ADD AX,loc16
                 {
                     uint32_t mode = insn & 0xff;
-                    if (((insn >> 8) & 1) == 1){ //ah
-                        gen_add_ah_loc16(ctx, mode);
-                    }
-                    else { // al
-                        gen_add_al_loc16(ctx, mode);
-                    }
+                    uint32_t is_AH = ((insn >> 8) & 1);
+                    gen_add_ax_loc16(ctx, mode, is_AH);
                     break;
                 }
                 case 0b011: //1001 011. .... .... MOV loc16,AX
                 {
                     uint32_t mode = insn & 0xff;
-                    if (((insn >> 8) & 1) == 1){ // ah
-                        gen_mov_loc16_ah(ctx, mode);
-                    }
-                    else { // al
-                        gen_mov_loc16_al(ctx, mode);
-                    }
+                    uint32_t is_AH = ((insn >> 8) & 1);
+                    gen_mov_loc16_ax(ctx, mode, is_AH);
                     break;
                 }
                 case 0b110: //1001 110A CCCC CCCC ADDB AX,#8bitSigned
                 {
                     uint32_t imm = insn & 0xff;
-                    if (((insn >> 8) & 1) == 1){ // ah
-                        gen_addb_ah_8bit(ctx, imm);
-                    }
-                    else { // al
-                        gen_addb_al_8bit(ctx, imm);
-                    }
+                    uint32_t is_AH = ((insn >> 8) & 1);
+                    gen_addb_ax_8bit(ctx, imm, is_AH);
                     break;
                 }
             }

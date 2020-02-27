@@ -115,42 +115,31 @@ static void gen_add_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t s
 }
 
 
-// ADD AH,loc16
-static void gen_add_ah_loc16(DisasContext *ctx, uint32_t mode) {
+// ADD AX,loc16
+static void gen_add_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH) {
     TCGv b = tcg_temp_new();
     TCGv ax = tcg_temp_new();
     TCGv a = tcg_temp_new();
     gen_ld_loc16(b, mode);
 
-    tcg_gen_shri_tl(a, cpu_acc, 16);//get ah
+    if (is_AH) {
+        tcg_gen_shri_tl(a, cpu_acc, 16);//get ah
+    }
+    else {
+        tcg_gen_andi_i32(a, cpu_acc, 0xffff);
+    }
 
     tcg_gen_add_i32(ax, a, b);//add
 
     gen_helper_test_N_Z_16(cpu_env, ax);
     gen_helper_test_C_V_16(cpu_env, a, b, ax);
 
-    gen_st_reg_high_half(cpu_acc, ax);
-
-    tcg_temp_free_i32(a);
-    tcg_temp_free_i32(b);
-    tcg_temp_free_i32(ax);
-}
-
-// ADD AL,loc16
-static void gen_add_al_loc16(DisasContext *ctx, uint32_t mode) {
-    TCGv a = tcg_temp_new();
-    TCGv b = tcg_temp_new();
-    TCGv ax = tcg_temp_new();
-    gen_ld_loc16(b, mode);
-
-    tcg_gen_andi_i32(a, cpu_acc, 0xffff);
-
-    tcg_gen_add_i32(ax, a, b);//add
-
-    gen_helper_test_N_Z_16(cpu_env, ax);
-    gen_helper_test_C_V_16(cpu_env, a, b, ax);
-    
-    gen_st_reg_low_half(cpu_acc, ax);
+    if (is_AH) {
+        gen_st_reg_high_half(cpu_acc, ax);
+    }
+    else {
+        gen_st_reg_low_half(cpu_acc, ax);
+    }
 
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
@@ -239,8 +228,8 @@ static void gen_addb_acc_8bit(DisasContext *ctx, uint32_t imm)
     tcg_temp_free_i32(b);
 }
 
-// ADDB AH,#8bitSigned
-static void gen_addb_ah_8bit(DisasContext *ctx, uint32_t imm)
+// ADDB AX,#8bitSigned
+static void gen_addb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
 {
     if ((imm >> 7) == 1) {
         imm = imm | 0xff00;
@@ -248,39 +237,25 @@ static void gen_addb_ah_8bit(DisasContext *ctx, uint32_t imm)
     TCGv b = tcg_const_i32(imm);
 
     TCGv a = tcg_temp_new();
-    tcg_gen_shri_i32(a, cpu_acc, 16);
-
-    TCGv tmp = tcg_temp_new();
-    tcg_gen_add_i32(tmp, a, b);
-
-    gen_helper_test_N_Z_16(cpu_env, tmp);
-    gen_helper_test_C_V_16(cpu_env, a, b, tmp);
-
-    gen_st_reg_high_half(cpu_acc, tmp);
-
-    tcg_temp_free_i32(a);
-    tcg_temp_free_i32(b);
-    tcg_temp_free_i32(tmp);
-}
-
-// ADDB AL,#8bitSigned
-static void gen_addb_al_8bit(DisasContext *ctx, uint32_t imm)
-{
-    if ((imm >> 7) == 1) {
-        imm = imm | 0xff00;
+    if (is_AH) {
+        tcg_gen_shri_i32(a, cpu_acc, 16);
     }
-    TCGv b = tcg_const_i32(imm);
-
-    TCGv a = tcg_temp_new();
-    tcg_gen_andi_i32(a, cpu_acc, 0xffff);
+    else {
+        tcg_gen_andi_i32(a, cpu_acc, 0xffff);
+    }
 
     TCGv tmp = tcg_temp_new();
     tcg_gen_add_i32(tmp, a, b);
 
     gen_helper_test_N_Z_16(cpu_env, tmp);
     gen_helper_test_C_V_16(cpu_env, a, b, tmp);
-    
-    gen_st_reg_low_half(cpu_acc, tmp);
+
+    if (is_AH) {
+        gen_st_reg_high_half(cpu_acc, tmp);
+    }
+    else {
+        gen_st_reg_low_half(cpu_acc, tmp);
+    }
 
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
