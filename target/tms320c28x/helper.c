@@ -370,7 +370,7 @@ uint32_t HELPER(shift_by_pm)(CPUTms320c28xState *env, uint32_t value)
         return value << pm;
     }
     else {
-        return value >> -pm;
+        return ((int)value) >> -pm; //signed right shift
     }
 }
 

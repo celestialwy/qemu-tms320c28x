@@ -182,7 +182,7 @@ static void gen_mov_loc16_arn(DisasContext *ctx, uint32_t mode, uint32_t n)
     tcg_temp_free(a);
 }
 
-// MOV loc16,AH
+// MOV loc16,AX
 static void gen_mov_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
 {
     TCGLabel *repeat = gen_new_label();
@@ -233,6 +233,54 @@ static void gen_mov_loc16_ax_cond(DisasContext *ctx, uint32_t mode, uint32_t con
     tcg_temp_free(ax);
 }
 
+//MOV loc16,IER
+static void gen_mov_loc16_ier(DisasContext *ctx, uint32_t mode)
+{
+    gen_st_loc16(mode, cpu_ier);
+    gen_test_ax_N_Z(mode);
+}
+
+//MOV loc16,OVC
+static void gen_mov_loc16_ovc(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    tcg_gen_andi_i32(a, cpu_st0, 0xfc00);//6bit of ovc,low bit are 0
+    gen_st_loc16(mode, a);
+    gen_test_ax_N_Z(mode);
+    tcg_temp_free(a);
+}
+
+//MOV loc16,P
+static void gen_mov_loc16_p(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_helper_shift_by_pm(a, cpu_env, cpu_p);
+    gen_st_loc16(mode, a);
+    gen_test_ax_N_Z(mode);
+    tcg_temp_free(a);
+}
+
+//MOV loc16,P
+static void gen_mov_loc16_t(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_reg_half(a, cpu_xt, 1);
+    gen_st_loc16(mode, a);
+    gen_test_ax_N_Z(mode);
+    tcg_temp_free(a);
+}
+
+//MOV OVC,loc16
+static void gen_mov_ovc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    tcg_gen_andi_i32(a, a, 0xfc00);//15:10 = ovc
+    tcg_gen_andi_i32(cpu_st0, cpu_st0, 0x3ff);//clear ovc
+    tcg_gen_ori_i32(cpu_st0, cpu_st0, a);
+    tcg_temp_free(a);
+}
+
 // MOVA T,loc16
 static void gen_mova_t_loc16(DisasContext *ctx, uint32_t mode)
 {
@@ -242,9 +290,9 @@ static void gen_mova_t_loc16(DisasContext *ctx, uint32_t mode)
     gen_ld_loc16(t, mode);
     gen_st_reg_high_half(cpu_xt, t);
 
-    TCGv pm = tcg_temp_local_new();
-    tcg_gen_shri_i32(pm, cpu_st0, 7);//PM
-    tcg_gen_andi_i32(pm, pm, 0x7);//PM
+    // TCGv pm = tcg_temp_local_new();
+    // tcg_gen_shri_i32(pm, cpu_st0, 7);//PM
+    // tcg_gen_andi_i32(pm, pm, 0x7);//PM
 
     TCGv b = tcg_temp_local_new();
     gen_helper_shift_by_pm(b, cpu_env, cpu_p);//b = P>>PM
@@ -269,7 +317,7 @@ static void gen_mova_t_loc16(DisasContext *ctx, uint32_t mode)
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
     tcg_temp_free_i32(t);
-    tcg_temp_free_i32(pm);
+    // tcg_temp_free_i32(pm);
 
     ctx->base.is_jmp = DISAS_NORETURN;
 }

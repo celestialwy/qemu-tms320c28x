@@ -53,7 +53,7 @@ DEF_HELPER_3(intr, void, env, i32, i32)
 //math
 DEF_HELPER_1(abs_acc, void, env)
 DEF_HELPER_1(abstc_acc, void, env)
-DEF_HELPER_2(shift_by_pm, i32, env, i32)
+DEF_HELPER_2(shift_by_pm, i32, env, i32) //signed right || left shift
 
 //mov
 DEF_HELPER_4(mov_16bit_loc16, void, env, i32, i32, i32)// MOV *(0:16bit),loc16
