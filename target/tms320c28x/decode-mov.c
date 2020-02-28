@@ -277,7 +277,46 @@ static void gen_mov_ovc_loc16(DisasContext *ctx, uint32_t mode)
     gen_ld_loc16(a, mode);
     tcg_gen_andi_i32(a, a, 0xfc00);//15:10 = ovc
     tcg_gen_andi_i32(cpu_st0, cpu_st0, 0x3ff);//clear ovc
-    tcg_gen_ori_i32(cpu_st0, cpu_st0, a);
+    tcg_gen_or_i32(cpu_st0, cpu_st0, a);
+    tcg_temp_free(a);
+}
+
+//MOV PH,loc16
+static void gen_mov_ph_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    gen_st_reg_high_half(cpu_p, a);
+    tcg_temp_free(a);
+}
+
+//MOV PL,loc16
+static void gen_mov_pl_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    gen_st_reg_low_half(cpu_p, a);
+    tcg_temp_free(a);
+}
+
+//MOV PM,AX
+static void gen_mov_pm_ax(DisasContext *ctx, bool is_AH)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_reg_half(a, cpu_acc, is_AH);
+    tcg_gen_andi_i32(a, a, 0b111);//ax[0:2]
+    tcg_gen_shli_i32(a, a, 7);//shift to bit 9:7
+    tcg_gen_andi_i32(cpu_st0, cpu_st0, 0xfc7f);//clear pm
+    tcg_gen_or_i32(cpu_st0, cpu_st0, a);//set new pm
+    tcg_temp_free(a);
+}
+
+//MOV T,loc16
+static void gen_mov_t_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    gen_st_reg_high_half(cpu_xt, a);
     tcg_temp_free(a);
 }
 

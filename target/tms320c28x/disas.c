@@ -448,8 +448,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     break;
                 case 0b0110:
                     break;
-                case 0b0111:
+                case 0b0111: //0010 1111 LLLL LLLL MOV PL,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MOV PL,%s", insn, str);
                     break;
+                }
                 case 0b1000: /* MOV loc16, #16bit p260 */
                 {
                     uint32_t imm = insn32 & 0xffff;
@@ -472,12 +477,22 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 }
                 case 0b1100:
                     break;
-                case 0b1101:
+                case 0b1101: //0010 1101 LLLL LLLL MOV T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MOV T,%s", insn, str);
                     break;
+                }
                 case 0b1110:
                     break;
-                case 0b1111:
+                case 0b1111: //0010 1111 LLLL LLLL MOV PH,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MOV PH,%s", insn, str);
                     break;
+                }
             }
             break;
         case 0b0011:
@@ -632,6 +647,24 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 }
                             }
                             break;
+                        case 0b0011: //0101 0110 0011 ....
+                        {
+                            switch (insn & 0xf) {
+                                case 0b1000: //0101 0110 0011 100A MOV PM,AX
+                                case 0b1001: //0101 0110 0011 100A MOV PM,AX
+                                {
+                                    uint32_t is_AH = insn & 1;
+                                    if (is_AH) {
+                                        fprintf_func(stream, "0x%04x;     MOV PM,AH", insn);
+                                    }
+                                    else {
+                                        fprintf_func(stream, "0x%04x;     MOV PM,AL", insn);
+                                    }
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case 0b0100: //0101 0110 0100 ....
                         {
                             switch (insn & 0xf) {

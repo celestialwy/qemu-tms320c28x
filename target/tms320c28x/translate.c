@@ -304,8 +304,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     break;
                 case 0b0110:
                     break;
-                case 0b0111:
+                case 0b0111: //0010 1111 LLLL LLLL MOV PL,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mov_pl_loc16(ctx, mode);
                     break;
+                }
                 case 0b1000: /* MOV loc16, #16bit p260 */
                 {
                     uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
@@ -321,17 +325,25 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 case 0b1011: //0010 1011 LLLL LLLL MOV loc16,#0
                 {
                     uint32_t mode = insn & 0xff;
-                    gen_mov_loc16_0(ctx, mode);   
+                    gen_mov_loc16_0(ctx, mode);
                     break;
                 }
                 case 0b1100:
                     break;
-                case 0b1101:
+                case 0b1101: //0010 1101 LLLL LLLL MOV T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mov_t_loc16(ctx, mode);
                     break;
+                }
                 case 0b1110:
                     break;
-                case 0b1111:
+                case 0b1111: //0010 1111 LLLL LLLL MOV PH,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mov_ph_loc16(ctx, mode);
                     break;
+                }
             }
             break;
         case 0b0011:
@@ -370,6 +382,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 case 0b0110://0101 0110 .... ....
                     switch ((insn & 0x00f0) >> 4) {
                         case 0b0000: //0101 0110 0000 ....
+                        {
                             switch (insn & 0x000f) {
                                 case 0b0001: //0101 0110 0000 0001 0000 0000 LLLL LLLL ADDL loc32,ACC
                                 {
@@ -426,7 +439,9 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                             }
                             break;
+                        }
                         case 0b0010: //0101 0110 0010 ....
+                        {
                             switch (insn & 0xf) {
                                 case 0b0011: //0101 0110 0010 0011 32bit ADD ACC,loc16<<T
                                 {
@@ -473,6 +488,20 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                             }
                             break;
+                        }
+                        case 0b0011: //0101 0110 0011 ....
+                        {
+                            switch (insn & 0xf) {
+                                case 0b1000: //0101 0110 0011 100A MOV PM,AX
+                                case 0b1001: //0101 0110 0011 100A MOV PM,AX
+                                {
+                                    uint32_t is_AH = insn & 1;
+                                    gen_mov_pm_ax(ctx, is_AH);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case 0b0100: //0101 0110 0100 ....
                         {
                             switch (insn & 0xf) {
