@@ -17,7 +17,7 @@
  */
 
 DEF_HELPER_FLAGS_2(exception, TCG_CALL_NO_WG, void, env, i32)
-// DEF_HELPER_3(addressing_mode, i32, env, i32, i32)
+DEF_HELPER_3(addressing_mode, i32, env, i32, i32)
 
 // addressing mode
 DEF_HELPER_2(ld_loc16, i32, env, i32)

@@ -35,23 +35,23 @@ static void gen_ld32u_swap(TCGv value, TCGv addr_param)
     tcg_temp_free_i32(addr);
 }
 
-// static void gen_st16u_swap(TCGv value, TCGv addr_param)
-// {
-//     TCGv addr = tcg_temp_local_new();
-//     tcg_gen_shli_i32(addr, addr_param, 1);// addr*2
+static void gen_st16u_swap(TCGv value, TCGv addr_param)
+{
+    TCGv addr = tcg_temp_local_new();
+    tcg_gen_shli_i32(addr, addr_param, 1);// addr*2
 
-//     TCGv_i32 tmp = tcg_const_i32(0);
-//     TCGv_i32 tmp2 = tcg_const_i32(0);
+    TCGv_i32 tmp = tcg_const_i32(0);
+    TCGv_i32 tmp2 = tcg_const_i32(0);
 
-//     tcg_gen_shli_tl(tmp, value, 8);
-//     tcg_gen_andi_i32(tmp, tmp, 0xff00);
-//     tcg_gen_shri_tl(tmp2, value, 8);
-//     tcg_gen_or_i32(tmp2, tmp2, tmp);
-//     tcg_gen_qemu_st16(tmp2, addr, 0);
-//     tcg_temp_free_i32(tmp);
-//     tcg_temp_free_i32(tmp2);
-//     tcg_temp_free_i32(addr);
-// }
+    tcg_gen_shli_tl(tmp, value, 8);
+    tcg_gen_andi_i32(tmp, tmp, 0xff00);
+    tcg_gen_shri_tl(tmp2, value, 8);
+    tcg_gen_or_i32(tmp2, tmp2, tmp);
+    tcg_gen_qemu_st16(tmp2, addr, 0);
+    tcg_temp_free_i32(tmp);
+    tcg_temp_free_i32(tmp2);
+    tcg_temp_free_i32(addr);
+}
 
 static void gen_st32u_swap(TCGv value, TCGv addr_param) 
 {
@@ -313,4 +313,11 @@ static void gen_test_ax_N_Z(uint32_t mode)
         gen_helper_test_N_Z_16(cpu_env, cpu_acc);
         tcg_temp_free(al);
     }
+}
+
+static void gen_exception(DisasContext *dc, unsigned int excp)
+{
+    TCGv_i32 tmp = tcg_const_i32(excp);
+    gen_helper_exception(cpu_env, tmp);
+    tcg_temp_free_i32(tmp);
 }

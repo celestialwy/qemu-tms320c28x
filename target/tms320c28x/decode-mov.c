@@ -320,6 +320,18 @@ static void gen_mov_t_loc16(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(a);
 }
 
+// MOV TL,#0
+static void gen_mov_tl_0(DisasContext *ctx)
+{
+    tcg_gen_andi_i32(cpu_xt, cpu_xt, 0xffff0000);
+}
+
+// MOV XARn,PC
+static void gen_mov_xarn_pc(DisasContext *ctx, uint32_t n)
+{
+    tcg_gen_movi_i32(cpu_xar[n], ctx->base.pc_next >> 1);
+}
+
 // MOVA T,loc16
 static void gen_mova_t_loc16(DisasContext *ctx, uint32_t mode)
 {
@@ -361,6 +373,64 @@ static void gen_mova_t_loc16(DisasContext *ctx, uint32_t mode)
     ctx->base.is_jmp = DISAS_NORETURN;
 }
 
+//MOVAD T,loc16
+static void gen_movad_t_loc16(DisasContext *ctx, uint32_t mode)
+{
+    //mode = reg addressing is illegal
+    if ((mode >= 176 && mode <=183) || (mode >= 168 && mode <=173)) {
+        gen_exception(ctx, EXCP_INTERRUPT_ILLEGAL);
+    }
+    else
+    {
+        TCGv t = tcg_temp_local_new();
+        gen_ld_loc16(t, mode);
+        gen_st_reg_high_half(cpu_xt, t);
+
+        //loc16+1 = T
+        TCGv_i32 address_mode = tcg_const_i32(mode);
+        TCGv_i32 addr = tcg_temp_new();
+        TCGv_i32 loc_type = tcg_const_i32(LOC16);
+        gen_helper_addressing_mode(addr, cpu_env, address_mode, loc_type);
+        tcg_gen_addi_i32(addr, addr, 1);
+        gen_st16u_swap(t, addr);
+        tcg_temp_free_i32(address_mode);
+        tcg_temp_free_i32(addr);
+        tcg_temp_free_i32(loc_type);
+
+        //acc = acc + p<<pm
+        TCGv b = tcg_temp_local_new();
+        gen_helper_shift_by_pm(b, cpu_env, cpu_p);//b = P>>PM
+
+        TCGv a = tcg_temp_local_new();
+        tcg_gen_mov_i32(a, cpu_acc);
+        tcg_gen_add_i32(cpu_acc, a, b);
+
+        gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+        gen_helper_test_C_V_32(cpu_env, a, b, cpu_acc);
+        gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+
+        tcg_temp_free_i32(a);
+        tcg_temp_free_i32(b);
+        tcg_temp_free_i32(t);
+    }
+}
+
+// MOVB ACC,#8bit
+static void gen_movb_acc_8bit(DisasContext *ctx, uint32_t imm)
+{
+    imm = imm & 0xff;
+    tcg_gen_movi_i32(cpu_acc, imm);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+}
+
+// MOVB ARn,#8bit
+static void gen_movb_arn_8bit(DisasContext *ctx, uint32_t imm, uint32_t n)
+{
+    imm = imm & 0xff;
+    tcg_gen_andi_i32(cpu_xar[n], cpu_xar[n], 0xffff0000);//clear arn
+    tcg_gen_ori_i32(cpu_xar[n], cpu_xar[n], imm);//set imm
+}
+
 // MOVB AX,#8bit
 static void gen_movb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
 {
@@ -374,6 +444,13 @@ static void gen_movb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
     }
     gen_helper_test_N_Z_16(cpu_env, a);
     tcg_temp_free(a);
+}
+
+// MOVB XARn,#8bit
+static void gen_movb_xarn_8bit(DisasContext *ctx, uint32_t imm, uint32_t n)
+{
+    imm = imm & 0xff;
+    tcg_gen_movi_i32(cpu_xar[n], imm);
 }
 
 // MOVL ACC,loc32

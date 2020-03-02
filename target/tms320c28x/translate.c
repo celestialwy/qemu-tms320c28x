@@ -189,8 +189,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     break;
                 case 0b0001:
                     break;
-                case 0b0010:
+                case 0b0010: //0000 0010 CCCC CCCC MOVB ACC,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    gen_movb_acc_8bit(ctx, imm);
                     break;
+                }
                 case 0b0011:
                     break;
                 case 0b0100:
@@ -360,6 +364,23 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     gen_setc_mode(ctx, mode);
                     break;
                 }
+                case 0b1110: //0011 0110 .... ....
+                {
+                    switch ((insn & 0x00f0) >> 4) {
+                        case 0b0101://0011 0110 0101 ....
+                        {
+                            if (((insn >> 3) & 1) == 1) {//0011 0110 0101 1nnn MOV XARn,PC
+                                uint32_t n = insn & 0b111;
+                                gen_mov_xarn_pc(ctx, n);
+                            }
+                            else {
+
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
                 case 0b1111: //0011 1111 LLLL LLLL MOV loc16,P
                 {
                     uint32_t mode = insn & 0xff;
@@ -525,6 +546,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                     uint32_t mode = insn2 & 0xff;
                                     gen_addul_acc_loc32(ctx, mode);
                                     length = 4;
+                                    break;
+                                }
+                                case 0b0110: //0101 0110 0101 0110 MOV TL,#0
+                                {
+                                    gen_mov_tl_0(ctx);
                                     break;
                                 }
                                 case 0b0111: //0101 0110 0101 0111 0000 0000 LLLL LLLL ADDUL P,loc32
@@ -722,6 +748,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     gen_movl_loc32_xarn(ctx, mode, 3);
                     break;
                 }
+                case 0b0111: //1010 0111 LLLL LLLL MOVAD T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movad_t_loc16(ctx, mode);
+                    break;
+                }
                 case 0b1000: //1010 1000 LLLL LLLL MOVL loc32, XAR4
                 {
                     uint32_t mode = insn & 0xff;
@@ -750,6 +782,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     gen_movl_loc32_xarn(ctx, mode, 1);
                     break;
                 }
+                case 0b0110: //1011 0110 CCCC CCCC MOVB XAR7,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    gen_movb_xarn_8bit(ctx, imm, 7);
+                    break;
+                }
+                case 0b1110: //1011 1110 CCCC CCCC MOVB XAR6,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    gen_movb_xarn_8bit(ctx, imm, 6);
+                    break;
+                }
             }
             break;
         case 0b1100:
@@ -770,7 +814,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             break;
         case 0b1101:
             if (((insn >> 11) & 1) == 0) {//1101 0... .... ....
-
+                uint32_t imm = insn & 0xff;
+                uint32_t n = (insn >> 8) & 0b111;
+                if (n < 6) {//1101 0nnn CCCC CCCC MOVB XAR1...5 ,#8bit
+                    gen_movb_xarn_8bit(ctx, imm, n);
+                }
+                else {//1101 0110/1 CCCC CCCC MOVB AR6/7, #8bit
+                    gen_movb_arn_8bit(ctx, imm, n);
+                }
             }
             else {//1101 1... .... ....
                 uint32_t imm = insn & 0x7f;

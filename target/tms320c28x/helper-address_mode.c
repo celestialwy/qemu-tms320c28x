@@ -695,3 +695,180 @@ void HELPER(st_loc32)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
         //todo amode==1
     }
 }
+
+uint32_t HELPER(addressing_mode)(CPUTms320c28xState *env, uint32_t loc, uint32_t loc_type) {
+    uint32_t amode = cpu_get_amode(env);
+    uint32_t dest = -1;
+    uint32_t tmp, tmp2, tmp3;
+    if (amode == 0) {
+        switch((loc & 0b11000000)>>6) {
+            case 0b00: //b00 III III @6bit
+                tmp = env->dp;
+                dest = (tmp << 6) +  (loc & 0x3f);
+                break;
+            case 0b01: //b01 III III *-SP[6bit]
+                tmp = env->sp;
+                dest = tmp -  (loc & 0x3f);
+                break;
+            case 0b10: //b10 ... ...
+                switch((loc & 0b00111000)>>3) {
+                    case 0b000: //b10 000 AAA *XARn++
+                        tmp = loc & 0b00000111;
+                        cpu_set_arp(env, tmp);
+                        dest = env->xar[tmp];
+                        env->xar[tmp] = env->xar[tmp] + loc_type;
+                        break;
+                    case 0b001: //b10 001 AAA *--XARn
+                        tmp = loc & 0b00000111;
+                        cpu_set_arp(env, tmp);
+                        env->xar[tmp] = env->xar[tmp] - loc_type;
+                        dest = env->xar[tmp];
+                        break;
+                    case 0b010: //b10 010 AAA *+XARn[AR0]
+                        tmp = loc & 0b00000111;
+                        cpu_set_arp(env, tmp);
+                        dest = env->xar[tmp] + (env->xar[0] & 0xffff);
+                        break;
+                    case 0b011: //b10 011 AAA *+XARn[AR1]
+                        tmp = loc & 0b00000111;
+                        cpu_set_arp(env, tmp);
+                        dest = env->xar[tmp] + (env->xar[1] & 0xffff);
+                        break;
+                    // case 0b100: //@XARn @ARn
+                    //     tmp = loc & 0b00000111;
+                    //     if (loc_type == LOC16) {
+                    //         dest = env->xar[tmp] & 0xffff;
+                    //     }
+                    //     else { //LOC32
+                    //         dest = env->xar[tmp];
+                    //     }
+                    //     break;
+                    case 0b101: //b10 101 ...
+                        switch(loc & 0b00000111) {
+                            // case 0b000: //@AH
+                            //     dest = (env->acc & 0xffff0000) >> 16;
+                            //     break;
+                            // case 0b001: //@ACC @AL
+                            //     if (loc_type == LOC16) {
+                            //         dest = env->acc & 0xffff;
+                            //     }
+                            //     else {
+                            //         dest = env->acc;
+                            //     }
+                            //     break;
+                            // case 0b010:
+                            //     dest = (env->p & 0xffff0000) >> 16;
+                            //     break;
+                            // case 0b011:
+                            //     if (loc_type == LOC16) {
+                            //         dest = env->p & 0xffff;
+                            //     }
+                            //     else {
+                            //         dest = env->p;
+                            //     }
+                            //     break;
+                            // case 0b100:
+                            //     if (loc_type == LOC16) {
+                            //         dest = (env->xt & 0xffff0000) >> 16;
+                            //     }
+                            //     else {
+                            //         dest = env->xt;
+                            //     }
+                            //     break;
+                            // case 0b101: //@SP
+                            //     dest = env->sp;
+                            //     break;
+                            case 0b110: //b10 101 110 *BR0++
+                                tmp = cpu_get_arp(env);
+                                dest = env->xar[tmp];
+                                //rcadd: XAR(ARP)(15:0)= AR(ARP)rcadd AR0
+                                //XAR(ARP)(31:16) = unchanged
+                                tmp2 = bit_inverse_low_half(env->xar[tmp]);
+                                tmp3 = bit_inverse_low_half(env->xar[0]);
+                                tmp3 = tmp2 + tmp3;
+                                tmp3 = bit_inverse_low_half(tmp3);
+                                env->xar[tmp] = (env->xar[tmp] & 0xffff0000) | (tmp3 & 0x0000ffff);
+                                break;
+                            case 0b111: //b10 101 111 *BR0--
+                                tmp = cpu_get_arp(env);
+                                dest = env->xar[tmp];
+                                //XAR(ARP)(15:0)= AR(ARP)rbsub AR0 {see note [1]}
+                                //XAR(ARP)(31:16) = unchanged
+                                tmp2 = bit_inverse_low_half(env->xar[tmp]);
+                                tmp3 = bit_inverse_low_half(env->xar[0]);
+                                tmp3 = tmp2 - tmp3;
+                                tmp3 = bit_inverse_low_half(tmp3);
+                                env->xar[tmp] = (env->xar[tmp] & 0xffff0000) | (tmp3 & 0x0000ffff);
+                                break;
+                        }
+                        break;
+                    case 0b110: //b10 110 RRR *,ARPn
+                        tmp = cpu_get_arp(env);
+                        dest = env->xar[tmp];
+                        tmp2 = loc & 0b00000111;
+                        cpu_set_arp(env, tmp2);
+                        break;
+                    case 0b111: //b10 111 ...
+                        switch(loc & 0b00000111) {
+                            case 0b000: //b10 111 000 *
+                                tmp = cpu_get_arp(env);
+                                dest = env->xar[tmp];
+                                break;
+                            case 0b001: //b10 111 001 *++
+                                tmp = cpu_get_arp(env);
+                                dest = env->xar[tmp];
+                                env->xar[tmp] = env->xar[tmp] + loc_type;
+                                break;
+                            case 0b010: //b10 111 010 *--
+                                tmp = cpu_get_arp(env);
+                                dest = env->xar[tmp];
+                                env->xar[tmp] = env->xar[tmp] - loc_type;
+                                break;
+                            case 0b011: //b10 111 011 *0++
+                                tmp = cpu_get_arp(env);
+                                dest = env->xar[tmp];
+                                env->xar[tmp] = env->xar[tmp] + (env->xar[0] & 0xffff);
+                                break;
+                            case 0b100: //b10 111 100 *0--
+                                tmp = cpu_get_arp(env);
+                                dest = env->xar[tmp];
+                                env->xar[tmp] = env->xar[tmp] - (env->xar[0] & 0xffff);
+                                break;
+                            case 0b101: //b10 111 101 *SP++
+                                dest = env->sp;
+                                env->sp = env->sp + loc_type;
+                                break;
+                            case 0b110: //b10 111 110 *--SP
+                                env->sp = env->sp - loc_type;
+                                dest = env->sp;
+                                break;
+                            case 0b111: //b10 111 111 *AR6%++
+                                dest = env->xar[6];
+                                if ((env->xar[6] & 0xff) == (env->xar[1] & 0xff)) {// XAR6(7:0)==XAR1(7:0)
+                                    env->xar[6] = env->xar[6] & 0xffffff00; //XAR6(7:0) = 0x00
+                                }
+                                else {
+                                    tmp = env->xar[6] & 0xffff;
+                                    tmp = tmp + loc_type;
+                                    env->xar[6] = (env->xar[6] & 0xffff0000) | (tmp & 0xffff);
+                                }
+                                cpu_set_arp(env, 6);
+                                break;
+                        }
+                        break;
+                }
+                break;
+            case 0b11: //b11 III AAA
+                tmp = loc & 0b00000111; //n AAA
+                cpu_set_arp(env, tmp);
+                tmp2 = (loc >> 3) & 0b00000111;//3bit III
+                dest = env->xar[tmp] + tmp2;
+                break;
+        }
+    }
+    else {
+        //todo amode==1
+    }
+    // return dest<<1;
+    return dest;
+}

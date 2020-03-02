@@ -314,8 +314,12 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     break;
                 case 0b0001:
                     break;
-                case 0b0010:
+                case 0b0010: //0000 0010 CCCC CCCC MOVB ACC,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     MOVB ACC,#%d", insn, imm);
                     break;
+                }
                 case 0b0011:
                     break;
                 case 0b0100:
@@ -511,6 +515,23 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     SETC %s", insn, str);
                     break;
                 }
+                case 0b1110: //0011 0110 .... ....
+                {
+                    switch ((insn & 0x00f0) >> 4) {
+                        case 0b0101://0011 0110 0101 ....
+                        {
+                            if (((insn >> 3) & 1) == 1) {//0011 0110 0101 1nnn MOV XARn,PC
+                                uint32_t n = insn & 0b111;
+                                fprintf_func(stream, "0x%04x;     MOV XAR%d,PC", insn, n);
+                            }
+                            else {
+
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
                 case 0b1111: //0011 1111 LLLL LLLL MOV loc16,P
                 {
                     uint32_t mode = insn & 0xff;
@@ -688,6 +709,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     get_loc_string(str, mode, LOC32);
                                     fprintf_func(stream, "0x%08x; ADDUL ACC,%s", insn, str);
                                     length = 4;
+                                    break;
+                                }
+                                case 0b0110: //0101 0110 0101 0110 MOV TL,#0
+                                {
+                                    fprintf_func(stream, "0x%04x;     MOV TL,#0", insn);
                                     break;
                                 }
                                 case 0b0111: //0101 0110 0101 0111 0000 0000 LLLL LLLL ADDUL P,loc32
@@ -922,6 +948,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOVL %s,XAR3", insn, str);
                     break;
                 }
+                case 0b0111: //1010 0111 LLLL LLLL MOVAD T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MOVAD T,%s", insn, str);
+                    break;
+                }
                 case 0b1000: //1010 1000 LLLL LLLL MOVL loc32, XAR4
                 {
                     uint32_t mode = insn & 0xff;
@@ -954,6 +987,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOVL %s,XAR1", insn, str);
                     break;
                 }
+                case 0b0110: //1011 0110 CCCC CCCC MOVB XAR7,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     MOVB XAR7,#%d", insn, imm);
+                    break;
+                }
+                case 0b1110: //1011 1110 CCCC CCCC MOVB XAR6,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     MOVB XAR6,#%d", insn, imm);
+                    break;
+                }
             }
             break;
         case 0b1100:
@@ -976,7 +1021,14 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b1101:
             if (((insn >> 11) & 1) == 0) {//1101 0... .... ....
-
+                uint32_t imm = insn & 0xff;
+                uint32_t n = (insn >> 8) & 0b111;
+                if (n < 6) {//1101 0nnn CCCC CCCC MOVB XAR1...5 ,#8bit
+                    fprintf_func(stream, "0x%04x;     MOVB XAR[%d],#%d", insn, n, imm);
+                }
+                else {//1101 0110/1 CCCC CCCC MOVB AR6/7, #8bit
+                    fprintf_func(stream, "0x%04x;     MOVB AR[%d],#%d", insn, n, imm);
+                }
             }
             else {//1101 1... .... ....
                 uint32_t imm = insn & 0x7f;
