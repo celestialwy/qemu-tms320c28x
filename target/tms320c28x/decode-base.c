@@ -127,6 +127,14 @@ static void gen_ld_loc16(TCGv retval, uint32_t mode)
     // }
 }
 
+// load loc16.lsb value to retval
+static void gen_ld_loc16_byte_addressing(TCGv retval, uint32_t mode)
+{
+    TCGv loc_mode = tcg_const_i32(mode);
+    gen_helper_ld_loc16_byte_addressing(retval, cpu_env, loc_mode);
+    tcg_temp_free(loc_mode);
+}
+
 // load loc32 value to retval
 static void gen_ld_loc32(TCGv retval, uint32_t mode)
 {

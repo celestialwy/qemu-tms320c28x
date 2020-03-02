@@ -221,7 +221,7 @@ static void gen_mov_loc16_ax_cond(DisasContext *ctx, uint32_t mode, uint32_t con
     gen_test_ax_N_Z(mode);
     tcg_gen_br(done);
 
-//pre post modification addr mode
+    //pre post modification addr mode
     gen_set_label(loc16_modification);
 
     gen_ld_loc16(test,mode);//pre and post mod for addr mode, by doing a load loc16
@@ -443,6 +443,84 @@ static void gen_movb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
         gen_st_reg_low_half(cpu_acc, a);
     }
     gen_helper_test_N_Z_16(cpu_env, a);
+    tcg_temp_free(a);
+}
+
+// MOVB AH.LSB,loc16
+static void gen_movb_ah_lsb_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16_byte_addressing(a, mode);
+    tcg_gen_shli_i32(a, a, 16);
+    tcg_gen_andi_i32(cpu_acc, cpu_acc, 0xff00ffff);//clear ah.lsb
+    tcg_gen_or_i32(cpu_acc, cpu_acc, a);//set ah.lsb
+    gen_ld_reg_half(a, cpu_acc, 1);//load new ah
+    gen_helper_test_N_Z_16(cpu_env, a);//test ah for n,z
+    tcg_temp_free(a);
+}
+
+// MOVB AL.LSB,loc16
+static void gen_movb_al_lsb_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16_byte_addressing(a, mode);
+    tcg_gen_andi_i32(cpu_acc, cpu_acc, 0xffffff00);//clear al.lsb
+    tcg_gen_or_i32(cpu_acc, cpu_acc, a);//set al.lsb
+    gen_ld_reg_half(a, cpu_acc, 0);//load new al
+    gen_helper_test_N_Z_16(cpu_env, a);//test al for n,z
+    tcg_temp_free(a);
+}
+
+// MOVB AH.MSB,loc16
+static void gen_movb_ah_msb_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16_byte_addressing(a, mode);
+    tcg_gen_shli_i32(a, a, 24);
+    tcg_gen_andi_i32(cpu_acc, cpu_acc, 0x00ffffff);//clear ah.msb
+    tcg_gen_or_i32(cpu_acc, cpu_acc, a);//set ah.msb
+    gen_ld_reg_half(a, cpu_acc, 1);//load new ah
+    gen_helper_test_N_Z_16(cpu_env, a);//test ah for n,z
+    tcg_temp_free(a);
+}
+
+// MOVB AL.MSB,loc16
+static void gen_movb_al_msb_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16_byte_addressing(a, mode);
+    tcg_gen_shli_i32(a, a, 8);
+    tcg_gen_andi_i32(cpu_acc, cpu_acc, 0xffff00ff);//clear al.msb
+    tcg_gen_or_i32(cpu_acc, cpu_acc, a);//set al.msb
+    gen_ld_reg_half(a, cpu_acc, 0);//load new al
+    gen_helper_test_N_Z_16(cpu_env, a);//test al for n,z
+    tcg_temp_free(a);
+}
+
+// MOVB loc16,#8bit,COND
+static void gen_movb_loc16_8bit_cond(DisasContext *ctx, uint32_t mode, uint32_t imm, uint32_t cond)
+{
+    TCGLabel *loc16_modification = gen_new_label();
+    TCGLabel *done = gen_new_label();
+    TCGv cond_tcg = tcg_const_i32(cond);
+    TCGv test = tcg_temp_new();
+    gen_helper_test_cond(test, cpu_env, cond_tcg);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, test, 0, loc16_modification);
+    
+    TCGv a = tcg_const_i32(imm);
+    gen_st_loc16(mode, a);
+    gen_test_ax_N_Z(mode);
+    tcg_gen_br(done);
+
+    //pre post modification addr mode
+    gen_set_label(loc16_modification);
+
+    gen_ld_loc16(test,mode);//pre and post mod for addr mode, by doing a load loc16
+    
+    gen_set_label(done);
+
+    tcg_temp_free(cond_tcg);
+    tcg_temp_free(test);
     tcg_temp_free(a);
 }
 

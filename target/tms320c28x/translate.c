@@ -352,6 +352,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             break;
         case 0b0011:
             switch ((insn & 0xf00) >> 8) {
+                case 0b1000: //1100 0110 LLLL LLLL MOVB AL.MSB,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movb_al_msb_loc16(ctx, mode);
+                    break;
+                }
+                case 0b1001: //1100 0111 LLLL LLLL MOVB AH.MSB,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movb_ah_msb_loc16(ctx, mode);
+                    break;
+                }
                 case 0b1010: //0011 1010 LLLL LLLL MOVL loc32, XAR0
                 {
                     uint32_t mode = insn & 0xff;
@@ -569,6 +581,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                     break;
                                 }
                             }
+                            break;
+                        }
+                        case 0b1011: //0101 0110 1011 COND CCCC CCCC LLLL LLLL MOVB loc16,#8bit,COND
+                        {
+                            uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                            uint32_t cond = insn & 0xf;
+                            uint32_t imm = insn2 >> 16;
+                            uint32_t mode = insn2 & 0xff;
+                            gen_movb_loc16_8bit_cond(ctx, mode, imm, cond);
+                            length = 4;
                             break;
                         }
                         case 0b1100: //0101 0110 1100 COND  BF 16bitOffset,COND
@@ -808,6 +830,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 {
                     uint32_t mode = insn & 0xff;
                     gen_movl_loc32_xarn(ctx, mode, 7);
+                    break;
+                }
+                case 0b0110: //1100 0110 LLLL LLLL MOVB AL.LSB,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movb_al_lsb_loc16(ctx, mode);
+                    break;
+                }
+                case 0b0111: //1100 0111 LLLL LLLL MOVB AH.LSB,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movb_ah_lsb_loc16(ctx, mode);
                     break;
                 }
             }

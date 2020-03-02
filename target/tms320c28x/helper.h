@@ -17,10 +17,12 @@
  */
 
 DEF_HELPER_FLAGS_2(exception, TCG_CALL_NO_WG, void, env, i32)
-DEF_HELPER_3(addressing_mode, i32, env, i32, i32)
+
 
 // addressing mode
-DEF_HELPER_2(ld_loc16, i32, env, i32)
+DEF_HELPER_3(addressing_mode, i32, env, i32, i32)
+DEF_HELPER_2(ld_loc16_byte_addressing, i32, env, i32) //value = low 8bit
+DEF_HELPER_2(ld_loc16, i32, env, i32)//value = low 16bit
 DEF_HELPER_2(ld_loc32, i32, env, i32)
 DEF_HELPER_3(st_loc16, void, env, i32, i32)
 DEF_HELPER_3(st_loc32, void, env, i32, i32)
