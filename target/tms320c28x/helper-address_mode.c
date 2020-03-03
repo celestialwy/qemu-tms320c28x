@@ -4,6 +4,9 @@
 #include "exec/helper-proto.h"
 #include "ldst.h"
 
+typedef void (*op_store)(CPUTms320c28xState *env, target_ulong addr, uint32_t value);
+
+
 uint32_t HELPER(ld_loc16)(CPUTms320c28xState *env, uint32_t loc)
 {
     uint32_t amode = cpu_get_amode(env);
@@ -388,7 +391,7 @@ uint32_t HELPER(ld_loc32)(CPUTms320c28xState *env, uint32_t loc)
     return dest_value;
 }
 
-void HELPER(st_loc16)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
+static void do_st_loc16(CPUTms320c28xState *env, uint32_t loc, uint32_t value, op_store st16_swap)
 {
     value = value & 0xffff;
 
@@ -563,6 +566,49 @@ void HELPER(st_loc16)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
     }
     else {
         //todo amode==1
+    }
+}
+
+
+void HELPER(st_loc16)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
+{
+    do_st_loc16(env, loc, value, st16_swap);
+}
+
+
+void HELPER(st_loc16_byte_addressing)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
+{
+    bool is_byte_addressing = false;
+    uint32_t offset = 0;
+    uint32_t n = 0;
+    if ((loc >> 6) == 0b11)
+    {
+        is_byte_addressing = true;
+        n = loc & 0b111;
+        offset = (loc >> 3) & 0b00000111;
+        cpu_set_arp(env, n);
+    }
+    else if ((loc >> 3) == 0b10010)
+    {
+        is_byte_addressing = true;
+        n = loc & 0b111;
+        offset = env->xar[0] & 0xffff;
+        cpu_set_arp(env, n);
+    }
+    else if ((loc >> 3) == 0b10011)
+    {
+        is_byte_addressing = true;
+        n = loc & 0b111;
+        offset = env->xar[1] & 0xffff;
+        cpu_set_arp(env, n);
+    }
+
+    if (is_byte_addressing) {
+        value = value & 0xff;
+        cpu_stb_data(env, env->xar[n] * 2 + offset, value);
+    }
+    else {
+        do_st_loc16(env, loc, value, st16_lsb);
     }
 }
 

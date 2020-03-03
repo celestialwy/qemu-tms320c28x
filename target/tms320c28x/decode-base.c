@@ -58,8 +58,8 @@ static void gen_st32u_swap(TCGv value, TCGv addr_param)
     TCGv addr = tcg_temp_local_new();
     tcg_gen_shli_i32(addr, addr_param, 1);// addr*2
 
-    TCGv_i32 tmp = tcg_const_i32(0);
-    TCGv_i32 tmp2 = tcg_const_i32(0);
+    TCGv_i32 tmp = tcg_const_local_i32(0);
+    TCGv_i32 tmp2 = tcg_const_local_i32(0);
     // ABCD -> CDAB
     tcg_gen_shli_tl(tmp, value, 16);
     tcg_gen_shri_tl(tmp2, value, 16);
@@ -177,6 +177,15 @@ static void gen_ld_loc32(TCGv retval, uint32_t mode)
     // }
 }
 
+static void gen_get_loc_addr(TCGv return_addr, uint32_t mode, uint32_t loc_type)
+{
+    TCGv_i32 address_mode = tcg_const_i32(mode);
+    TCGv_i32 loc_type_tcg = tcg_const_i32(loc_type);
+    gen_helper_addressing_mode(return_addr, cpu_env, address_mode, loc_type_tcg);
+    tcg_temp_free(address_mode);
+    tcg_temp_free(loc_type_tcg);
+}
+
 static void gen_ld_reg_half(TCGv retval, TCGv reg, bool is_High)
 {
     if(is_High) {
@@ -256,6 +265,14 @@ static void gen_st_loc16(uint32_t mode, TCGv oprand)
     //             }
     //         }
     // }
+}
+
+// store value to loc16
+static void gen_st_loc16_byte_addressing(uint32_t mode, TCGv oprand)
+{
+    TCGv loc_mode = tcg_const_i32(mode);
+    gen_helper_st_loc16_byte_addressing(cpu_env, loc_mode, oprand);
+    tcg_temp_free(loc_mode);
 }
 
 static void gen_st_loc32(uint32_t mode, TCGv_i32 oprand)

@@ -61,6 +61,12 @@ static inline uint32_t ld16_swap(CPUTms320c28xState *env, target_ulong addr)
     return value;
 }
 
+static inline void st16_lsb(CPUTms320c28xState *env, target_ulong addr, uint32_t value)
+{
+    value = value & 0xff;
+    cpu_stb_data(env, addr * 2, value);
+}
+
 static inline void st16_swap(CPUTms320c28xState *env, target_ulong addr, uint32_t value)
 {
     uint32_t tmp, tmp2;

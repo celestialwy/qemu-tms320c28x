@@ -377,25 +377,23 @@ static void gen_mova_t_loc16(DisasContext *ctx, uint32_t mode)
 static void gen_movad_t_loc16(DisasContext *ctx, uint32_t mode)
 {
     //mode = reg addressing is illegal
-    if ((mode >= 176 && mode <=183) || (mode >= 168 && mode <=173)) {
+    if (mode >= 160 && mode <=173) {
         gen_exception(ctx, EXCP_INTERRUPT_ILLEGAL);
     }
     else
     {
+        TCGv_i32 addr = tcg_temp_new();
+        gen_get_loc_addr(addr, mode, LOC16);
+
+        // T = loc16
         TCGv t = tcg_temp_local_new();
-        gen_ld_loc16(t, mode);
+        gen_ld16u_swap(t, addr);
         gen_st_reg_high_half(cpu_xt, t);
 
         //loc16+1 = T
-        TCGv_i32 address_mode = tcg_const_i32(mode);
-        TCGv_i32 addr = tcg_temp_new();
-        TCGv_i32 loc_type = tcg_const_i32(LOC16);
-        gen_helper_addressing_mode(addr, cpu_env, address_mode, loc_type);
         tcg_gen_addi_i32(addr, addr, 1);
         gen_st16u_swap(t, addr);
-        tcg_temp_free_i32(address_mode);
         tcg_temp_free_i32(addr);
-        tcg_temp_free_i32(loc_type);
 
         //acc = acc + p<<pm
         TCGv b = tcg_temp_local_new();
@@ -524,11 +522,65 @@ static void gen_movb_loc16_8bit_cond(DisasContext *ctx, uint32_t mode, uint32_t 
     tcg_temp_free(a);
 }
 
+//MOVB loc16,AX.LSB
+static void gen_movb_loc16_ax_lsb(DisasContext *ctx, uint32_t mode, bool is_AH)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_reg_half(a, cpu_acc, is_AH);
+    tcg_gen_andi_i32(a, a, 0xff);
+    gen_st_loc16_byte_addressing(mode, a);
+    gen_test_ax_N_Z(mode);
+    tcg_temp_free(a);
+}
+
+//MOVB loc16,AX.MSB
+static void gen_movb_loc16_ax_msb(DisasContext *ctx, uint32_t mode, bool is_AH)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_reg_half(a, cpu_acc, is_AH);
+    tcg_gen_shri_i32(a, a, 8);
+    gen_st_loc16_byte_addressing(mode, a);
+    gen_test_ax_N_Z(mode);
+    tcg_temp_free(a);
+}
+
 // MOVB XARn,#8bit
 static void gen_movb_xarn_8bit(DisasContext *ctx, uint32_t imm, uint32_t n)
 {
     imm = imm & 0xff;
     tcg_gen_movi_i32(cpu_xar[n], imm);
+}
+
+// MOVDL XT,loc32
+static void gen_movdl_xt_loc32(DisasContext *ctx, uint32_t mode)
+{
+    //mode = reg addressing is illegal
+    if ((mode >= 160 && mode <=167) || mode == 169 || mode ==171 || mode == 172) {
+        gen_exception(ctx, EXCP_INTERRUPT_ILLEGAL);
+    }
+    else
+    {
+        TCGLabel *repeat = gen_new_label();
+
+        TCGv_i32 addr = tcg_temp_local_new();
+        gen_get_loc_addr(addr, mode, LOC32);
+
+        //XT = [loc32]
+        gen_ld32u_swap(cpu_xt, addr);
+        //[loc32+2] = XT
+        tcg_gen_addi_i32(addr, addr, 2);
+        gen_st32u_swap(cpu_xt, addr);
+
+        tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
+
+        gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
+        gen_set_label(repeat);
+        tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+        gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+
+        tcg_temp_free_i32(addr);
+        ctx->base.is_jmp = DISAS_NORETURN;
+    }
 }
 
 // MOVL ACC,loc32
