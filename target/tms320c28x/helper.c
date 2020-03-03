@@ -10,12 +10,31 @@
 #endif
 #include "ldst.h"
 
-void HELPER(exception)(CPUTms320c28xState *env, uint32_t excp)
-{
+void HELPER(exception)(CPUTms320c28xState *env, uint32_t int_n, uint32_t pc) {
+
+    // cs->exception_index = 13;
+    // cpu_loop_exit_restore(cs, 0);
+    
     Tms320c28xCPU *cpu = env_archcpu(env);
 
-    raise_exception(cpu, excp);
+    env->pc = pc;
+    raise_exception(cpu, int_n);
 }
+
+
+void HELPER(aborti)(CPUTms320c28xState *env) {
+    //todo ??
+    cpu_set_dbgm(env, 1);
+
+    // qemu_set_irq(env->irq[12], 1);
+
+        // CPUState *cs = env_cpu(env);
+
+
+    // cs->exception_index = 13;
+    // cpu_loop_exit_restore(cs, 0);
+}
+
 
 uint32_t HELPER(test_cond)(CPUTms320c28xState *env, uint32_t cond)
 {
@@ -288,30 +307,6 @@ void HELPER(print_env)(CPUTms320c28xState *env) {
     qemu_log_mask(CPU_LOG_INT, "ARP=%x XF=%x MOM1MAP=%x OBJMODE=%x\n", cpu_get_arp(env), cpu_get_xf(env), cpu_get_mom1map(env), cpu_get_objmode(env));
     qemu_log_mask(CPU_LOG_INT, "AMODE=%x IDLESTAT=%x EALLOW=%x LOOP=%x\n", cpu_get_amode(env), cpu_get_idlestat(env), cpu_get_eallow(env), cpu_get_loop(env));
     qemu_log_mask(CPU_LOG_INT, "SPA=%x VMAP=%x PAGE0=%x DBGM=%x INTM=%x\n", cpu_get_spa(env), cpu_get_vmap(env), cpu_get_page0(env), cpu_get_dbgm(env), cpu_get_intm(env));
-}
-
-void HELPER(aborti)(CPUTms320c28xState *env) {
-    //todo ??
-    cpu_set_dbgm(env, 1);
-
-    // qemu_set_irq(env->irq[12], 1);
-
-        // CPUState *cs = env_cpu(env);
-
-
-    // cs->exception_index = 13;
-    // cpu_loop_exit_restore(cs, 0);
-}
-
-void HELPER(intr)(CPUTms320c28xState *env, uint32_t int_n, uint32_t pc) {
-
-    // cs->exception_index = 13;
-    // cpu_loop_exit_restore(cs, 0);
-    
-    Tms320c28xCPU *cpu = env_archcpu(env);
-
-    env->pc = pc;
-    raise_exception(cpu, int_n);
 }
 
 void HELPER(abs_acc)(CPUTms320c28xState *env)

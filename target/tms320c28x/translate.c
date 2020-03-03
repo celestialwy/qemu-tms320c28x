@@ -166,7 +166,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                                 else { //0000 0000 0001 CCCC INTR INTx
                                     uint32_t n = (insn & 0xf) + 1;//int1 = 0
-                                    gen_intr(ctx, cpu, n);
+                                    gen_intr(ctx, n);
                                 }
                             }
                             else {// 0000 0000 001C CCCC, TRAP #VectorNumber
@@ -1069,7 +1069,7 @@ static void tms320c28x_tr_translate_insn(DisasContextBase *dcbase, CPUState *cs)
 static void tms320c28x_tr_tb_stop(DisasContextBase *dcbase, CPUState *cs)
 {
     DisasContext *dc = container_of(dcbase, DisasContext, base);
-    target_ulong jmp_dest;
+    // target_ulong jmp_dest;
 
     /* If we have already exited the TB, nothing following has effect.  */
     if (dc->base.is_jmp == DISAS_NORETURN) {
@@ -1077,30 +1077,30 @@ static void tms320c28x_tr_tb_stop(DisasContextBase *dcbase, CPUState *cs)
     }
 
     if (dc->base.singlestep_enabled) {
-        // gen_exception(dc, EXCP_DEBUG);
+        gen_exception(dc, EXCP_DEBUG);
         return;
     }
 
-    jmp_dest = dc->base.pc_next;
+    // jmp_dest = dc->base.pc_next >> 1;
 
     switch (dc->base.is_jmp) {
     case DISAS_JUMP:
         tcg_gen_lookup_and_goto_ptr();
         break;
 
-    case DISAS_TOO_MANY:
-        if (unlikely(dc->base.singlestep_enabled)) {
-            tcg_gen_movi_tl(cpu_pc, jmp_dest);
-            // gen_exception(dc, EXCP_DEBUG);
-        } else if ((dc->base.pc_first ^ jmp_dest) & TARGET_PAGE_MASK) {
-            tcg_gen_movi_tl(cpu_pc, jmp_dest);
-            tcg_gen_lookup_and_goto_ptr();
-        } else {
-            tcg_gen_goto_tb(0);
-            tcg_gen_movi_tl(cpu_pc, jmp_dest);
-            tcg_gen_exit_tb(dc->base.tb, 0);
-        }
-        break;
+    // case DISAS_TOO_MANY:
+    //     if (unlikely(dc->base.singlestep_enabled)) {
+    //         tcg_gen_movi_tl(cpu_pc, jmp_dest);
+    //         // gen_exception(dc, EXCP_DEBUG);
+    //     } else if ((dc->base.pc_first ^ jmp_dest) & TARGET_PAGE_MASK) {
+    //         tcg_gen_movi_tl(cpu_pc, jmp_dest);
+    //         tcg_gen_lookup_and_goto_ptr();
+    //     } else {
+    //         tcg_gen_goto_tb(0);
+    //         tcg_gen_movi_tl(cpu_pc, jmp_dest);
+    //         tcg_gen_exit_tb(dc->base.tb, 0);
+    //     }
+    //     break;
 
     case DISAS_EXIT:
         tcg_gen_exit_tb(NULL, 0);

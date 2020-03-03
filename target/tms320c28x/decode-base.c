@@ -340,9 +340,19 @@ static void gen_test_ax_N_Z(uint32_t mode)
     }
 }
 
-static void gen_exception(DisasContext *dc, unsigned int excp)
+static void gen_test_acc_N_Z(uint32_t mode)
+{
+    if (mode == 0b10101001) { //if loc32 == @ACC, test N,Z with ACC
+        gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    }
+}
+
+
+static void gen_exception(DisasContext *ctx, unsigned int excp)
 {
     TCGv_i32 tmp = tcg_const_i32(excp);
-    gen_helper_exception(cpu_env, tmp);
+    TCGv pc = tcg_const_i32(ctx->base.pc_next >> 1);// current pc
+    gen_helper_exception(cpu_env, tmp, pc);
     tcg_temp_free_i32(tmp);
+    tcg_temp_free_i32(pc);
 }

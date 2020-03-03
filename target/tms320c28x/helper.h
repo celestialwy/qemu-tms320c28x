@@ -16,8 +16,10 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-DEF_HELPER_FLAGS_2(exception, TCG_CALL_NO_WG, void, env, i32)
-
+//interrupt
+DEF_HELPER_1(aborti, void, env)
+// DEF_HELPER_FLAGS_3(exception, TCG_CALL_NO_WG, void, env, i32)
+DEF_HELPER_3(exception, void, env, i32, i32)
 
 // addressing mode
 DEF_HELPER_3(addressing_mode, i32, env, i32, i32)
@@ -48,10 +50,6 @@ DEF_HELPER_2(extend_low_sxm, i32, env, i32)
 //print
 DEF_HELPER_2(print, void, env, i32)
 DEF_HELPER_1(print_env, void, env)
-
-//interrupt
-DEF_HELPER_1(aborti, void, env)
-DEF_HELPER_3(intr, void, env, i32, i32)
 
 //math
 DEF_HELPER_1(abs_acc, void, env)

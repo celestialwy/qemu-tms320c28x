@@ -592,9 +592,7 @@ static void gen_movl_acc_loc32(DisasContext *ctx, uint32_t mode) {
 // MOVL loc32,ACC
 static void gen_movl_loc32_acc(DisasContext *ctx, uint32_t mode) {
     gen_st_loc32(mode,cpu_acc);
-    if (mode == 0b10101001) { //if loc32 == @ACC, test N,Z with ACC
-        gen_helper_test_N_Z_32(cpu_env, cpu_acc);
-    }
+    gen_test_acc_N_Z(mode);
 }
 
 // MOVL loc32,XARn
