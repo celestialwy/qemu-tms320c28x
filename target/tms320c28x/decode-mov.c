@@ -640,6 +640,18 @@ static void gen_movl_xarn_22bit(DisasContext *ctx, uint32_t n, uint32_t imm) {
     tcg_gen_movi_i32(cpu_xar[n], imm);
 }
 
+
+//MOVP T,loc16
+static void gen_movp_t_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    gen_st_reg_high_half(cpu_xt, a); //T = [loc16]
+    gen_helper_shift_by_pm(cpu_acc, cpu_env, cpu_p);//ACC = P << PM
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    tcg_temp_free(a);
+}
+
 // MOVW DP,#16bit
 static void gen_movw_dp_16bit(DisasContext *ctx, uint32_t imm) {
     tcg_gen_movi_tl(cpu_dp, imm);
