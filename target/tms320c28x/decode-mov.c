@@ -607,12 +607,21 @@ static void gen_movh_loc16_acc_shift(DisasContext *ctx, uint32_t mode, uint32_t 
 //MOVH loc16,P
 static void gen_movh_loc16_p(DisasContext *ctx, uint32_t mode)
 {
-    TCGv a = tcg_temp_new();
+    TCGLabel *repeat = gen_new_label();
+    TCGv a = tcg_temp_local_new();
     gen_helper_shift_by_pm(a, cpu_env, cpu_p);
     tcg_gen_shri_i32(a, a, 16);
     gen_st_loc16(mode, a);
+
+    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
     gen_test_ax_N_Z(mode);
+    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
+    gen_set_label(repeat);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+
     tcg_temp_free(a);
+    ctx->base.is_jmp = DISAS_NORETURN;
 }
 
 // MOVL ACC,loc32
