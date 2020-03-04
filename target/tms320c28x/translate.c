@@ -527,6 +527,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                     }
                                     break;
                                 }
+                                case 0b1111://0101 0110 0010 1111 0000 0SHF LLLL LLLL MOVH loc16,ACC<<2...8
+                                {
+                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                                    if ((insn2 >> 11) == 0) {
+                                        uint32_t mode = insn2 & 0xff;
+                                        uint32_t shift = (insn2 >> 8) & 0b111;
+                                        shift += 1;
+                                        gen_movh_loc16_acc_shift(ctx, mode, shift, 2);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                             }
                             break;
                         }
@@ -611,6 +623,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                         }
                     }
                     break;
+                case 0b0111://0101 0111 LLLL LLLL MOVH loc16,P
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movh_loc16_p(ctx, mode);
+                    break;
+                }
                 case 0b1110://0101 1110 LLLL LLLL MOV AR6,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -816,6 +834,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 {
                     uint32_t mode = insn & 0xff;
                     gen_movl_loc32_xarn(ctx, mode, 1);
+                    break;
+                }
+                case 0b0011: //1011 0011 LLLL LLLL MOVH loc16,ACC<<1
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movh_loc16_acc_shift(ctx, mode, 1, 1);
                     break;
                 }
                 case 0b0110: //1011 0110 CCCC CCCC MOVB XAR7,#8bit
