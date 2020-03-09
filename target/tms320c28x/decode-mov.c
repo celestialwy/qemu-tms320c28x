@@ -790,6 +790,32 @@ static void gen_movw_dp_16bit(DisasContext *ctx, uint32_t imm) {
     tcg_gen_movi_tl(cpu_dp, imm);
 }
 
+// MOVX TL,loc16
+static void gen_movx_tl_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    gen_helper_sign_extend_16(a, a);
+    tcg_gen_mov_i32(cpu_xt, a);
+    tcg_temp_free(a);
+}
+
+// MOVZ ARn,loc16
+static void gen_movz_arn_loc16(DisasContext *ctx, uint32_t mode, uint32_t n)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    tcg_gen_andi_i32(a, a, 0xffff);
+    tcg_gen_mov_i32(cpu_xar[n], a);
+    tcg_temp_free(a);
+}
+
+// MOVZ DP,#10bit
+static void gen_movz_dp_10bit(DisasContext *ctx, uint32_t imm)
+{
+    tcg_gen_movi_tl(cpu_dp, imm);
+}
+
 // POP IFR
 static void gen_pop_ifr(DisasContext *ctx) {
     tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);

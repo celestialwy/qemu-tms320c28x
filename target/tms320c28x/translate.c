@@ -504,6 +504,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         case 0b0010: //0101 0110 0010 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0001: //0101 0110 0010 0001 xxxx xxxx LLLL LLLL MOVX TL,loc16
+                                {
+                                    length = 4;
+                                    uint32_t mode = insn2 & 0xff;
+                                    gen_movx_tl_loc16(ctx, mode);
+                                    break;
+                                }
                                 case 0b0011: //0101 0110 0010 0011 32bit ADD ACC,loc16<<T
                                 {
                                     length = 4;
@@ -676,6 +683,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movh_loc16_p(ctx, mode);
                     break;
                 }
+                case 0b1000:
+                case 0b1001:
+                case 0b1010:
+                case 0b1011:
+                case 0b1100:
+                case 0b1101://0101 1nnn LLLL LLLL MOVZ ARn,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t n = (insn >> 8) & 0b111;
+                    gen_movz_arn_loc16(ctx, mode, n);
+                    break;
+                }
                 case 0b1110://0101 1110 LLLL LLLL MOV AR6,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -755,6 +774,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
             break;
         case 0b1000:
             switch ((insn & 0x0f00) >> 8) {
+                case 0b0000: //1000 0000 LLLL LLLL MOVZ AR7,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movz_arn_loc16(ctx, mode, 7);
+                    break;
+                }
                 case 0b0001: //1000 0001 LLLL LLLL ADD ACC,loc16<<#0
                 {
                     uint32_t mode = insn & 0xff;
@@ -789,6 +814,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                 {
                     uint32_t mode = insn & 0xff;
                     gen_movl_xt_loc32(ctx, mode);
+                    break;
+                }
+                case 0b1000: //1000 1000 LLLL LLLL MOVZ AR6,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movz_arn_loc16(ctx, mode, 6);
                     break;
                 }
                 case 0b1011: //1000 1011 LLLL LLLL MOVL XAR1,loc32
@@ -954,6 +985,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                 {
                     uint32_t imm = insn & 0xff;
                     gen_movb_xarn_8bit(ctx, imm, 7);
+                    break;
+                }
+                case 0b1000:
+                case 0b1001:
+                case 0b1010:
+                case 0b1011://1011 10CC CCCC CCCC MOVZ DP,#10bit
+                {
+                    uint32_t imm = insn & 0x3ff;
+                    gen_movz_dp_10bit(ctx, imm);
                     break;
                 }
                 case 0b1110: //1011 1110 CCCC CCCC MOVB XAR6,#8bit

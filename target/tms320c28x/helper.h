@@ -59,6 +59,7 @@ DEF_HELPER_1(print_env, void, env)
 DEF_HELPER_1(abs_acc, void, env)
 DEF_HELPER_1(abstc_acc, void, env)
 DEF_HELPER_2(shift_by_pm, i32, env, i32) //signed right || left shift
+DEF_HELPER_1(sign_extend_16, i32, i32) //signed extension of 16bit reg
 
 //mov
 DEF_HELPER_4(mov_16bit_loc16, void, env, i32, i32, i32)// MOV *(0:16bit),loc16
