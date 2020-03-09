@@ -252,8 +252,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     // set_repeat_counter = true;
                     break;
                 }
-                case 0b1110:
+                case 0b1110://0000 1110 LLLL LLLL MOVU ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movu_acc_loc16(ctx, mode);
                     break;
+                }
                 case 0b1111://0000 1111 LLLL LLLL CMPL ACC,loc32
                 {
                     uint32_t mode = insn & 0xff;
@@ -448,7 +452,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             switch (insn & 0x000f) {
                                 case 0b0001: //0101 0110 0000 0001 0000 0000 LLLL LLLL ADDL loc32,ACC
                                 {
-                                    if (((insn2 & 0xff00) >> 16) == 0) {
+                                    if (((insn2 & 0xff00) >> 8) == 0) {
                                         uint32_t mode = insn2 & 0xff;
                                         gen_addl_loc32_acc(ctx, mode);
                                         length = 4;
@@ -457,7 +461,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 }
                                 case 0b0010:
                                 {
-                                    if (((insn2 & 0xff00) >> 16) == 0) {
+                                    if (((insn2 & 0xff00) >> 8) == 0) {
                                         uint32_t mode = insn2 & 0xff;
                                         gen_mov_ovc_loc16(ctx, mode);
                                         length = 4;
@@ -487,7 +491,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 }
                                 case 0b0110: //0101 0110 0000 0110 0000 0000 LLLL LLLL MOV ACC,loc16<<T
                                 {
-                                    if (((insn2 & 0xff00) >> 16) == 0) {
+                                    if (((insn2 & 0xff00) >> 8) == 0) {
                                         uint32_t mode = insn2 & 0xff;
                                         gen_mov_acc_loc16_t(ctx, mode);
                                         length = 4;
@@ -509,9 +513,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b1000: //0101 0110 0010 1000 0000 0000 LLLL LLLL MOVU loc16,OVC
+                                {
+                                    if ((insn2 >> 8) == 0) {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_movu_loc16_ovc(ctx, mode);
+                                    }
+                                    break;
+                                }
                                 case 0b1001: //0101 0110 0010 1001 0000 0000 LLLL LLLL MOV loc16,OVC
                                 {
-                                    if ((insn2 >> 16) == 0) {
+                                    if ((insn2 >> 8) == 0) {
                                         length = 4;
                                         uint32_t mode = insn2 & 0xff;
                                         gen_mov_loc16_ovc(ctx, mode);
@@ -623,10 +636,25 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             }
                             break;
                         }
+                        case 0b0110: //0101 0110 0110 ....
+                        {
+                            switch (insn & 0xf) {
+                                case 0b0010: //0101 0110 0110 0010 0000 0000 LLLL LLLL MOVU OVC,loc16
+                                {
+                                    if ((insn2 >> 8) == 0) {
+                                        uint32_t mode = insn2 & 0xff;
+                                        length = 4;
+                                        gen_movu_ovc_loc16(ctx, mode);
+                                    }
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case 0b1011: //0101 0110 1011 COND CCCC CCCC LLLL LLLL MOVB loc16,#8bit,COND
                         {
                             uint32_t cond = insn & 0xf;
-                            uint32_t imm = insn2 >> 16;
+                            uint32_t imm = insn2 >> 8;
                             uint32_t mode = insn2 & 0xff;
                             gen_movb_loc16_8bit_cond(ctx, mode, imm, cond);
                             length = 4;

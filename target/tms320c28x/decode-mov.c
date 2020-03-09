@@ -753,6 +753,38 @@ static void gen_movs_t_loc16(DisasContext *ctx, uint32_t mode)
     ctx->base.is_jmp = DISAS_NORETURN;
 }
 
+// MOVU ACC,loc16
+static void gen_movu_acc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    tcg_gen_andi_i32(a, a, 0xffff);
+    tcg_gen_mov_i32(cpu_acc, a);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    tcg_temp_free(a);
+}
+
+// MOVU loc16,OVC
+static void gen_movu_loc16_ovc(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    tcg_gen_shri_i32(a, cpu_st0, 10);//get ovc bit 
+    gen_st_loc16(mode, a);
+    gen_test_ax_N_Z(mode);
+    tcg_temp_free(a);
+}
+
+// MOVU loc16,OVC
+static void gen_movu_ovc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_loc16(a, mode);
+    tcg_gen_shli_i32(a, a, 10);//get ovc
+    tcg_gen_andi_i32(cpu_st0, cpu_st0, 0x3ff);//clear ovc
+    tcg_gen_or_i32(cpu_st0, cpu_st0, a);
+    tcg_temp_free(a);
+}
+
 // MOVW DP,#16bit
 static void gen_movw_dp_16bit(DisasContext *ctx, uint32_t imm) {
     tcg_gen_movi_tl(cpu_dp, imm);
