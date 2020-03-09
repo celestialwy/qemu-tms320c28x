@@ -705,6 +705,11 @@ static void gen_movl_xarn_22bit(DisasContext *ctx, uint32_t n, uint32_t imm) {
     tcg_gen_movi_i32(cpu_xar[n], imm);
 }
 
+// MOVL XT,loc32
+static void gen_movl_xt_loc32(DisasContext *ctx, uint32_t mode)
+{
+    gen_ld_loc32(cpu_xt, mode);
+}
 
 //MOVP T,loc16
 static void gen_movp_t_loc16(DisasContext *ctx, uint32_t mode)
@@ -715,6 +720,37 @@ static void gen_movp_t_loc16(DisasContext *ctx, uint32_t mode)
     gen_helper_shift_by_pm(cpu_acc, cpu_env, cpu_p);//ACC = P << PM
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     tcg_temp_free(a);
+}
+
+// MOVS T,loc16
+static void gen_movs_t_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGLabel *repeat = gen_new_label();
+
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
+    gen_ld_loc16(a, mode);
+    gen_st_reg_high_half(cpu_xt, a); //T = [loc16]
+
+    tcg_gen_mov_i32(a, cpu_acc);
+    gen_helper_shift_by_pm(b, cpu_env, cpu_p);//b = P << PM
+    tcg_gen_sub_i32(cpu_acc, a, b);
+    gen_helper_test_sub_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_sub_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+
+    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
+
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_sub_C_32(cpu_env, a, b, cpu_acc);
+
+    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
+    gen_set_label(repeat);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+    ctx->base.is_jmp = DISAS_NORETURN;
 }
 
 // MOVW DP,#16bit

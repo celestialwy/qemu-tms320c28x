@@ -320,8 +320,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOVB ACC,#%d", insn, imm);
                     break;
                 }
-                case 0b0011:
+                case 0b0011: //0000 0011 LLLL LLLL SUBL ACC,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC32);
+                    fprintf_func(stream, "0x%04x;     SUBL ACC,%s", insn, str);
                     break;
+                }
                 case 0b0100:
                     break;
                 case 0b0101: //0000 0101 LLLL LLLL ADD ACC,loc16<<#16
@@ -404,6 +409,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         get_loc_string(str,mode,LOC16);
                         fprintf_func(stream, "0x%04x;     MOVA T,%s", insn, str);
                     }
+                    break;
+                }
+                case 0b0001: //0001 0001 LLLL LLLL MOVS T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MOVS T,%s", insn, str);
                     break;
                 }
                 case 0b0110: //0001 0110 LLLL LLLL MOVP T,loc16
@@ -948,6 +960,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     uint32_t mode = insn & 0xff;
                     get_loc_string(str,mode,LOC32);
                     fprintf_func(stream, "0x%04x;     MOVL XAR2,%s", insn, str);
+                    break;
+                }
+                case 0b0111: //1000 0111 LLLL LLLL MOVL XT,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC32);
+                    fprintf_func(stream, "0x%04x;     MOVL XT,%s", insn, str);
                     break;
                 }
                 case 0b1010: //1000 1010 LLLL LLLL MOVL XAR4,loc32

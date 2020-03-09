@@ -148,6 +148,15 @@ void HELPER(test_C_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t
     }
 }
 
+void HELPER(test_sub_C_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
+{
+    b = ~b + 1;
+    helper_test_C_32(env, a, b, result);
+    if (b == 0) {
+        cpu_set_c(env, 1);
+    }
+}
+
 void HELPER(test_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
 {
     uint32_t bit1 = a >> 31;
@@ -165,18 +174,12 @@ void HELPER(test_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t
     }
 }
 
-void HELPER(test_C_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
+void HELPER(test_sub_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
 {
+    b = ~b + 1;
     uint32_t bit1 = a >> 31;
     uint32_t bit2 = b >> 31;
     uint32_t bit3 = result >> 31;
-    uint64_t tmp = (uint64_t)a + (uint64_t)b;
-    if ((tmp >> 32) & 1) {
-        cpu_set_c(env, 1);
-    }
-    else {
-        cpu_set_c(env, 0);
-    }
 
     if (bit1 == 1 && bit2 == 1 && bit3 == 0) {//neg overflow
         cpu_set_v(env, 1);
@@ -184,9 +187,21 @@ void HELPER(test_C_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32
     else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
         cpu_set_v(env, 1);
     }
-    else {
-        cpu_set_v(env, 0);
+    else { //if not overlow, v bit is not affected
+        // cpu_set_v(env, 0);
     }
+}
+
+void HELPER(test_C_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result)
+{
+    helper_test_C_32(env, a, b, result);
+    helper_test_V_32(env, a, b, result);
+}
+
+void HELPER(test_sub_C_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result)
+{
+    helper_test_sub_C_32(env, a, b, result);
+    helper_test_sub_V_32(env, a, b, result);
 }
 
 // affect acc value
@@ -218,6 +233,12 @@ void HELPER(test_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, ui
             cpu_set_ovc(env, ovc);
         }
     }    
+}
+
+void HELPER(test_sub_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result)
+{
+    b = ~b + 1;
+    helper_test_OVC_OVM_32(env, a, b, result);
 }
 
 void HELPER(test2_C_V_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t c, uint32_t result) 
