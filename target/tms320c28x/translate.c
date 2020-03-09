@@ -736,21 +736,58 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 {
                     uint32_t mode = insn & 0xff;
                     gen_add_acc_loc16_shift(ctx, mode, 0);
+                    break;
+                }
+                case 0b0010: //1000 0010 LLLL LLLL MOVL XAR3,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_xarn_loc32(ctx, mode, 3);
+                    break;
+                }
+                case 0b0011: //1000 1110 LLLL LLLL MOVL XAR5,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_xarn_loc32(ctx, mode, 5);
+                    break;
                 }
                 case 0b0101: /*1000 0101 .... .... MOV ACC, loc16<<#0 */
                 {
                     uint32_t mode = insn & 0xff;
                     gen_mov_acc_loc16_shift(ctx, mode, 0);
+                    break;
                 }
-                break;
+                case 0b0110: //1000 0110 LLLL LLLL MOVL XAR2,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_xarn_loc32(ctx, mode, 2);
+                    break;
+                }
+                case 0b1011: //1000 1011 LLLL LLLL MOVL XAR1,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_xarn_loc32(ctx, mode, 1);
+                    break;
+                }
+                case 0b1010: //1000 1010 LLLL LLLL MOVL XAR4,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_xarn_loc32(ctx, mode, 4);
+                    break;
+                }
                 case 0b1101: /*1000 1101 .... .... MOVL XARn,#22bit */
                 {
                     uint32_t n = (insn >> 6) & 0b11;
                     uint32_t imm = ((insn32 & 0x3f)<< 16) | translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                     gen_movl_xarn_22bit(ctx, n, imm);
                     length = 4;
+                    break;
                 }
-                break;
+                case 0b1110: //1000 1110 LLLL LLLL MOVL XAR0,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_xarn_loc32(ctx, mode, 0);
+                    break;
+                }
                 case 0b1111:
                     switch((insn >> 7) & 1) {
                         case 0b0: //1000 1111 0.... .... MOVL XARn,#22bit
@@ -820,6 +857,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     gen_movl_loc32_xarn(ctx, mode, 3);
                     break;
                 }
+                case 0b0011: //1010 0011 LLLL LLLL MOVL P,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_p_loc32(ctx, mode);
+                    break;
+                }
                 case 0b0110: //1010 0110 LLLL LLLL MOVDL XT,loc32
                 {
                     uint32_t mode = insn & 0xff;
@@ -838,10 +881,22 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     gen_movl_loc32_xarn(ctx, mode, 4);
                     break;
                 }
+                case 0b1001: //1010 1001 LLLL LLLL MOVL loc32,P
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_loc32_p(ctx, mode);
+                    break;
+                }
                 case 0b1010: //1010 1010 LLLL LLLL MOVL loc32, XAR2
                 {
                     uint32_t mode = insn & 0xff;
                     gen_movl_loc32_xarn(ctx, mode, 2);
+                    break;
+                }
+                case 0b1011: //1010 1011 LLLL LLLL MOVL loc32,XT
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_loc32_xt(ctx, mode);
                     break;
                 }
             }
@@ -892,6 +947,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 {
                     uint32_t mode = insn & 0xff;
                     gen_movl_loc32_xarn(ctx, mode, 7);
+                    break;
+                }
+                case 0b0100: //1100 0100 LLLL LLLL MOVL XAR6,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_xarn_loc32(ctx, mode, 6);
+                    break;
+                }
+                case 0b0101: //1100 0101 LLLL LLLL MOVL XAR7,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_movl_xarn_loc32(ctx, mode, 7);
                     break;
                 }
                 case 0b0110: //1100 0110 LLLL LLLL MOVB AL.LSB,loc16
@@ -1016,6 +1083,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 case 0b0110: //1111 1111 0101 0110 ABS ACC
                                 {
                                     gen_abs_acc(ctx);
+                                    break;
+                                }
+                                case 0b1010: //1111 1111 0101 1010 MOVL P,ACC
+                                {
+                                    gen_movl_p_acc(ctx);
                                     break;
                                 }
                             }

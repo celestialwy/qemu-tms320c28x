@@ -662,13 +662,42 @@ static void gen_movl_loc32_acc_cond(DisasContext *ctx, uint32_t mode, uint32_t c
     tcg_temp_free(test);
 }
 
+// MOVL loc32,P
+static void gen_movl_loc32_p(DisasContext *ctx, uint32_t mode)
+{
+    gen_st_loc32(mode, cpu_p);
+    gen_test_acc_N_Z(mode);
+}
 
 // MOVL loc32,XARn
 static void gen_movl_loc32_xarn(DisasContext *ctx, uint32_t mode, uint32_t n) {
     gen_st_loc32(mode, cpu_xar[n]);
-    if (mode == 0b10101001) { //if loc32 == @ACC, test N,Z with ACC
-        gen_helper_test_N_Z_32(cpu_env, cpu_acc);
-    }
+    gen_test_acc_N_Z(mode);
+}
+
+// MOVL loc32,XT
+static void gen_movl_loc32_xt(DisasContext *ctx, uint32_t mode)
+{
+    gen_st_loc32(mode, cpu_xt);
+    gen_test_acc_N_Z(mode);
+}
+
+// MOVL P,ACC
+static void gen_movl_p_acc(DisasContext *ctx)
+{
+    tcg_gen_mov_i32(cpu_p, cpu_acc);
+}
+
+// MOVL P,loc32
+static void gen_movl_p_loc32(DisasContext *ctx, uint32_t mode)
+{
+    gen_ld_loc32(cpu_p, mode);
+}
+
+// MOVL XARn,loc32
+static void gen_movl_xarn_loc32(DisasContext *ctx, uint32_t mode, uint32_t n)
+{
+    gen_ld_loc32(cpu_xar[n], mode);
 }
 
 // MOVL XARn,#22bit
