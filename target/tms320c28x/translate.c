@@ -120,11 +120,11 @@ void tms320c28x_translate_init(void)
 #include "decode-branch.c"
 #include "decode-interrupt.c"
 
-static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn) 
+static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_t insn2) 
 {
     /* Set the default instruction length.  */
     int length = 2;
-    uint32_t insn32 = insn;
+    // uint32_t insn32 = insn;
     bool set_repeat_counter = false;
     // qemu_log_mask(CPU_LOG_TB_IN_ASM ,"insn is: 0x%x \n",insn);
 
@@ -175,7 +175,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                             break;
                         case 0b01: /*0000 0000 01.. .... LB 22bit */
                         {
-                            uint32_t dest = ((insn32 & 0x3f)<< 16) | translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                            uint32_t dest = ((insn & 0x3f)<< 16) | insn2;
                             // dest = dest * 2;
                             gen_lb_22bit(ctx, dest);
                             length = 4;
@@ -220,7 +220,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 case 0b1000: //0000 1000 LLLL LLLL 32bit ADD loc16,#16bitSigned
                 {
                     uint32_t mode = insn & 0xff;
-                    uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                    uint32_t imm = insn2;
                     length = 4;
                     gen_add_loc16_16bit(ctx, mode, imm);
                     break;
@@ -327,7 +327,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 }
                 case 0b1000: /* MOV loc16, #16bit p260 */
                 {
-                    uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                    uint32_t imm = insn2;
                     uint32_t mode = insn & 0xff;
                     gen_mov_loc16_16bit(ctx, mode, imm);
                     length = 4;
@@ -438,7 +438,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                             switch (insn & 0x000f) {
                                 case 0b0001: //0101 0110 0000 0001 0000 0000 LLLL LLLL ADDL loc32,ACC
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     if (((insn2 & 0xff00) >> 16) == 0) {
                                         uint32_t mode = insn2 & 0xff;
                                         gen_addl_loc32_acc(ctx, mode);
@@ -448,7 +447,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                                 case 0b0010:
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     if (((insn2 & 0xff00) >> 16) == 0) {
                                         uint32_t mode = insn2 & 0xff;
                                         gen_mov_ovc_loc16(ctx, mode);
@@ -458,7 +456,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                                 case 0b0011: /* 0101 0110 0000 0011  MOV ACC, loc16<<#1...15 */
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     length = 4;
                                     if ((insn2 & 0xf000) == 0) { //this 4bit should be 0
                                         /* MOV ACC, loc16<<#1...15 */
@@ -470,7 +467,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                                 case 0b0100: // 0101 0110 0000 0100 ADD ACC,loc16<<#1...15
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     length = 4;
                                     if ((insn2 & 0xf000) == 0) { //this 4bit should be 0
                                         uint32_t shift = (insn2 & 0x0f00) >> 8;
@@ -481,7 +477,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                                 case 0b0110: //0101 0110 0000 0110 0000 0000 LLLL LLLL MOV ACC,loc16<<T
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     if (((insn2 & 0xff00) >> 16) == 0) {
                                         uint32_t mode = insn2 & 0xff;
                                         gen_mov_acc_loc16_t(ctx, mode);
@@ -497,7 +492,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                             switch (insn & 0xf) {
                                 case 0b0011: //0101 0110 0010 0011 32bit ADD ACC,loc16<<T
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     length = 4;
                                     if ((insn2 & 0xff00) == 0) { //this 8bit should be 0
                                         uint32_t loc16 = (insn2 & 0xff);
@@ -507,7 +501,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                                 case 0b1001: //0101 0110 0010 1001 0000 0000 LLLL LLLL MOV loc16,OVC
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     if ((insn2 >> 16) == 0) {
                                         length = 4;
                                         uint32_t mode = insn2 & 0xff;
@@ -518,7 +511,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 case 0b1010: //
                                 case 0b1011: //0101 0110 0010 101A 0000 COND LLLL LLLL MOV loc16,AX,COND
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     if ((insn2 >> 12) == 0) {
                                         uint32_t mode = insn2 & 0xff;
                                         uint32_t cond = (insn2 >> 8) & 0xf;
@@ -530,7 +522,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                                 case 0b1101: //0101 0110 0010 1101 0000 0SHF LLLL LLLL MOV loc16,ACC<<2...8
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     if ((insn2 >> 11) == 0) {
                                         uint32_t mode = insn2 & 0xff;
                                         uint32_t shift = (insn2 >> 8) & 0b111;
@@ -542,7 +533,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                                 case 0b1111://0101 0110 0010 1111 0000 0SHF LLLL LLLL MOVH loc16,ACC<<2...8
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     if ((insn2 >> 11) == 0) {
                                         uint32_t mode = insn2 & 0xff;
                                         uint32_t shift = (insn2 >> 8) & 0b111;
@@ -571,17 +561,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                         case 0b0100: //0101 0110 0100 ....
                         {
                             switch (insn & 0xf) {
-                                case 0b0000: //0101 0110 0100 0000 ADDCL ACC,loc32
+                                case 0b0000: //0101 0110 0100 0000 xxxx xxxx LLLL LLLL ADDCL ACC,loc32
                                 {
-                                    uint32_t mode = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
-                                    mode = mode & 0xff;
+                                    uint32_t mode = insn2 & 0xff;
                                     length = 4;
                                     gen_addcl_acc_loc32(ctx, mode);
                                     break;
                                 }
                                 case 0b1000: //0101 0110 0100 1000 0000 COND LLLL LLLL MOVL loc32,ACC,COND
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     uint32_t mode = insn2 & 0xff;
                                     uint32_t cond = (insn2 >> 8) & 0xf;
                                     if ((insn2 >> 12) == 0) {
@@ -598,7 +586,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                             switch (insn & 0xf) {
                                 case 0b0011: //0101 0110 0101 0011 xxxx xxxx LLLL LLLL ADDUL ACC,loc32
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     uint32_t mode = insn2 & 0xff;
                                     gen_addul_acc_loc32(ctx, mode);
                                     length = 4;
@@ -611,7 +598,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                                 }
                                 case 0b0111: //0101 0110 0101 0111 0000 0000 LLLL LLLL ADDUL P,loc32
                                 {
-                                    uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                                     if (((insn2 & 0xff00) >> 8) == 0) {
                                         uint32_t mode = insn2 & 0xff;
                                         gen_addul_p_loc32(ctx, mode);
@@ -629,7 +615,6 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                         }
                         case 0b1011: //0101 0110 1011 COND CCCC CCCC LLLL LLLL MOVB loc16,#8bit,COND
                         {
-                            uint32_t insn2 = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
                             uint32_t cond = insn & 0xf;
                             uint32_t imm = insn2 >> 16;
                             uint32_t mode = insn2 & 0xff;
@@ -639,7 +624,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                         }
                         case 0b1100: //0101 0110 1100 COND  BF 16bitOffset,COND
                         {
-                            int16_t offset = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                            int16_t offset = insn2;
                             uint32_t cond = insn & 0xf;
                             gen_bf_16bitOffset_cond(ctx, offset, cond);
                             length = 4;
@@ -694,7 +679,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 case 0b0110: //0111 0110 .... ....
                     if (((insn >> 7) & 0x1) == 1) { //0111 0110 1... .... MOVL XARn,#22bit 
                         uint32_t n = ((insn >> 6) & 0b11) + 6;//XAR6,XAR7
-                        uint32_t imm = ((insn32 & 0x3f)<< 16) | translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                        uint32_t imm = ((insn & 0x3f)<< 16) | insn2;
                         gen_movl_xarn_22bit(ctx, n, imm);
                         length = 4;
                     }
@@ -706,7 +691,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                             switch(insn & 0x3f) { 
                                 case 0b011111: //0111 0110 0001 1111 MOVW DP,#16bit
                                 {
-                                    uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                                    uint32_t imm = insn2;
                                     gen_movw_dp_16bit(ctx, imm);
                                     length = 4;
                                     break;
@@ -777,7 +762,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 case 0b1101: /*1000 1101 .... .... MOVL XARn,#22bit */
                 {
                     uint32_t n = (insn >> 6) & 0b11;
-                    uint32_t imm = ((insn32 & 0x3f)<< 16) | translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                    uint32_t imm = ((insn & 0x3f)<< 16) | insn2;
                     gen_movl_xarn_22bit(ctx, n, imm);
                     length = 4;
                     break;
@@ -793,7 +778,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                         case 0b0: //1000 1111 0.... .... MOVL XARn,#22bit
                         {
                             uint32_t n = ((insn >> 6) & 0b11) + 4;//XAR4,XAR5
-                            uint32_t imm = ((insn32 & 0x3f)<< 16) | translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                            uint32_t imm = ((insn & 0x3f)<< 16) | insn2;
                             gen_movl_xarn_22bit(ctx, n, imm);
                             length = 4;
                             break;
@@ -1012,7 +997,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
             switch ((insn & 0x0f00) >> 8) {
                 case 0b0100: //1111 0100 LLLL LLLL 32bit MOV *(0:16bit),loc16
                 {
-                    uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                    uint32_t imm = insn2;
                     uint32_t mode = insn & 0xff;
                     gen_16bit_loc16(ctx, mode, imm);
                     length = 4;
@@ -1020,7 +1005,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                 }
                 case 0b0101: //1111 0101 LLLL LLLL 32bit MOV loc16,*(0:16bit)
                 {
-                    uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                    uint32_t imm = insn2;
                     uint32_t mode = insn & 0xff;
                     gen_loc16_16bit(ctx, mode, imm);
                     length = 4;
@@ -1064,7 +1049,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                     switch ((insn & 0x00f0) >> 4) {
                         case 0b0001: //1111 1111 0001 SHFT 32bit ADD ACC, #16bit<#0...15
                         {
-                            uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                            uint32_t imm = insn2;
                             uint32_t shift = insn & 0x000f;
                             gen_add_acc_16bit_shift(ctx, imm, shift);
                             length = 4;
@@ -1072,7 +1057,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint16_t insn)
                         }
                         case 0b0010: //1111 1111 0010 SHFT 32bit MOV ACC, #16bit<#0...15
                         {
-                            uint32_t imm = translator_lduw_swap(&cpu->env, ctx->base.pc_next+2, true);
+                            uint32_t imm = insn2;
                             uint32_t shift = insn & 0x000f;
                             gen_mov_acc_16bit_shift(ctx, imm, shift);
                             length = 4;
@@ -1176,9 +1161,9 @@ static void tms320c28x_tr_translate_insn(DisasContextBase *dcbase, CPUState *cs)
     DisasContext *dc = container_of(dcbase, DisasContext, base);
     Tms320c28xCPU *cpu = TMS320C28X_CPU(cs);
     // can not load 32bit here, "translator_ldl_swap" must load from 32bit aligned
-    uint16_t insn = translator_lduw_swap(&cpu->env, dc->base.pc_next, true);
-
-    int inc = decode(cpu, dc, insn);
+    uint32_t insn = translator_lduw_swap(&cpu->env, dc->base.pc_next, true);
+    uint32_t insn2 = translator_lduw_swap(&cpu->env, dc->base.pc_next+2, true);
+    int inc = decode(cpu, dc, insn, insn2);
     if (inc <= 0) {
         // gen_illegal_exception(dc);
     }
