@@ -224,7 +224,8 @@ static void gen_mov_loc16_ax_cond(DisasContext *ctx, uint32_t mode, uint32_t con
     //pre post modification addr mode
     gen_set_label(loc16_modification);
 
-    gen_ld_loc16(test,mode);//pre and post mod for addr mode, by doing a load loc16
+    // gen_ld_loc16(test,mode);//pre and post mod for addr mode, by doing a load loc16
+    gen_get_loc_addr(test, mode, LOC16);//pre and post mod for addr mode, by doing a addr loc16
     
     gen_set_label(done);
 
@@ -635,6 +636,32 @@ static void gen_movl_loc32_acc(DisasContext *ctx, uint32_t mode) {
     gen_st_loc32(mode,cpu_acc);
     gen_test_acc_N_Z(mode);
 }
+
+// MOVL loc32,ACC,COND
+static void gen_movl_loc32_acc_cond(DisasContext *ctx, uint32_t mode, uint32_t cond)
+{
+    TCGLabel *loc32_modification = gen_new_label();
+    TCGLabel *done = gen_new_label();
+    TCGv cond_tcg = tcg_const_i32(cond);
+    TCGv test = tcg_temp_new();
+    gen_helper_test_cond(test, cpu_env, cond_tcg);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, test, 0, loc32_modification);
+    
+    gen_st_loc32(mode, cpu_acc);
+    gen_test_acc_N_Z(mode);
+    tcg_gen_br(done);
+
+    //pre post modification addr mode
+    gen_set_label(loc32_modification);
+
+    gen_get_loc_addr(test, mode, LOC32);//pre and post mod for addr mode, by doing a addr loc32
+    
+    gen_set_label(done);
+
+    tcg_temp_free(cond_tcg);
+    tcg_temp_free(test);
+}
+
 
 // MOVL loc32,XARn
 static void gen_movl_loc32_xarn(DisasContext *ctx, uint32_t mode, uint32_t n) {

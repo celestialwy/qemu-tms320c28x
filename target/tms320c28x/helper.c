@@ -433,3 +433,38 @@ void HELPER(cmp16_N_Z_C)(CPUTms320c28xState *env, uint32_t a, uint32_t b)
     }
 
 }
+
+void HELPER(cmp32_N_Z_C)(CPUTms320c28xState *env, uint32_t a, uint32_t b)
+{
+    uint64_t a64 = a;
+    uint64_t b64 = b;
+    uint64_t result2 = a64 + ((~b64 + 1) & 0xffffffff);
+    //test C
+    if ((result2 >> 32) & 1) {
+        cpu_set_c(env, 1);
+    }
+    else {
+        cpu_set_c(env, 0);
+    }
+
+    //sign extend
+    a64 = sign_extend_32(a);
+    b64 = sign_extend_32(b);
+    //sub
+    int64_t result = a64 - b64;
+    //test N
+    if (result < 0) {
+        cpu_set_n(env, 1);
+    }
+    else {
+        cpu_set_n(env, 0);
+    }
+    //test Z
+    if (result == 0) {
+        cpu_set_z(env, 1);
+    }
+    else {
+        cpu_set_z(env, 0);
+    }
+
+}

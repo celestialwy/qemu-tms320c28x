@@ -112,4 +112,14 @@ static inline uint32_t sign_extend_16(uint32_t a) {
         return a & 0xffff;
     }
 }
+
+static inline uint64_t sign_extend_32(uint32_t a_in) {
+    uint64_t a = a_in;
+    if ((a >> 31) & 1) {
+        return a | 0xffffffff00000000;
+    }
+    else {
+        return a & 0xffffffff;
+    }
+}
 #endif

@@ -28,7 +28,7 @@ static void get_loc_string(char* str, uint32_t loc, uint32_t loc_type) {
             sprintf(str, "@0x%x", loc & 0x3f);
             break;
         case 0b01: //b01 III III *-SP[6bit]
-            sprintf(str, "*SP[0x%x]", loc & 0x3f);
+            sprintf(str, "*-SP[0x%x]", loc & 0x3f);
             break;
         case 0b10: //b10 ... ...
             switch((loc & 0b00111000)>>3) {
@@ -354,13 +354,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         imm = imm | 0xffff0000;
                     }
                     length = 4;
-                    fprintf_func(stream, "0x%08x; ADD %s, #%d", insn32, str, imm);
+                    fprintf_func(stream, "0x%04x;     ADD %s, #%d", insn, str, imm);
                     break;
                 }
                 case 0b1001: //0000 1001 CCCC CCCC ADDB ACC,#8bit
                 {
                     uint32_t imm = insn & 0xff;
-                    fprintf_func(stream, "0x%08x; ADDB ACC,#%d", insn32, imm);
+                    fprintf_func(stream, "0x%04x;     ADDB ACC,#%d", insn, imm);
                     break;
                 }
                 case 0b1010:
@@ -371,20 +371,25 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 {
                     uint32_t mode = insn & 0xff;
                     get_loc_string(str, mode, LOC16);
-                    fprintf_func(stream, "0x%08x; ADDCU ACC,%s", insn32, str);
+                    fprintf_func(stream, "0x%04x;     ADDCU ACC,%s", insn, str);
                     break;
                 }
                 case 0b1101: //0000 1101 LLLL LLLL ADDU ACC,loc16
                 {
                     uint32_t mode = insn & 0xff;
                     get_loc_string(str, mode, LOC16);
-                    fprintf_func(stream, "0x%08x; ADDU ACC,%s", insn32, str);
+                    fprintf_func(stream, "0x%04x;     ADDU ACC,%s", insn, str);
                     break;
                 }
                 case 0b1110:
                     break;
-                case 0b1111:
+                case 0b1111://0000 1111 LLLL LLLL CMPL ACC,loc32
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str, mode, LOC32);
+                    fprintf_func(stream, "0x%04x;     CMPL ACC,%s", insn, str);
                     break;
+                }
             }
             break;
         case 0b0001:
@@ -678,15 +683,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 {
                                     uint32_t mode = insn32 & 0xff;
                                     uint32_t cond = (insn32 >> 8) & 0xf;
-                                    get_loc_string(str, mode, LOC16);
-                                    get_cond_string(str2, cond);
-                                    uint32_t is_AH = insn & 1;
-                                    length = 4;
-                                    if (is_AH) {
-                                        fprintf_func(stream, "0x%08x; MOV %s,AH,%s", insn32, str, str2);
-                                    }
-                                    else {
-                                        fprintf_func(stream, "0x%08x; MOV %s,AL,%s", insn32, str, str2);
+                                    if (((insn32 >> 12) & 0xf) == 0) {
+                                        get_loc_string(str, mode, LOC16);
+                                        get_cond_string(str2, cond);
+                                        uint32_t is_AH = insn & 1;
+                                        length = 4;
+                                        if (is_AH) {
+                                            fprintf_func(stream, "0x%08x; MOV %s,AH,%s", insn32, str, str2);
+                                        }
+                                        else {
+                                            fprintf_func(stream, "0x%08x; MOV %s,AL,%s", insn32, str, str2);
+                                        }
                                     }
                                     break;
                                 }
@@ -743,6 +750,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     length = 4;
                                     get_loc_string(str,mode,LOC32);
                                     fprintf_func(stream, "0x%08x; ADDCL ACC,%s", insn32, str);
+                                    break;
+                                }
+                                case 0b1000: //0101 0110 0100 1000 0000 COND LLLL LLLL MOVL loc32,ACC,COND
+                                {
+                                    uint32_t mode = insn32 & 0xff;
+                                    uint32_t cond = (insn32 >> 8) & 0xf;
+                                    if (((insn32 >> 12) & 0xf) == 0) {
+                                        get_loc_string(str, mode, LOC32);
+                                        get_cond_string(str2, cond);
+                                        fprintf_func(stream, "0x%08x; MOVL %s,ACC,%s", insn32, str, str2);
+                                        length = 4;
+                                    }
                                     break;
                                 }
                             }

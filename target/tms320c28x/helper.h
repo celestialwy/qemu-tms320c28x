@@ -62,3 +62,4 @@ DEF_HELPER_4(mov_loc16_16bit, void, env, i32, i32, i32)// MOV loc16,*(0:16bit)
 
 //cmp
 DEF_HELPER_3(cmp16_N_Z_C, void, env, i32, i32)// cmp, test N,Z,C
+DEF_HELPER_3(cmp32_N_Z_C, void, env, i32, i32)// cmpl, test N,Z,C
