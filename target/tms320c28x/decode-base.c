@@ -327,13 +327,13 @@ static void gen_reset_rptc(DisasContext *ctx)
 static void gen_test_ax_N_Z(uint32_t mode)
 {
     if (mode == 0b10101000) { //loc16 == @AH
-        TCGv ah = tcg_temp_new();
+        TCGv ah = tcg_temp_local_new();
         tcg_gen_shri_i32(ah, cpu_acc, 16);
         gen_helper_test_N_Z_16(cpu_env, ah);
         tcg_temp_free(ah);
     }
     if (mode == 0b10101001) { //loc16 == @AL
-        TCGv al = tcg_temp_new();
+        TCGv al = tcg_temp_local_new();
         tcg_gen_andi_i32(al, cpu_acc, 0xffff);
         gen_helper_test_N_Z_16(cpu_env, cpu_acc);
         tcg_temp_free(al);
