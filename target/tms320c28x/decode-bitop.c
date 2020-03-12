@@ -217,7 +217,30 @@ static void gen_asr_ax_t(DisasContext *ctx, bool is_AH)
     tcg_temp_free(shift);
 }
 
+// ASR64 ACC:P,#1...16
+static void gen_asr64_acc_p_imm(DisasContext *ctx, uint32_t shift)
+{
+    TCGv a = tcg_temp_new();
+    TCGv c = tcg_temp_new();
+    //shift acc
+    tcg_gen_andi_i32(a, cpu_acc, (1 << (shift+1)) - 1);//get shift out bit of acc
+    tcg_gen_shli_i32(a, a, 32 - shift);
+    tcg_gen_sari_i32(cpu_acc, cpu_acc, shift);
 
+    //shift p
+    tcg_gen_shri_i32(cpu_p, cpu_p, shift - 1);
+    tcg_gen_andi_i32(c, cpu_p, 1);//last bit out
+    tcg_gen_shri_i32(cpu_p, cpu_p, 1);
+    //set high bit of p
+    tcg_gen_or_i32(cpu_p, cpu_p, a);
+
+
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
+
+    tcg_temp_free(a);
+    tcg_temp_free(c);
+}
 
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)

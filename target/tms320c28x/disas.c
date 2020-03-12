@@ -876,6 +876,12 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             }
                             break;
                         }
+                        case 0b1000: //0101 0110 1000 SHFT ASR64 ACC:P,#1...16
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            fprintf_func(stream, "0x%04x;     ASR64 ACC:P,#%d", insn, shift);
+                            break;
+                        }
                         case 0b1011: //0101 0110 1011 COND CCCC CCCC LLLL LLLL MOVB loc16,#8bit,COND
                         {
                             uint32_t cond = insn & 0xf;
