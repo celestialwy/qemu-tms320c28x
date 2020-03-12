@@ -361,6 +361,8 @@ void HELPER(abs_acc)(CPUTms320c28xState *env)
             env->acc = tmp;
         }
     }
+    helper_test_N_Z_32(env, env->acc);
+    CPU_SET_STATUS(st0, C, 0);
 }
 
 void HELPER(abstc_acc)(CPUTms320c28xState *env)
@@ -388,6 +390,8 @@ void HELPER(abstc_acc)(CPUTms320c28xState *env)
         tc = tc ^ 1;//TC = TC XOR 1
         CPU_SET_STATUS(st0, TC, tc);
     }
+    helper_test_N_Z_32(env, env->acc);
+    CPU_SET_STATUS(st0, C, 0);
 }
 
 uint32_t HELPER(shift_by_pm)(CPUTms320c28xState *env, uint32_t value)

@@ -276,8 +276,8 @@ static void gen_mov_ovc_loc16(DisasContext *ctx, uint32_t mode)
 {
     TCGv a = tcg_temp_new();
     gen_ld_loc16(a, mode);
-    tcg_gen_andi_i32(a, a, 0xfc00);//15:10 = ovc
-    tcg_gen_andi_i32(cpu_st0, cpu_st0, 0x3ff);//clear ovc
+    tcg_gen_andi_i32(a, a, OVC_MASK);//15:10 = ovc
+    tcg_gen_andi_i32(cpu_st0, cpu_st0, ~OVM_MASK);//clear ovc
     tcg_gen_or_i32(cpu_st0, cpu_st0, a);
     tcg_temp_free(a);
 }
@@ -305,10 +305,7 @@ static void gen_mov_pm_ax(DisasContext *ctx, bool is_AH)
 {
     TCGv a = tcg_temp_new();
     gen_ld_reg_half(a, cpu_acc, is_AH);
-    tcg_gen_andi_i32(a, a, 0b111);//ax[0:2]
-    tcg_gen_shli_i32(a, a, 7);//shift to bit 9:7
-    tcg_gen_andi_i32(cpu_st0, cpu_st0, 0xfc7f);//clear pm
-    tcg_gen_or_i32(cpu_st0, cpu_st0, a);//set new pm
+    gen_set_bit(cpu_st0, PM_BIT, PM_MASK, a);
     tcg_temp_free(a);
 }
 
@@ -341,10 +338,6 @@ static void gen_mova_t_loc16(DisasContext *ctx, uint32_t mode)
     TCGv t = tcg_temp_local_new();
     gen_ld_loc16(t, mode);
     gen_st_reg_high_half(cpu_xt, t);
-
-    // TCGv pm = tcg_temp_local_new();
-    // tcg_gen_shri_i32(pm, cpu_st0, 7);//PM
-    // tcg_gen_andi_i32(pm, pm, 0x7);//PM
 
     TCGv b = tcg_temp_local_new();
     gen_helper_shift_by_pm(b, cpu_env, cpu_p);//b = P>>PM
@@ -768,20 +761,18 @@ static void gen_movu_acc_loc16(DisasContext *ctx, uint32_t mode)
 static void gen_movu_loc16_ovc(DisasContext *ctx, uint32_t mode)
 {
     TCGv a = tcg_temp_new();
-    tcg_gen_shri_i32(a, cpu_st0, 10);//get ovc bit 
+    gen_get_bit(a, cpu_st0, OVC_BIT, OVC_MASK);//get ovc bit 
     gen_st_loc16(mode, a);
     gen_test_ax_N_Z(mode);
     tcg_temp_free(a);
 }
 
-// MOVU loc16,OVC
+// MOVU OVC,loc16
 static void gen_movu_ovc_loc16(DisasContext *ctx, uint32_t mode)
 {
     TCGv a = tcg_temp_new();
     gen_ld_loc16(a, mode);
-    tcg_gen_shli_i32(a, a, 10);//get ovc
-    tcg_gen_andi_i32(cpu_st0, cpu_st0, 0x3ff);//clear ovc
-    tcg_gen_or_i32(cpu_st0, cpu_st0, a);
+    gen_set_bit(cpu_st0, OVC_BIT, OVC_MASK, a);
     tcg_temp_free(a);
 }
 

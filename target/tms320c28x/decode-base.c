@@ -390,8 +390,14 @@ static void gen_set_bit(TCGv reg, uint32_t bit, uint32_t mask, TCGv value)
     tcg_temp_free(tmp);
 }
 
-// static void gen_get_bit(TCGv retval, TCGv reg, uint32_t bit, uint32_t mask)
-// {
-//     tcg_gen_andi_i32(retval, reg, mask);
-//     tcg_gen_shri_i32(retval, retval, bit);
-// }
+static void gen_seti_bit(TCGv reg, uint32_t bit, uint32_t mask, uint32_t value)
+{
+    tcg_gen_andi_i32(reg, reg, ~mask);//clear bit
+    tcg_gen_ori_i32(reg, reg, (value << bit) & mask);
+}
+
+static void gen_get_bit(TCGv retval, TCGv reg, uint32_t bit, uint32_t mask)
+{
+    tcg_gen_andi_i32(retval, reg, mask);
+    tcg_gen_shri_i32(retval, retval, bit);
+}
