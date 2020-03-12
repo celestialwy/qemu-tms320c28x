@@ -1556,9 +1556,21 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     SPF %d", insn, pm);
                                 }
                             }
-                            else {
-
+                            else {//1111 1111 0110 0...
+                                switch(insn & 0b111) {
+                                    case 0b100:
+                                    {
+                                        fprintf_func(stream, "0x%04x;     ASR AL,T", insn);
+                                        break;
+                                    }
+                                    case 0b101: //1111 1111 0110 010a ASR AX,T
+                                    {
+                                        fprintf_func(stream, "0x%04x;     ASR AH,T", insn);
+                                        break;
+                                    }
+                                }
                             }
+                            break;
                         }
                         case 0b1010:
                         case 0b1011://1111 1111 101A SHFT ASR AX,#1...16

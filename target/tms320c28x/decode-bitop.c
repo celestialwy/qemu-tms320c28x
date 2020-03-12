@@ -147,7 +147,13 @@ static void gen_andb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
 // ASP
 static void gen_asp(DisasContext *ctx)
 {
-    gen_helper_asp(cpu_env);
+    TCGv lsb = tcg_temp_new();
+    tcg_gen_andi_i32(lsb, cpu_sp, 1);
+
+    tcg_gen_add_i32(cpu_sp, cpu_sp, lsb);//sp = sp + 1
+    gen_set_bit(cpu_st1, SPA_BIT, SPA_MASK, lsb);
+
+    tcg_temp_free(lsb);
 }
 
 // ASR AX,#1...16
@@ -157,7 +163,8 @@ static void gen_asr_ax_imm(DisasContext *ctx, uint32_t shift, bool is_AH)
     TCGv c = tcg_temp_new();
     gen_ld_reg_half(a, cpu_acc, is_AH);
     gen_helper_sign_extend_16(a, a);
-    tcg_gen_sari_i32(a, a, shift - 1);
+    if (shift != 1)
+        tcg_gen_sari_i32(a, a, shift - 1);
     tcg_gen_andi_i32(c, a, 1);//C = last bit out
     tcg_gen_sari_i32(a, a, 1);
     if (is_AH)
@@ -170,6 +177,47 @@ static void gen_asr_ax_imm(DisasContext *ctx, uint32_t shift, bool is_AH)
     tcg_temp_free(a);
     tcg_temp_free(c);
 }
+
+// ASR AX,T
+static void gen_asr_ax_t(DisasContext *ctx, bool is_AH)
+{
+    TCGLabel *shift_is_zero = gen_new_label();
+    TCGLabel *done = gen_new_label();
+
+    TCGv a = tcg_temp_local_new();
+    TCGv shift = tcg_temp_local_new();
+    TCGv c = tcg_temp_local_new();
+    gen_ld_reg_half(a, cpu_acc, is_AH);//a = ax
+    gen_helper_sign_extend_16(a, a);//signed extend a
+
+    gen_ld_reg_half(shift, cpu_xt, 1);
+    tcg_gen_andi_i32(shift, cpu_xt, 0b1111);//shift = t[3:0]
+    //branch
+    tcg_gen_brcondi_i32(TCG_COND_EQ, shift, 0, shift_is_zero);
+    //shift != 0
+    tcg_gen_subi_i32(shift, shift, 1);
+    tcg_gen_sar_i32(a, a, shift);
+    tcg_gen_andi_i32(c, a, 1);//C = last bit out
+    tcg_gen_sari_i32(a, a, 1);
+    tcg_gen_br(done);
+    //shift == 0
+    gen_set_label(shift_is_zero);
+    tcg_gen_movi_i32(c, 0);
+    //done
+    gen_set_label(done);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, a);
+    else
+        gen_st_reg_low_half(cpu_acc, a);
+    gen_helper_test_N_Z_16(cpu_env, a);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
+
+    tcg_temp_free(a);
+    tcg_temp_free(c);
+    tcg_temp_free(shift);
+}
+
+
 
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)

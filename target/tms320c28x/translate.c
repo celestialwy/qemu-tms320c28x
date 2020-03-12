@@ -1265,9 +1265,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 uint32_t pm = insn & 0b111;
                                 gen_spm_shift(ctx, pm);
                             }
-                            else {
-
+                            else {//1111 1111 0110 0...
+                                switch(insn & 0b111) {
+                                    case 0b100:
+                                    case 0b101: //1111 1111 0110 010a ASR AX,T
+                                    {
+                                        uint32_t is_AH = insn & 1;
+                                        gen_asr_ax_t(ctx, is_AH);
+                                        break;
+                                    }
+                                }
                             }
+                            break;
                         }
                         case 0b1010:
                         case 0b1011://1111 1111 101A SHFT ASR AX,#1...16
