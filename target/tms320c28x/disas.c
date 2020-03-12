@@ -431,6 +431,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOVP T,%s", insn, str);
                     break;
                 }
+                case 0b1000: //0001 1000 LLLL LLLL CCCC CCCC CCCC CCCC AND loc16,#16bitSigned
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t imm = insn32 & 0xffff;
+                    length = 4;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%08x; AND %s,#0x%x", insn, str, imm);
+                    break;
+                }
                 case 0b1001: //0001 1001 CCCC CCCC SUBB ACC,#8bit
                 {
                     uint32_t imm = insn & 0xff;
@@ -1130,6 +1139,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b1001:
             switch ((insn >> 9) & 0b111) {
+                case 0b000: //1001 000a CCCC CCCC ANDB AX,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    uint32_t is_AH = ((insn >> 8) & 1);
+                    if (is_AH)
+                        fprintf_func(stream, "0x%04x;     ANDB AH,#%d", insn, imm);
+                    else 
+                        fprintf_func(stream, "0x%04x;     ANDB AL,#%d", insn, imm);
+                    break;
+                }
                 case 0b001: //1001 001. .... ....  MOV AX,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -1390,6 +1409,19 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         fprintf_func(stream, "0x%08x; AND AL,%s,#0x%04x", insn32, str, imm);
                     break;
                 }
+                case 0b1110:
+                case 0b1111: //1100 111a LLLL LLLL AND AX,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t is_AH = (insn >> 8) & 1;
+                    get_loc_string(str, mode, LOC16);
+                    if (is_AH)
+                        fprintf_func(stream, "0x%04x;     AND AH,%s", insn, str);
+                    else 
+                        fprintf_func(stream, "0x%04x;     AND AL,%s", insn, str);
+                    break;
+                }
+
             }
             break;
         case 0b1101:

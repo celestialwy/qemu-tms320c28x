@@ -56,7 +56,7 @@ DEF_HELPER_1(ld_xar_arp, i32, env) //load XAR[arp]
 DEF_HELPER_2(st_xar_arp, void, env, i32) //store XAR[arp]
 
 //print
-DEF_HELPER_2(print, void, env, i32)
+DEF_HELPER_1(print, void, i32)
 DEF_HELPER_1(print_env, void, env)
 
 //math

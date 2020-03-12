@@ -85,6 +85,65 @@ static void gen_and_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
     tcg_temp_free(b);
 }
 
+// AND AX,loc16
+static void gen_and_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH)
+{
+    TCGv a = tcg_temp_new();
+    TCGv b = tcg_temp_new();
+    gen_ld_reg_half(a, cpu_acc, is_AH);
+    gen_ld_loc16(b, mode);
+    tcg_gen_and_i32(a, a, b);
+    gen_helper_test_N_Z_16(cpu_env, a);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, a);
+    else
+        gen_st_reg_low_half(cpu_acc, a);
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+}
+
+// AND loc16,#16bitSigned
+static void gen_and_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm)
+{
+    TCGv a = tcg_temp_new();
+    TCGv b = tcg_const_i32(imm);
+
+    if (is_reg_addressing_mode(mode, LOC16))
+    {
+        gen_ld_loc16(a, mode);
+        tcg_gen_and_i32(a, a, b);
+        gen_helper_test_N_Z_16(cpu_env, a);
+        gen_st_loc16(mode, a);
+    }
+    else 
+    {
+        TCGv addr = tcg_temp_new();
+        gen_get_loc_addr(addr, mode, LOC16);
+        gen_ld16u_swap(a, addr); //load
+        tcg_gen_and_i32(a, a, b);
+        gen_helper_test_N_Z_16(cpu_env, a);
+        gen_st16u_swap(a, addr); //store
+        tcg_temp_free(addr);
+    }
+    
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+}
+
+//ANDB AX,#8bit
+static void gen_andb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
+{
+    TCGv a = tcg_temp_new();
+    gen_ld_reg_half(a, cpu_acc, is_AH);
+    tcg_gen_andi_i32(a, a, imm);
+    gen_helper_test_N_Z_16(cpu_env, a);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, a);
+    else
+        gen_st_reg_low_half(cpu_acc, a);
+    tcg_temp_free(a);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {

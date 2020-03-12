@@ -287,6 +287,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movp_t_loc16(ctx, mode);
                     break;
                 }
+                case 0b1000: //0001 1000 LLLL LLLL CCCC CCCC CCCC CCCC AND loc16,#16bitSigned
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t imm = insn2;
+                    gen_and_loc16_16bit(ctx, mode, imm);
+                    length = 4;
+                    break;
+                }
                 case 0b1001: //0001 1001 CCCC CCCC SUBB ACC,#8bit
                 {
                     int32_t imm = insn & 0xff;
@@ -913,6 +921,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
             break;
         case 0b1001:
             switch ((insn >> 9) & 0b111) {
+                case 0b000: //1001 000a CCCC CCCC ANDB AX,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    uint32_t is_AH = ((insn >> 8) & 1);
+                    gen_andb_ax_8bit(ctx, imm, is_AH);
+                    break;
+                }
                 case 0b001: //1001 001. .... ....  MOV AX,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -1113,6 +1128,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     uint32_t mode = insn & 0xff;
                     uint32_t is_AH = (insn >> 8) & 1;
                     gen_and_ax_loc16_16bit(ctx, mode, imm, is_AH);
+                    break;
+                }
+                case 0b1110:
+                case 0b1111: //1100 111a LLLL LLLL AND AX,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t is_AH = (insn >> 8) & 1;
+                    gen_and_ax_loc16(ctx, mode, is_AH);
                     break;
                 }
             }

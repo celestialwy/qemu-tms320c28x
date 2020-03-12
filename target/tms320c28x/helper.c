@@ -316,7 +316,7 @@ void HELPER(st_xar_arp)(CPUTms320c28xState *env, uint32_t value)
     env->xar[arp] = value;
 }
 
-void HELPER(print)(CPUTms320c28xState *env, uint32_t value) {
+void HELPER(print)(uint32_t value) {
     qemu_log_mask(CPU_LOG_INT ,"value is: 0x%x \n",value);
 }
 
