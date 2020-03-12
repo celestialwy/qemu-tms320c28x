@@ -768,6 +768,20 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     length = 4;
                                     break;
                                 }
+                                case 0b100110: //0111 0110 0010 0110 CCCC CCCC CCCC CCCC AND IER,#16bit
+                                {
+                                    uint32_t imm = insn2;
+                                    length = 4;
+                                    gen_and_ier_16bit(ctx, imm);
+                                    break;
+                                }                                
+                                case 0b101111: //0111 0110 0010 1111 CCCC CCCC CCCC CCCC AND IFR,#16bit
+                                {
+                                    uint32_t imm = insn2;
+                                    length = 4;
+                                    gen_and_ifr_16bit(ctx, imm);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -837,6 +851,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movz_arn_loc16(ctx, mode, 6);
                     break;
                 }
+                case 0b1001: //1000 1001 LLLL LLLL AND ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_and_acc_loc16(ctx, mode);
+                    break;
+                }
                 case 0b1011: //1000 1011 LLLL LLLL MOVL XAR1,loc32
                 {
                     uint32_t mode = insn & 0xff;
@@ -864,17 +884,29 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     break;
                 }
                 case 0b1111:
-                    switch((insn >> 7) & 1) {
-                        case 0b0: //1000 1111 0.... .... MOVL XARn,#22bit
+                    switch((insn >> 6) & 0b11) {
+                        case 0b00: //1000 1111 00cc cccc cccc cccc cccc cccc MOVL XAR4,#22bit
                         {
-                            uint32_t n = ((insn >> 6) & 0b11) + 4;//XAR4,XAR5
                             uint32_t imm = ((insn & 0x3f)<< 16) | insn2;
-                            gen_movl_xarn_22bit(ctx, n, imm);
+                            gen_movl_xarn_22bit(ctx, 4, imm);
                             length = 4;
                             break;
                         }
-                        case 0b1: //1000 1111 1.... ....
+                        case 0b01: //1000 1111 01cc cccc cccc cccc cccc cccc MOVL XAR5,#22bit
+                        {
+                            uint32_t imm = ((insn & 0x3f)<< 16) | insn2;
+                            gen_movl_xarn_22bit(ctx, 4, imm);
+                            length = 4;
                             break;
+                        }
+                        case 0b10: //1000 1111 10nn nmmm CCCC CCCC CCCC CCCC BAR 16bitOffset,ARn,ARm,EQ
+                        {
+                            break;
+                        }
+                        case 0b11: //1000 1111 11nn nmmm CCCC CCCC CCCC CCCC BAR 16bitOffset,ARn,ARm,NEQ
+                        {
+                            break;
+                        }
                     }
                     break;
             }
@@ -1064,6 +1096,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     uint32_t is_AH = (insn >> 8) & 1;
                     gen_movb_loc16_ax_msb(ctx, mode, is_AH);
                     break;
+                }
+                case 0b1100:
+                case 0b1101: //1100 110a LLLL LLLL CCCC CCCC CCCC CCCC AND AX,loc16,#16bit
+                {
+                    length = 4;
+                    uint32_t imm = insn2;
+                    uint32_t mode = insn & 0xff;
+                    uint32_t is_AH = (insn >> 8) & 1;
+                    gen_and_ax_loc16_16bit(ctx, mode, imm, is_AH);
                     break;
                 }
             }

@@ -433,6 +433,7 @@ static void gen_adrk_8bit(DisasContext *ctx, uint32_t imm)
     gen_helper_ld_xar_arp(a, cpu_env);
     tcg_gen_addi_i32(a, a, imm);
     gen_helper_st_xar_arp(cpu_env, a);
+    tcg_temp_free(a);
 }
 
 // CMP AX,loc16
