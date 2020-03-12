@@ -1,3 +1,9 @@
+// AND ACC,#16bit<<#0...16
+static void gen_and_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t shift)
+{
+    tcg_gen_andi_i32(cpu_acc, cpu_acc, imm<<shift);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+}
 
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)

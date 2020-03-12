@@ -409,12 +409,20 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movb_loc16_ax_lsb(ctx, mode, is_AH);
                     break;
                 }
-                case 0b1110: //0011 0110 .... ....
+                case 0b1110: //0011 1110 .... ....
                 {
                     switch ((insn & 0x00f0) >> 4) {
-                        case 0b0101://0011 0110 0101 ....
+                        case 0b0000: //0011 1110 0000 SHFT CCCC CCCC CCCC CCCC AND ACC,#16bit<<0...15
                         {
-                            if (((insn >> 3) & 1) == 1) {//0011 0110 0101 1nnn MOV XARn,PC
+                            uint32_t imm = insn2;
+                            uint32_t shift = insn & 0xf;
+                            gen_and_acc_16bit_shift(ctx, imm, shift);
+                            length = 4;
+                            break;
+                        }
+                        case 0b0101://0011 1110 0101 ....
+                        {
+                            if (((insn >> 3) & 1) == 1) {//0011 1110 0101 1nnn MOV XARn,PC
                                 uint32_t n = insn & 0b111;
                                 gen_mov_xarn_pc(ctx, n);
                             }
@@ -496,6 +504,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         gen_mov_acc_loc16_t(ctx, mode);
                                         length = 4;
                                     }
+                                    break;
+                                }
+                                case 0b1000: //0101 0110 0000 1000 CCCC CCCC CCCC CCCC AND ACC,#16bit<<#16
+                                {
+                                    uint32_t imm = insn2;
+                                    gen_and_acc_16bit_shift(ctx, imm, 16);
+                                    length = 4;
                                     break;
                                 }
                             }
@@ -1116,6 +1131,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                 {
                     uint32_t imm = insn & 0x3ff;// 10bit
                     gen_mov_dp_10bit(ctx, imm);
+                    break;
+                }
+                case 0b1100: //1111 1100 IIII IIII ADRK #8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    gen_adrk_8bit(ctx, imm);
                     break;
                 }
                 case 0b1110: //1111 1110 .... ....

@@ -304,6 +304,18 @@ uint32_t HELPER(extend_low_sxm)(CPUTms320c28xState *env, uint32_t value)
     }
 }
 
+uint32_t HELPER(ld_xar_arp)(CPUTms320c28xState *env)
+{
+    uint32_t arp = cpu_get_arp(env);
+    return env->xar[arp];
+}
+
+void HELPER(st_xar_arp)(CPUTms320c28xState *env, uint32_t value)
+{
+    uint32_t arp = cpu_get_arp(env);
+    env->xar[arp] = value;
+}
+
 void HELPER(print)(CPUTms320c28xState *env, uint32_t value) {
     qemu_log_mask(CPU_LOG_INT ,"value is: 0x%x \n",value);
 }

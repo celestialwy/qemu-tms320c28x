@@ -426,6 +426,15 @@ static void gen_addul_acc_loc32(DisasContext *ctx, uint32_t mode)
     ctx->base.is_jmp = DISAS_NORETURN;
 }
 
+// ADRK #8bit
+static void gen_adrk_8bit(DisasContext *ctx, uint32_t imm)
+{
+    TCGv a = tcg_temp_new();
+    gen_helper_ld_xar_arp(a, cpu_env);
+    tcg_gen_addi_i32(a, a, imm);
+    gen_helper_st_xar_arp(cpu_env, a);
+}
+
 // CMP AX,loc16
 static void gen_cmp_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH)
 {

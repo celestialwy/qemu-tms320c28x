@@ -48,8 +48,12 @@ DEF_HELPER_4(test_sub_OVC_OVM_32, void, env, i32, i32, i32) // affect acc value
 DEF_HELPER_5(test2_C_V_OVC_OVM_32, void, env, i32, i32, i32, i32) // affect acc value
 DEF_HELPER_4(test_OVCU_32, void, env, i32, i32, i32) // affect acc value
 
-//load with cond
-DEF_HELPER_2(extend_low_sxm, i32, env, i32)
+//load
+DEF_HELPER_2(extend_low_sxm, i32, env, i32) //signed extend value with sxm
+DEF_HELPER_1(ld_xar_arp, i32, env) //load XAR[arp]
+
+//store
+DEF_HELPER_2(st_xar_arp, void, env, i32) //store XAR[arp]
 
 //print
 DEF_HELPER_2(print, void, env, i32)
