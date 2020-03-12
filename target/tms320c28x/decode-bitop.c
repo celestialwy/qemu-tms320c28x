@@ -56,6 +56,35 @@ static void gen_and_ifr_16bit(DisasContext *ctx, uint32_t imm)
     tcg_gen_andi_i32(cpu_ifr, cpu_ifr, imm);
 }
 
+// AND loc16,ax
+static void gen_and_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
+{
+    TCGv a = tcg_temp_new();
+    TCGv b = tcg_temp_new();
+    gen_ld_reg_half(b, cpu_acc, is_AH);
+
+    if (is_reg_addressing_mode(mode, LOC16))
+    {
+        gen_ld_loc16(a, mode);
+        tcg_gen_and_i32(a, a, b);
+        gen_helper_test_N_Z_16(cpu_env, a);
+        gen_st_loc16(mode, a);
+    }
+    else 
+    {
+        TCGv addr = tcg_temp_new();
+        gen_get_loc_addr(addr, mode, LOC16);
+        gen_ld16u_swap(a, addr); //load
+        tcg_gen_and_i32(a, a, b);
+        gen_helper_test_N_Z_16(cpu_env, a);
+        gen_st16u_swap(a, addr); //store
+        tcg_temp_free(addr);
+    }
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {

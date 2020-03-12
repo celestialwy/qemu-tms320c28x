@@ -1308,6 +1308,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b1100:
             switch ((insn & 0xf00) >> 8) {
+                case 0b0000:
+                case 0b0001: //1100 000A LLLL LLLL AND loc16,AX
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    uint32_t is_AH = (insn >> 8) & 1;
+                    if (is_AH)
+                        fprintf_func(stream, "0x%04x;     AND %s,AH", insn, str);
+                    else 
+                        fprintf_func(stream, "0x%04x;     AND %s,AL", insn, str);
+                    break;
+                }
                 case 0b0010: //1100 0010 LLLL LLLL MOVL loc32, XAR6
                 {
                     uint32_t mode = insn & 0xff;

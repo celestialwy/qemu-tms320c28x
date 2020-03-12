@@ -556,7 +556,7 @@ static void gen_movb_xarn_8bit(DisasContext *ctx, uint32_t imm, uint32_t n)
 static void gen_movdl_xt_loc32(DisasContext *ctx, uint32_t mode)
 {
     //mode = reg addressing is illegal
-    if ((mode >= 160 && mode <=167) || mode == 169 || mode ==171 || mode == 172) {
+    if (is_reg_addressing_mode(mode, LOC32)) {
         gen_exception(ctx, EXCP_INTERRUPT_ILLEGAL);
     }
     else

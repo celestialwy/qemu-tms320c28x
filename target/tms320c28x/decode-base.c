@@ -47,6 +47,7 @@ static void gen_st16u_swap(TCGv value, TCGv addr_param)
     tcg_gen_andi_i32(tmp, tmp, 0xff00);
     tcg_gen_shri_tl(tmp2, value, 8);
     tcg_gen_or_i32(tmp2, tmp2, tmp);
+
     tcg_gen_qemu_st16(tmp2, addr, 0);
     tcg_temp_free_i32(tmp);
     tcg_temp_free_i32(tmp2);
@@ -347,7 +348,6 @@ static void gen_test_acc_N_Z(uint32_t mode)
     }
 }
 
-
 static void gen_exception(DisasContext *ctx, unsigned int excp)
 {
     TCGv_i32 tmp = tcg_const_i32(excp);
@@ -355,4 +355,27 @@ static void gen_exception(DisasContext *ctx, unsigned int excp)
     gen_helper_exception(cpu_env, tmp, pc);
     tcg_temp_free_i32(tmp);
     tcg_temp_free_i32(pc);
+}
+
+static bool is_reg_addressing_mode(uint32_t mode, uint32_t loc_type)
+{
+    if (loc_type == LOC16) 
+    {
+        if (mode >= 160 && mode <=173) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    if (loc_type == LOC32)
+    {
+        if ((mode >= 160 && mode <=167) || mode == 169 || mode ==171 || mode == 172) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    return false;
 }

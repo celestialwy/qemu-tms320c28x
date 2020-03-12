@@ -148,23 +148,34 @@ static void gen_add_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
     TCGv b = tcg_temp_new();
     TCGv result = tcg_temp_new();
 
-    TCGv_i32 addr = tcg_temp_new();
-    gen_get_loc_addr(addr, mode, LOC16);
-    gen_ld16u_swap(a, addr);
+    if (is_reg_addressing_mode(mode, LOC16)) {
+        gen_ld_loc16(a, mode);
+        gen_ld_reg_half(b, cpu_acc, is_AH);
+        tcg_gen_add_i32(result, a, b);//add
+        gen_st_loc16(mode, result);//store
+        gen_helper_test_C_V_16(cpu_env, a, b, result);
+        gen_helper_test_N_Z_16(cpu_env, result);
+    }
+    else {
+        TCGv_i32 addr = tcg_temp_new();
+        gen_get_loc_addr(addr, mode, LOC16);
+        gen_ld16u_swap(a, addr);
 
-    gen_ld_reg_half(b, cpu_acc, is_AH);
+        gen_ld_reg_half(b, cpu_acc, is_AH);
 
-    tcg_gen_add_i32(result, a, b);//add
+        tcg_gen_add_i32(result, a, b);//add
 
-    gen_helper_test_C_V_16(cpu_env, a, b, result);
-    gen_helper_test_N_Z_16(cpu_env, result);
-    
-    gen_st16u_swap(result, addr); //store
+        gen_helper_test_C_V_16(cpu_env, a, b, result);
+        gen_helper_test_N_Z_16(cpu_env, result);
+        
+        gen_st16u_swap(result, addr); //store
+
+        tcg_temp_free_i32(addr);
+    }
 
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
     tcg_temp_free_i32(result);
-    tcg_temp_free_i32(addr);
 }
 
 // ADD loc16,#16bitSigned
@@ -174,22 +185,35 @@ static void gen_add_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm)
     TCGv b = tcg_const_i32(imm);
     TCGv result = tcg_temp_new();
 
-    TCGv_i32 addr = tcg_temp_new();
-    gen_get_loc_addr(addr, mode, LOC16);
-    gen_ld16u_swap(a, addr);
+    if (is_reg_addressing_mode(mode, LOC16))
+    {
+        gen_ld_loc16(a, mode);
+        tcg_gen_add_i32(result, a, b);//add
 
-    tcg_gen_add_i32(result, a, b);//add
+        gen_helper_test_C_V_16(cpu_env, a, b, result);
+        gen_helper_test_N_Z_16(cpu_env, result);
+
+        gen_st_loc16(mode, result);
+    }
+    else
+    {
+        TCGv_i32 addr = tcg_temp_new();
+        gen_get_loc_addr(addr, mode, LOC16);
+        gen_ld16u_swap(a, addr);
+
+        tcg_gen_add_i32(result, a, b);//add
 
 
-    gen_helper_test_C_V_16(cpu_env, a, b, result);
-    gen_helper_test_N_Z_16(cpu_env, result);
-    
-    gen_st16u_swap(result, addr);//store
-
+        gen_helper_test_C_V_16(cpu_env, a, b, result);
+        gen_helper_test_N_Z_16(cpu_env, result);
+        
+        gen_st16u_swap(result, addr);//store
+        
+        tcg_temp_free_i32(addr);
+    }
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
     tcg_temp_free_i32(result);
-    tcg_temp_free_i32(addr);
 }
 
 // ADDB ACC,#8bit
@@ -324,24 +348,43 @@ static void gen_addl_acc_loc32(DisasContext *ctx, uint32_t mode)
 // ADDL loc32,ACC
 static void gen_addl_loc32_acc(DisasContext *ctx, uint32_t mode)
 {
-    TCGv b = tcg_temp_local_new();
+    if (is_reg_addressing_mode(mode, LOC32))
+    {
+        TCGv b = tcg_temp_local_new();
+        gen_ld_loc32(b, mode);
 
-    TCGv_i32 addr = tcg_temp_new();
-    gen_get_loc_addr(addr, mode, LOC32);
-    gen_ld32u_swap(b, addr);
+        TCGv tmp = tcg_temp_local_new();
+        tcg_gen_add_i32(tmp, cpu_acc, b);
 
-    TCGv tmp = tcg_temp_local_new();
-    tcg_gen_add_i32(tmp, cpu_acc, b);
+        gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+        gen_helper_test_C_V_32(cpu_env, cpu_acc, b, tmp);
+        gen_helper_test_OVC_OVM_32(cpu_env, cpu_acc, b, tmp);
 
-    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
-    gen_helper_test_C_V_32(cpu_env, cpu_acc, b, tmp);
-    gen_helper_test_OVC_OVM_32(cpu_env, cpu_acc, b, tmp);
+        gen_st_loc32(mode, tmp);
+        tcg_temp_free_i32(tmp);
+        tcg_temp_free_i32(b);
+    }
+    else 
+    {
+        TCGv b = tcg_temp_local_new();
 
-    gen_st32u_swap(tmp, addr);
+        TCGv_i32 addr = tcg_temp_new();
+        gen_get_loc_addr(addr, mode, LOC32);
+        gen_ld32u_swap(b, addr);
 
-    tcg_temp_free_i32(tmp);
-    tcg_temp_free_i32(b);
-    tcg_temp_free(addr);
+        TCGv tmp = tcg_temp_local_new();
+        tcg_gen_add_i32(tmp, cpu_acc, b);
+
+        gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+        gen_helper_test_C_V_32(cpu_env, cpu_acc, b, tmp);
+        gen_helper_test_OVC_OVM_32(cpu_env, cpu_acc, b, tmp);
+
+        gen_st32u_swap(tmp, addr);
+
+        tcg_temp_free_i32(tmp);
+        tcg_temp_free_i32(b);
+        tcg_temp_free(addr);
+    }
 }
 
 // ADDU ACC,loc16
