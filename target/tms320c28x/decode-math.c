@@ -3,7 +3,7 @@ static void gen_abs_acc(DisasContext *ctx)
 {
     gen_helper_abs_acc(cpu_env);
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
-    tcg_gen_andi_i32(cpu_st0, cpu_st0, ~ST0_C);//clear C bit
+    tcg_gen_andi_i32(cpu_st0, cpu_st0, ~C_MASK);//clear C bit
 }
 
 // ABSTC ACC
@@ -11,7 +11,7 @@ static void gen_abstc_acc(DisasContext *ctx)
 {
     gen_helper_abstc_acc(cpu_env);
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
-    tcg_gen_andi_i32(cpu_st0, cpu_st0, ~ST0_C);//clear C bit
+    tcg_gen_andi_i32(cpu_st0, cpu_st0, ~C_MASK);//clear C bit
 }
 
 // ADD ACC,#16bit<<#0...15

@@ -67,15 +67,15 @@ void tms320c28x_cpu_do_interrupt(CPUState *cs)
             env->sp += 1;
         }
         // INTM = 0
-        cpu_set_intm(env, 0);
+        cpu_set_st1(env, 0, INTM_BIT, INTM_MASK);
         // DBGM = 1
-        cpu_set_dbgm(env, 1);
+        cpu_set_st1(env, 0, DBGM_BIT, DBGM_MASK);
         // EALLOW = 0
-        cpu_set_eallow(env, 0);
+        cpu_set_st1(env, 0, EALLOW_BIT, EALLOW_MASK);
         // LOOP = 0
-        cpu_set_loop(env, 0);
+        cpu_set_st1(env, 0, LOOP_BIT, LOOP_MASK);
         // IDLESTAT = 0
-        cpu_set_idlestat(env, 0);
+        cpu_set_st1(env, 0, IDLESTAT_BIT, IDLESTAT_MASK);
         // PC = fetched vector
         uint32_t vector_base = 0x3fffc0;
         uint32_t addr = vector_base + exception * 2;

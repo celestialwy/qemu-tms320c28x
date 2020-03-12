@@ -65,34 +65,63 @@ enum {
 #define NR_IRQS  32 //max irq number
 
 /* st0 */
-enum {
-    ST0_SXM = 1 << 0,
-    ST0_OVM = 1 << 1,
-    ST0_TC = 1 << 2,
-    ST0_C = 1 << 3,
-    ST0_Z = 1 << 4,
-    ST0_N = 1 << 5,
-    ST0_V = 1 << 6,
-    ST0_PM = 0b111 << 7,
-    ST0_OVC = 0b111111 << 10,
+enum ST0_BIT {
+    SXM_BIT = 0,
+    OVM_BIT = 1,
+    TC_BIT = 2,
+    C_BIT = 3,
+    Z_BIT = 4,
+    N_BIT = 5,
+    V_BIT = 6,
+    PM_BIT = 7,
+    OVC_BIT = 10,
+};
+
+enum ST0_MASK {
+    SXM_MASK = 1 << SXM_BIT,
+    OVM_MASK = 1 << OVM_BIT,
+    TC_MASK = 1 << TC_BIT,
+    C_MASK = 1 << C_BIT,
+    Z_MASK = 1 << Z_BIT,
+    N_MASK = 1 << N_BIT,
+    V_MASK = 1 << V_BIT,
+    PM_MASK = 0b111 << PM_BIT,
+    OVC_MASK = 0b111111 << OVC_BIT,
 };
 
 /* st1 */
-enum {
-    ST1_INTM = 1 << 0,
-    ST1_DBGM = 1 << 1,
-    ST1_PAGE0 = 1 << 2,
-    ST1_VMAP = 1 << 3,
-    ST1_SPA = 1 << 4,
-    ST1_LOOP = 1 << 5,
-    ST1_EALLOW = 1 << 6,
-    ST1_IDLESTAT = 1 << 7,
-    ST1_AMODE = 1 << 8,
-    ST1_OBJMODE = 1 << 9,
-    ST1_Reserved = 1 << 10,
-    ST1_MOM1MAP = 1 << 11,
-    ST1_XF = 1 << 12,
-    ST1_ARP = 0b111 << 13,
+enum ST1_BIT{
+    INTM_BIT = 0,
+    DBGM_BIT = 1,
+    PAGE0_BIT = 2,
+    VMAP_BIT = 3,
+    SPA_BIT = 4,
+    LOOP_BIT = 5,
+    EALLOW_BIT = 6,
+    IDLESTAT_BIT = 7,
+    AMODE_BIT = 8,
+    OBJMODE_BIT = 9,
+    Reserved_BIT = 10,
+    MOM1MAP_BIT = 11,
+    XF_BIT = 12,
+    ARP_BIT = 13,
+};
+
+enum ST1_MASK{
+    INTM_MASK = 1 << 0,
+    DBGM_MASK = 1 << 1,
+    PAGE0_MASK = 1 << 2,
+    VMAP_MASK = 1 << 3,
+    SPA_MASK = 1 << 4,
+    LOOP_MASK = 1 << 5,
+    EALLOW_MASK = 1 << 6,
+    IDLESTAT_MASK = 1 << 7,
+    AMODE_MASK = 1 << 8,
+    OBJMODE_MASK = 1 << 9,
+    Reserved_MASK = 1 << 10,
+    MOM1MAP_MASK = 1 << 11,
+    XF_MASK = 1 << 12,
+    ARP_MASK = 0b111 << 13,
 };
 
 /* loc */
@@ -187,190 +216,29 @@ typedef Tms320c28xCPU ArchCPU;
 
 #include "exec/cpu-all.h"
 
-static inline uint32_t cpu_get_amode(const CPUTms320c28xState *env)
+#define CPU_GET_STATUS(reg, bit) cpu_get_##reg(env, bit##_BIT, bit##_MASK)
+#define CPU_SET_STATUS(reg, bit, value) cpu_set_##reg(env, value, bit##_BIT, bit##_MASK)
+
+static inline uint32_t cpu_get_st0(const CPUTms320c28xState *env, uint32_t bit, uint32_t mask)
 {
-    return (env->st1 >> 8) & 0x1;
+    return (env->st0 & mask) >> bit;
 }
 
-static inline uint32_t cpu_get_arp(const CPUTms320c28xState *env)
+static inline uint32_t cpu_get_st1(const CPUTms320c28xState *env, uint32_t bit, uint32_t mask)
 {
-    return (env->st1 >> 13);
+    return (env->st1 & mask) >> bit;
 }
 
-static inline void cpu_set_arp(CPUTms320c28xState *env, uint32_t val)
+static inline void cpu_set_st0(CPUTms320c28xState *env,uint32_t value, uint32_t bit, uint32_t mask)
 {
-    env->st1 = (env->st1 & 0x1fff) | (val << 13);
+    value = (value << bit) & mask;
+    env->st0 = (env->st0 & ~mask) | value;
 }
 
-static inline uint32_t cpu_get_xf(const CPUTms320c28xState *env)
+static inline void cpu_set_st1(CPUTms320c28xState *env,uint32_t value, uint32_t bit, uint32_t mask)
 {
-    return (env->st1 >> 12) & 1;
-}
-
-static inline uint32_t cpu_get_mom1map(const CPUTms320c28xState *env)
-{
-    return (env->st1 >> 11) & 1;
-}
-
-static inline uint32_t cpu_get_objmode(const CPUTms320c28xState *env)
-{
-    return (env->st1 >> 9) & 1;
-}
-
-static inline uint32_t cpu_get_idlestat(const CPUTms320c28xState *env)
-{
-    return (env->st1 >> 7) & 1;
-}
-
-static inline void cpu_set_idlestat(CPUTms320c28xState *env, uint32_t value) {
-    value = value & 1;
-    env->st1 = (env->st1 & 0xff7f) | (value << 7);
-}
-
-static inline uint32_t cpu_get_eallow(const CPUTms320c28xState *env)
-{
-    return (env->st1 >> 6) & 1;
-}
-
-static inline void cpu_set_eallow(CPUTms320c28xState *env, uint32_t value) {
-    value = value & 1;
-    env->st1 = (env->st1 & 0xffbf) | (value << 6);
-}
-
-static inline uint32_t cpu_get_loop(const CPUTms320c28xState *env)
-{
-    return (env->st1 >> 5) & 1;
-}
-
-static inline void cpu_set_loop(CPUTms320c28xState *env, uint32_t value) {
-    value = value & 1;
-    env->st1 = (env->st1 & 0xffdf) | (value << 5);
-}
-
-static inline uint32_t cpu_get_spa(const CPUTms320c28xState *env)
-{
-    return (env->st1 >> 4) & 1;
-}
-
-static inline void cpu_set_spa(CPUTms320c28xState *env, uint32_t value) {
-    value = value & 1;
-    env->st1 = (env->st1 & 0xffef) | (value << 4);
-}
-
-static inline uint32_t cpu_get_vmap(const CPUTms320c28xState *env)
-{
-    return (env->st1 >> 3) & 1;
-}
-
-static inline uint32_t cpu_get_page0(const CPUTms320c28xState *env)
-{
-    return (env->st1 >> 2) & 1;
-}
-
-static inline uint32_t cpu_get_dbgm(const CPUTms320c28xState *env)
-{
-    return (env->st1 >> 1) & 1;
-}
-
-static inline void cpu_set_dbgm(CPUTms320c28xState *env, uint32_t value) {
-    value = value & 1;
-    env->st1 = (env->st1 & 0xfffd) | (value << 1);
-}
-
-static inline uint32_t cpu_get_intm(const CPUTms320c28xState *env)
-{
-    return (env->st1) & 1;
-}
-
-static inline void cpu_set_intm(CPUTms320c28xState *env, uint32_t value) {
-    value = value & 1;
-    env->st1 = (env->st1 & 0xfffe) | (value);
-}
-
-static inline uint32_t cpu_get_sxm(const CPUTms320c28xState *env)
-{
-    return (env->st0 & 0x1);
-}
-
-// static inline void cpu_set_sxm(CPUTms320c28xState *env, uint32_t val)
-// {
-//     env->st1 = (env->st1 & 0xfffe) | val;
-// }
-
-static inline uint32_t cpu_get_ovm(const CPUTms320c28xState *env)
-{
-    return (env->st0 >> 1) & 1;
-}
-
-static inline uint32_t cpu_get_pm(const CPUTms320c28xState *env)
-{
-    return (env->st0 >> 7) & 0b111;
-}
-
-static inline int32_t cpu_get_ovc(const CPUTms320c28xState *env)
-{
-    return (env->st0 >> 10) & 0b111111;
-}
-
-static inline void cpu_set_ovc(CPUTms320c28xState *env, uint32_t value)
-{
-    value = value & 0b111111;
-    env->st0 = (env->st0 & 0x03ff) | (value << 10);
-}
-
-static inline uint32_t cpu_get_v(const CPUTms320c28xState *env)
-{
-    return (env->st0 >> 6) & 1;
-}
-
-static inline void cpu_set_v(CPUTms320c28xState *env, uint32_t v)
-{
-    v = v & 1;
-    env->st0 = (env->st0 & 0xffbf) | (v << 6);
-}
-
-static inline uint32_t cpu_get_tc(const CPUTms320c28xState *env)
-{
-    return (env->st0 >> 2) & 1;
-}
-
-static inline void cpu_set_tc(CPUTms320c28xState *env, uint32_t value)
-{
-    value = value & 0b111111;
-    env->st0 = (env->st0 & 0xfffb) | (value << 2);
-}
-
-static inline uint32_t cpu_get_c(const CPUTms320c28xState *env)
-{
-    return (env->st0 >> 3) & 1;
-}
-
-static inline void cpu_set_c(CPUTms320c28xState *env, uint32_t c)
-{
-    c = c & 1;
-    env->st0 = (env->st0 & 0xfff7) | (c << 3);
-}
-
-static inline uint32_t cpu_get_n(const CPUTms320c28xState *env)
-{
-    return (env->st0 >> 5) & 1;
-}
-
-static inline void cpu_set_n(CPUTms320c28xState *env, uint32_t n)
-{
-    n = n & 1;
-    env->st0 = (env->st0 & 0xffdf) | (n << 5);
-}
-
-static inline uint32_t cpu_get_z(const CPUTms320c28xState *env)
-{
-    return (env->st0 >> 4) & 1;
-}
-
-static inline void cpu_set_z(CPUTms320c28xState *env, uint32_t z)
-{
-    z = z & 1;
-    env->st0 = (env->st0 & 0xffef) | (z << 4);
+    value = (value << bit) & mask;
+    env->st1 = (env->st1 & ~mask) | value;
 }
 
 // 获取cpu状态，在查找tb时会比较pc,cs_base,flags

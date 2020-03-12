@@ -379,3 +379,19 @@ static bool is_reg_addressing_mode(uint32_t mode, uint32_t loc_type)
     }
     return false;
 }
+
+static void gen_set_bit(TCGv reg, uint32_t bit, uint32_t mask, TCGv value)
+{
+    TCGv tmp = tcg_temp_new();
+    tcg_gen_andi_i32(reg, reg, ~mask);//clear bit
+    tcg_gen_shli_i32(tmp, value, bit);
+    tcg_gen_andi_i32(tmp, tmp, mask);
+    tcg_gen_or_i32(reg, reg, tmp);
+    tcg_temp_free(tmp);
+}
+
+// static void gen_get_bit(TCGv retval, TCGv reg, uint32_t bit, uint32_t mask)
+// {
+//     tcg_gen_andi_i32(retval, reg, mask);
+//     tcg_gen_shri_i32(retval, retval, bit);
+// }

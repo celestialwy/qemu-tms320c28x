@@ -150,6 +150,27 @@ static void gen_asp(DisasContext *ctx)
     gen_helper_asp(cpu_env);
 }
 
+// ASR AX,#1...16
+static void gen_asr_ax_imm(DisasContext *ctx, uint32_t shift, bool is_AH)
+{
+    TCGv a = tcg_temp_new();
+    TCGv c = tcg_temp_new();
+    gen_ld_reg_half(a, cpu_acc, is_AH);
+    gen_helper_sign_extend_16(a, a);
+    tcg_gen_sari_i32(a, a, shift - 1);
+    tcg_gen_andi_i32(c, a, 1);//C = last bit out
+    tcg_gen_sari_i32(a, a, 1);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, a);
+    else
+        gen_st_reg_low_half(cpu_acc, a);
+    gen_helper_test_N_Z_16(cpu_env, a);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
+
+    tcg_temp_free(a);
+    tcg_temp_free(c);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {
