@@ -252,6 +252,11 @@ static inline uint32_t cpu_get_spa(const CPUTms320c28xState *env)
     return (env->st1 >> 4) & 1;
 }
 
+static inline void cpu_set_spa(CPUTms320c28xState *env, uint32_t value) {
+    value = value & 1;
+    env->st1 = (env->st1 & 0xffef) | (value << 4);
+}
+
 static inline uint32_t cpu_get_vmap(const CPUTms320c28xState *env)
 {
     return (env->st1 >> 3) & 1;

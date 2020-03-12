@@ -513,3 +513,17 @@ void HELPER(cmp32_N_Z_C)(CPUTms320c28xState *env, uint32_t a, uint32_t b)
     }
 
 }
+
+void HELPER(asp)(CPUTms320c28xState *env) 
+{
+    if ((env->sp & 1) == 1)//odd
+    {
+        env->sp += 1;
+        cpu_set_spa(env, 1);
+    }
+    else//even
+    {
+        cpu_set_spa(env, 0);
+    }
+    
+}

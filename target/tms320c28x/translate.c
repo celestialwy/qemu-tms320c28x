@@ -768,7 +768,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
 
                         }
                         else { //0111 0110 00.. ....
-                            switch(insn & 0x3f) { 
+                            switch(insn & 0x3f) {
+                                case 0b011011: //0111 0110 0001 1011 ASP
+                                {
+                                    gen_asp(ctx);
+                                    break;
+                                }
                                 case 0b011111: //0111 0110 0001 1111 MOVW DP,#16bit
                                 {
                                     uint32_t imm = insn2;

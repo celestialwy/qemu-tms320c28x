@@ -144,6 +144,12 @@ static void gen_andb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
     tcg_temp_free(a);
 }
 
+// ASP
+static void gen_asp(DisasContext *ctx)
+{
+    gen_helper_asp(cpu_env);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {

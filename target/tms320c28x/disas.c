@@ -973,7 +973,12 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
 
                         }
                         else { //0111 0110 00.. ....
-                            switch(insn & 0x3f) { 
+                            switch(insn & 0x3f) {
+                                case 0b011011: //0111 0110 0001 1011 ASP
+                                {
+                                    fprintf_func(stream, "0x%04x;     ASP", insn);
+                                    break;
+                                }
                                 case 0b011111: //0111 0110 0001 1111 MOVW DP,#16bit
                                 {
                                     uint32_t imm = insn32 & 0xffff;
