@@ -109,7 +109,9 @@ void tms320c28x_translate_init(void)
 #include "decode-base.c"
 
 #include "decode-mov.c"
-#include "decode-math.c"
+#include "decode-math-add.c"
+#include "decode-math-sub.c"
+#include "decode-math-other.c"
 #include "decode-bitop.c"
 #include "decode-branch.c"
 #include "decode-interrupt.c"

@@ -786,7 +786,7 @@ static void gen_movx_tl_loc16(DisasContext *ctx, uint32_t mode)
 {
     TCGv a = tcg_temp_new();
     gen_ld_loc16(a, mode);
-    gen_helper_sign_extend_16(a, a);
+    tcg_gen_ext16s_tl(a, a);
     tcg_gen_mov_i32(cpu_xt, a);
     tcg_temp_free(a);
 }

@@ -406,18 +406,6 @@ uint32_t HELPER(shift_by_pm)(CPUTms320c28xState *env, uint32_t value)
     }
 }
 
-uint32_t HELPER(sign_extend_16)(uint32_t value)
-{
-    if (((value >> 15) & 1) == 1) {//neg
-        return value | 0xffff0000;
-    }
-    else
-    {
-        return value & 0xffff;
-    }
-    
-}
-
 void HELPER(mov_16bit_loc16)(CPUTms320c28xState *env, uint32_t mode, uint32_t addr, uint32_t is_rpt)
 {
     uint32_t max;

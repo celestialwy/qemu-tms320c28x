@@ -162,7 +162,7 @@ static void gen_asr_ax_imm(DisasContext *ctx, uint32_t shift, bool is_AH)
     TCGv a = tcg_temp_new();
     TCGv c = tcg_temp_new();
     gen_ld_reg_half(a, cpu_acc, is_AH);
-    gen_helper_sign_extend_16(a, a);
+    tcg_gen_ext16s_tl(a, a);
     if (shift != 1)
         tcg_gen_sari_i32(a, a, shift - 1);
     tcg_gen_andi_i32(c, a, 1);//C = last bit out
@@ -188,7 +188,7 @@ static void gen_asr_ax_t(DisasContext *ctx, bool is_AH)
     TCGv shift = tcg_temp_local_new();
     TCGv c = tcg_temp_local_new();
     gen_ld_reg_half(a, cpu_acc, is_AH);//a = ax
-    gen_helper_sign_extend_16(a, a);//signed extend a
+    tcg_gen_ext16s_tl(a, a);//signed extend a
 
     gen_ld_reg_half(shift, cpu_xt, 1);
     tcg_gen_andi_i32(shift, shift, 0b1111);//shift = t[3:0]
