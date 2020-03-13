@@ -190,7 +190,7 @@ static void get_cond_string(char *str, uint32_t cond) {
     }
 }
 
-static void get_setc_string(char *str, uint32_t mode) {
+static void get_status_bit_string(char *str, uint32_t mode) {
     mode = mode & 0xff;
     uint32_t i = 0;
     if (((mode>>0) & 1) == 1) {
@@ -514,8 +514,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     length = 4;
                     break;
                 }
-                case 0b1001:
+                case 0b1001: //0010 1001 CCCC CCCC CLRC mode
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_status_bit_string(str, mode);
+                    fprintf_func(stream, "0x%04x;     CLRC %s", insn, str);
                     break;
+                }
                 case 0b1010:
                     break;
                 case 0b1011: //0010 1011 LLLL LLLL MOV loc16,#0
@@ -571,7 +576,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 case 0b1011: //0011 1011 CCCC CCCC SETC mode
                 {
                     uint32_t mode = insn & 0xff;
-                    get_setc_string(str, mode);
+                    get_status_bit_string(str, mode);
                     fprintf_func(stream, "0x%04x;     SETC %s", insn, str);
                     break;
                 }
@@ -617,7 +622,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 case 0b1111: //0011 1111 LLLL LLLL MOV loc16,P
                 {
                     uint32_t mode = insn & 0xff;
-                    get_setc_string(str, mode);
+                    get_loc_string(str, mode, LOC16);
                     fprintf_func(stream, "0x%04x;     MOV %s,P", insn, str);
                     break;
                 }
@@ -714,6 +719,26 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     ASRL ACC:P,T", insn);
                                     break;
                                 }
+                                case 0b0110: //0101 0110 0001 0110 CLRC AMODE
+                                {
+                                    fprintf_func(stream, "0x%04x;     CLRC AMODE", insn);
+                                    break;
+                                }
+                                case 0b1010: //0101 0110 0001 1010 SETC M0M1MAP
+                                {
+                                    fprintf_func(stream, "0x%04x;     SETC M0M1MAP", insn);
+                                    break;
+                                }
+                                case 0b1011: //0101 0110 0001 1011 CLRC XF
+                                {
+                                    fprintf_func(stream, "0x%04x;     CLRC XF", insn);
+                                    break;
+                                }
+                                case 0b1111: //0101 0110 0001 1111 SETC Objmode
+                                {
+                                    fprintf_func(stream, "0x%04x;     SETC Objmode", insn);
+                                    break;
+                                }
                             }
                             break;
                         }
@@ -735,6 +760,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         get_loc_string(str,loc16,LOC16);
                                         fprintf_func(stream, "0x%08x; ADD ACC,%s<<T", insn32, str);
                                     }
+                                    break;
+                                }
+                                case 0b0110: //0101 0110 0010 0110 SETC XF
+                                {
+                                    fprintf_func(stream, "0x%04x;     SETC XF", insn);
                                     break;
                                 }
                                 case 0b1000: //0101 0110 0010 1000 0000 0000 LLLL LLLL MOVU loc16,OVC
@@ -822,6 +852,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                     break;
                                 }
+                                case 0b0110: //0101 0110 0011 0110 CLRC Objmode
+                                {
+                                    fprintf_func(stream, "0x%04x;     CLRC Objmode", insn);
+                                    break;
+                                }                                
+                                case 0b1111: //0101 0110 0011 1111 CLRC M0M1MAP
+                                {
+                                    fprintf_func(stream, "0x%04x;     CLRC M0M1MAP", insn);
+                                    break;
+                                }
                             }
                             break;
                         }
@@ -875,6 +915,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         fprintf_func(stream, "0x%08x; ADDUL P,%s", insn, str);
                                     }
                                     length = 4;
+                                    break;
+                                }
+                                case 0b1100: //0101 0110 0101 1100 CLRC OVC
+                                {
+                                    fprintf_func(stream, "0x%04x;     CLRC OVC", insn);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0101 1111 ABSTC  ACC

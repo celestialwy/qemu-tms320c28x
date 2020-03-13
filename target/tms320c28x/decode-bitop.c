@@ -317,6 +317,45 @@ static void gen_asrl_acc_t(DisasContext *ctx)
     tcg_temp_free(shift);
 }
 
+// CLRC AMODE
+static void gen_clrc_amode(DisasContext *ctx)
+{
+    gen_seti_bit(cpu_st1, AMODE_BIT, AMODE_MASK, 0);
+}
+
+// CLRC M0M1MAP
+static void gen_clrc_m0m1map(DisasContext *ctx)
+{
+    gen_seti_bit(cpu_st1, M0M1MAP_BIT, M0M1MAP_MASK, 0);
+}
+
+// CLRC Objmode
+static void gen_clrc_objmode(DisasContext *ctx)
+{
+    gen_seti_bit(cpu_st1, OBJMODE_BIT, OBJMODE_MASK, 0);
+}
+
+// CLRC OVC
+static void gen_clrc_ovc(DisasContext *ctx)
+{
+    gen_seti_bit(cpu_st0, OVC_BIT, OVC_MASK, 0);
+}
+
+// CLRC XF
+static void gen_clrc_xf(DisasContext *ctx)
+{
+    gen_seti_bit(cpu_st1, XF_BIT, XF_MASK, 0);
+}
+
+// CLRC Mode
+static void gen_clrc_mode(DisasContext *ctx, uint32_t mode)
+{
+    uint32_t st0_mask = ~(mode & 0xf);
+    uint32_t st1_mask = ~((mode >> 4) & 0xf);
+    tcg_gen_andi_i32(cpu_st0, cpu_st0, st0_mask);
+    tcg_gen_andi_i32(cpu_st1, cpu_st1, st1_mask);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {
@@ -324,6 +363,24 @@ static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
     uint32_t st1_mask = (mode >> 4) & 0xf;
     tcg_gen_ori_i32(cpu_st0, cpu_st0, st0_mask);
     tcg_gen_ori_i32(cpu_st1, cpu_st1, st1_mask);
+}
+
+// SETC M0M1MAP
+static void gen_setc_m0m1map(DisasContext *ctx)
+{
+    gen_seti_bit(cpu_st1, M0M1MAP_BIT, M0M1MAP_MASK, 1);
+}
+
+// SETC Objmode
+static void gen_setc_objmode(DisasContext *ctx)
+{
+    gen_seti_bit(cpu_st1, OBJMODE_BIT, OBJMODE_MASK, 1);
+}
+
+// SETC XF
+static void gen_setc_xf(DisasContext *ctx)
+{
+    gen_seti_bit(cpu_st1, XF_BIT, XF_MASK, 1);
 }
 
 // SPM shift

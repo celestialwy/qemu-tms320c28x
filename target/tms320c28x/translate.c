@@ -357,8 +357,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     length = 4;
                     break;
                 }
-                case 0b1001:
+                case 0b1001: //0010 1001 CCCC CCCC CLRC mode
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_clrc_mode(ctx, mode);
                     break;
+                }
                 case 0b1010:
                     break;
                 case 0b1011: //0010 1011 LLLL LLLL MOV loc16,#0
@@ -534,6 +538,26 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_asrl_acc_t(ctx);
                                     break;
                                 }
+                                case 0b0110: //0101 0110 0001 0110 CLRC AMODE
+                                {
+                                    gen_clrc_amode(ctx);
+                                    break;
+                                }
+                                case 0b1010: //0101 0110 0001 1010 SETC M0M1MAP
+                                {
+                                    gen_setc_m0m1map(ctx);
+                                    break;
+                                }
+                                case 0b1011: //0101 0110 0001 1011 CLRC XF
+                                {
+                                    gen_clrc_xf(ctx);
+                                    break;
+                                }
+                                case 0b1111: //0101 0110 0001 1111 SETC Objmode
+                                {
+                                    gen_setc_objmode(ctx);
+                                    break;
+                                }
                             }
                             break;
                         }
@@ -554,6 +578,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         uint32_t loc16 = (insn2 & 0xff);
                                         gen_add_acc_loc16_t(ctx, loc16);
                                     }
+                                    break;
+                                }
+                                case 0b0110: //0101 0110 0010 0110 SETC XF
+                                {
+                                    gen_setc_xf(ctx);
                                     break;
                                 }
                                 case 0b1000: //0101 0110 0010 1000 0000 0000 LLLL LLLL MOVU loc16,OVC
@@ -626,6 +655,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_mov_pm_ax(ctx, is_AH);
                                     break;
                                 }
+                                case 0b0110: //0101 0110 0011 0110 CLRC Objmode
+                                {
+                                    gen_clrc_objmode(ctx);
+                                    break;
+                                }
+                                case 0b1111: //0101 0110 0011 1111 CLRC M0M1MAP
+                                {
+                                    gen_clrc_m0m1map(ctx);
+                                    break;
+                                }
                             }
                             break;
                         }
@@ -674,6 +713,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         gen_addul_p_loc32(ctx, mode);
                                         length = 4;
                                     }
+                                    break;
+                                }
+                                case 0b1100: //0101 0110 0101 1100 CLRC OVC
+                                {
+                                    gen_clrc_ovc(ctx);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0101 1111 ABSTC  ACC
@@ -1502,7 +1546,7 @@ void tms320c28x_cpu_dump_state(CPUState *cs, FILE *f, int flags)
     qemu_fprintf(f, "SP =%04x ST0=%04x ST1=%04x\n", env->sp, env->st0, env->st1);
     qemu_fprintf(f, "OVC=%x PM=%x V=%x N=%x Z=%x\n", CPU_GET_STATUS(st0, OVC), CPU_GET_STATUS(st0, PM), CPU_GET_STATUS(st0, V), CPU_GET_STATUS(st0, N), CPU_GET_STATUS(st0, Z));
     qemu_fprintf(f, "C=%x TC=%x OVM=%x SXM=%x\n", CPU_GET_STATUS(st0, C), CPU_GET_STATUS(st0, TC), CPU_GET_STATUS(st0, OVM), CPU_GET_STATUS(st0, SXM));
-    qemu_fprintf(f, "ARP=%x XF=%x MOM1MAP=%x OBJMODE=%x\n", CPU_GET_STATUS(st1, ARP), CPU_GET_STATUS(st1, XF), CPU_GET_STATUS(st1, MOM1MAP), CPU_GET_STATUS(st1, OBJMODE));
+    qemu_fprintf(f, "ARP=%x XF=%x MOM1MAP=%x OBJMODE=%x\n", CPU_GET_STATUS(st1, ARP), CPU_GET_STATUS(st1, XF), CPU_GET_STATUS(st1, M0M1MAP), CPU_GET_STATUS(st1, OBJMODE));
     qemu_fprintf(f, "AMODE=%x IDLESTAT=%x EALLOW=%x LOOP=%x\n", CPU_GET_STATUS(st1, AMODE), CPU_GET_STATUS(st1, IDLESTAT), CPU_GET_STATUS(st1, EALLOW), CPU_GET_STATUS(st1, LOOP));
     qemu_fprintf(f, "SPA=%x VMAP=%x PAGE0=%x DBGM=%x INTM=%x\n", CPU_GET_STATUS(st1, SPA), CPU_GET_STATUS(st1, VMAP), CPU_GET_STATUS(st1, PAGE0), CPU_GET_STATUS(st1, DBGM), CPU_GET_STATUS(st1, INTM));
 

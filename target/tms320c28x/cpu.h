@@ -102,7 +102,7 @@ enum ST1_BIT{
     AMODE_BIT = 8,
     OBJMODE_BIT = 9,
     Reserved_BIT = 10,
-    MOM1MAP_BIT = 11,
+    M0M1MAP_BIT = 11,
     XF_BIT = 12,
     ARP_BIT = 13,
 };
@@ -119,7 +119,7 @@ enum ST1_MASK{
     AMODE_MASK = 1 << 8,
     OBJMODE_MASK = 1 << 9,
     Reserved_MASK = 1 << 10,
-    MOM1MAP_MASK = 1 << 11,
+    M0M1MAP_MASK = 1 << 11,
     XF_MASK = 1 << 12,
     ARP_MASK = 0b111 << 13,
 };
