@@ -36,6 +36,7 @@
 /* is_jmp field values */
 #define DISAS_EXIT    DISAS_TARGET_0  /* force exit to main loop */
 #define DISAS_JUMP    DISAS_TARGET_1  /* exit via jmp_pc/jmp_pc_imm */
+#define DISAS_REPEAT    DISAS_TARGET_2  /* exit via jmp_pc/jmp_pc_imm */
 
 typedef struct DisasContext {
     DisasContextBase base;
@@ -60,13 +61,6 @@ static TCGv cpu_st1; /* Status register 1, reset to 0x080b */
 static TCGv cpu_xt;         /* Multiplicand register, todo:t,tl*/
 static TCGv cpu_rptc; 
 // static TCGv cpu_tmp[8]; 
-
-static void gen_goto_tb(DisasContext *dc, int n, target_ulong dest)
-{
-    tcg_gen_goto_tb(n);
-    tcg_gen_movi_tl(cpu_pc, dest);
-    tcg_gen_exit_tb(dc->base.tb, n);
-}
 
 void tms320c28x_translate_init(void)
 {
@@ -137,7 +131,9 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             if(((insn >> 5) & 1) == 0) { //0000 0000 000. ....
                                 if(((insn >> 4) & 1) == 0) { //0000 0000 0000 ....
                                     switch(insn & 0x000f) {
-                                        case 0: //0000 0000 0000 0000
+                                        case 0: //0000 0000 0000 0000 ITRAP0
+                                            //todo
+                                            gen_exception(ctx, EXCP_INTERRUPT_ILLEGAL);
                                             break;
                                         case 1: //0000 0000 0000 0001, ABORTI P124
                                             gen_helper_aborti(cpu_env);
@@ -160,8 +156,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         case 7: //0000 0000 0000 0111 POP RPC
                                             gen_pop_rpc(ctx);
                                             break;
-                                        default: //0000 0000 0000 1nnn, BANZ 16bitOffset,ARn--
+                                        default: //0000 0000 0000 1nnn CCCC CCCC CCCC CCCC BANZ 16bitOffset,ARn--
+                                        {
+                                            uint32_t n = insn & 0b111;
+                                            int16_t offset = insn2;
+                                            length = 4;
+                                            gen_banz_16bitOffset_arn(ctx, offset, n);
                                             break;
+                                        }
                                     }
                                 }
                                 else { //0000 0000 0001 CCCC INTR INTx
@@ -1308,6 +1310,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             gen_asr_ax_imm(ctx, shift, is_AH);
                             break;
                         }
+                        case 0b1110://1111 1111 1110 COND CCCC CCCC CCCC CCCC B 16bitOffset,COND
+                        {
+                            int16_t imm = insn2;
+                            int16_t cond = (insn&0xf);
+                            length = 4;
+                            gen_b_16bitOffset_cond(ctx, imm, cond);
+                            break;
+                        }
                     }
                     break;
             }
@@ -1368,12 +1378,12 @@ static bool tms320c28x_tr_breakpoint_check(DisasContextBase *dcbase, CPUState *c
 
     tcg_gen_movi_tl(cpu_pc, dc->base.pc_next);
     // gen_exception(dc, EXCP_DEBUG);
-    dc->base.is_jmp = DISAS_NORETURN;
+    dc->base.is_jmp = DISAS_REPEAT;
     /* The address covered by the breakpoint must be included in
        [tb->pc, tb->pc + tb->size) in order to for it to be
        properly cleared -- thus we increment the PC here so that
        the logic setting tb->size below does the right thing.  */
-    dc->base.pc_next += 2; // ?? 16bit op ==> 2
+    // dc->base.pc_next += 2; // ?? 16bit op ==> 2
     return true;
 }
 
@@ -1410,6 +1420,7 @@ static void tms320c28x_tr_tb_stop(DisasContextBase *dcbase, CPUState *cs)
     // jmp_dest = dc->base.pc_next >> 1;
 
     switch (dc->base.is_jmp) {
+    case DISAS_REPEAT:
     case DISAS_JUMP:
         tcg_gen_lookup_and_goto_ptr();
         break;

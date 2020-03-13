@@ -24,7 +24,7 @@ static void gen_and_acc_loc16(DisasContext *ctx, uint32_t mode)
     gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
 
     tcg_temp_free(a);
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // AND AX,loc16,#16bit

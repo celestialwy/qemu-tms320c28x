@@ -401,3 +401,10 @@ static void gen_get_bit(TCGv retval, TCGv reg, uint32_t bit, uint32_t mask)
     tcg_gen_andi_i32(retval, reg, mask);
     tcg_gen_shri_i32(retval, retval, bit);
 }
+
+static void gen_goto_tb(DisasContext *dc, int n, target_ulong dest)
+{
+    tcg_gen_goto_tb(n);
+    tcg_gen_movi_tl(cpu_pc, dest);
+    tcg_gen_exit_tb(dc->base.tb, n);
+}

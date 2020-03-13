@@ -114,7 +114,7 @@ static void gen_mov_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm) 
     gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
 
     tcg_temp_free(imm_tcg);
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // MOV loc16,*(0:16bit)
@@ -147,7 +147,7 @@ static void gen_mov_loc16_0(DisasContext *ctx, uint32_t mode)
     gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
 
     tcg_temp_free(a);
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // MOV loc16,ACC<<1...8
@@ -168,7 +168,7 @@ static void gen_mov_loc16_acc_shift(DisasContext *ctx, uint32_t mode, uint32_t s
     gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
 
     tcg_temp_free(a);
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // MOV loc16,ARn
@@ -202,7 +202,7 @@ static void gen_mov_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
     gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
 
     tcg_temp_free(ax);
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // MOV loc16,AX,COND
@@ -364,7 +364,7 @@ static void gen_mova_t_loc16(DisasContext *ctx, uint32_t mode)
     tcg_temp_free_i32(t);
     // tcg_temp_free_i32(pm);
 
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 //MOVAD T,loc16
@@ -573,7 +573,7 @@ static void gen_movdl_xt_loc32(DisasContext *ctx, uint32_t mode)
         gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
 
         tcg_temp_free_i32(addr);
-        ctx->base.is_jmp = DISAS_NORETURN;
+        ctx->base.is_jmp = DISAS_REPEAT;
     }
 }
 
@@ -595,7 +595,7 @@ static void gen_movh_loc16_acc_shift(DisasContext *ctx, uint32_t mode, uint32_t 
     gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
 
     tcg_temp_free(a);
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 //MOVH loc16,P
@@ -615,7 +615,7 @@ static void gen_movh_loc16_p(DisasContext *ctx, uint32_t mode)
     gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
 
     tcg_temp_free(a);
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // MOVL ACC,loc32
@@ -743,7 +743,7 @@ static void gen_movs_t_loc16(DisasContext *ctx, uint32_t mode)
 
     tcg_temp_free(a);
     tcg_temp_free(b);
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // MOVU ACC,loc16

@@ -264,6 +264,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 if(((insn >> 4) & 1) == 0) { //0000 0000 0000 ....
                                     switch(insn & 0x000f) {
                                         case 0: //0000 0000 0000 0000
+                                            fprintf_func(stream, "0x%04x;     ITRAP0", insn);
                                             break;
                                         case 1: //0000 0000 0000 0001, ABORTI P124
                                             fprintf_func(stream, "0x%04x;     ABORTI", insn);
@@ -286,8 +287,14 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         case 7: //0000 0000 0000 0111 POP RPC
                                             fprintf_func(stream, "0x%04x;     POP RPC", insn);
                                             break;
-                                        default: //0000 0000 0000 1nnn, BANZ 16bitOffset,ARn--
+                                        default: //0000 0000 0000 1nnn CCCC CCCC CCCC CCCC BANZ 16bitOffset,ARn--
+                                        {
+                                            uint32_t n = insn & 0b111;
+                                            int16_t offset = (uint16_t)(insn32&0xffff);
+                                            length = 4;
+                                            fprintf_func(stream, "0x%08x; BANZ #%d,AR%d--", insn32, offset, n);
                                             break;
+                                        }
                                     }
                                 }
                                 else { //0000 0000 0001 CCCC INTR INTx
@@ -1605,6 +1612,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 fprintf_func(stream, "0x%04x;     ASR AH,#%d", insn, shift);
                             else
                                 fprintf_func(stream, "0x%04x;     ASR AL,#%d", insn, shift);
+                            break;
+                        }
+                        case 0b1110://1111 1111 1110 COND CCCC CCCC CCCC CCCC B 16bitOffset,COND
+                        {
+                            int16_t imm = (uint16_t)(insn32&0xffff);
+                            int16_t cond = (insn&0xf);
+                            length = 4;
+                            get_cond_string(str, cond);
+                            fprintf_func(stream, "0x%08x; B #%d,%s", insn32, imm, str);
                             break;
                         }
                     }

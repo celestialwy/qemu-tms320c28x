@@ -65,7 +65,7 @@ static void gen_add_acc_loc16_t(DisasContext *ctx, uint32_t mode)
     tcg_temp_free_i32(b);
     tcg_temp_free_i32(shift);
 
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // ADD ACC,loc16<<#0...16
@@ -106,7 +106,7 @@ static void gen_add_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t s
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
 
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
     
 }
 
@@ -410,7 +410,7 @@ static void gen_addu_acc_loc16(DisasContext *ctx, uint32_t mode)
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
 
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // ADDUL P,loc32
@@ -460,7 +460,7 @@ static void gen_addul_acc_loc32(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(a);
     tcg_temp_free(b);
 
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // ADRK #8bit

@@ -1,6 +1,6 @@
 
-// BF 16bitOffset,COND
-static void gen_bf_16bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t cond) 
+// B 16bitOffset,COND
+static void gen_b_16bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t cond)
 {
     gen_reset_rptc(ctx);
 
@@ -9,7 +9,7 @@ static void gen_bf_16bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t 
 
     TCGLabel *label = gen_new_label();
 
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_JUMP;
     gen_helper_test_cond(test, cpu_env, cond_tcg);
     tcg_gen_brcondi_i32(TCG_COND_EQ, test, 0, label);
     gen_goto_tb(ctx, 0, ((uint32_t)ctx->base.pc_next >> 1) + offset);
@@ -18,7 +18,34 @@ static void gen_bf_16bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t 
 
     tcg_temp_free(cond_tcg);
     tcg_temp_free(test);
+}
 
+// BANZ 16bitOffset,ARn--
+static void gen_banz_16bitOffset_arn(DisasContext *ctx, int16_t offset, uint32_t n)
+{
+    gen_reset_rptc(ctx);
+
+    TCGLabel *label = gen_new_label();
+    TCGv arn = tcg_temp_new();
+    TCGv tmp = tcg_temp_new();
+    gen_ld_reg_half(arn, cpu_xar[n], 0);//get arn
+    tcg_gen_subi_i32(tmp, arn, 1);//tmp = arn - 1
+    gen_st_reg_low_half(cpu_xar[n], tmp);//AR[n] = tmp
+    tcg_gen_brcondi_i32(TCG_COND_EQ, arn, 0, label);
+    //arn != 0
+    gen_goto_tb(ctx, 0, ((uint32_t)ctx->base.pc_next >> 1) + offset);
+    gen_set_label(label);
+    //arn == 0
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+    ctx->base.is_jmp = DISAS_JUMP;
+    tcg_temp_free(arn);
+    tcg_temp_free(tmp);
+}
+
+// BF 16bitOffset,COND
+static void gen_bf_16bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t cond)
+{
+    gen_b_16bitOffset_cond(ctx, offset, cond);
 }
 
 // LB 22bit
@@ -76,7 +103,7 @@ static void gen_sb_8bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t c
 
     TCGLabel *label = gen_new_label();
 
-    ctx->base.is_jmp = DISAS_NORETURN;
+    ctx->base.is_jmp = DISAS_JUMP;
     gen_helper_test_cond(test, cpu_env, cond_tcg);
     tcg_gen_brcondi_i32(TCG_COND_EQ, test, 0, label);
     gen_goto_tb(ctx, 0, ((uint32_t)ctx->base.pc_next >> 1) + offset);
