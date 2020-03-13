@@ -42,6 +42,25 @@ static void gen_banz_16bitOffset_arn(DisasContext *ctx, int16_t offset, uint32_t
     tcg_temp_free(tmp);
 }
 
+// BAR 16bitOffset,ARn,ARm,EQ/NEQ
+static void gen_bar_16bitOffset_arn_arm_eq_neq(DisasContext *ctx, int16_t offset, uint32_t n, uint32_t m, uint32_t COND_EQ_NEQ)
+{
+    TCGLabel *label = gen_new_label();
+    TCGv arn = tcg_temp_new();
+    gen_ld_reg_half(arn, cpu_xar[n], 0);
+    TCGv arm = tcg_temp_new();
+    gen_ld_reg_half(arm, cpu_xar[m], 0);
+
+    tcg_gen_brcond_i32(COND_EQ_NEQ, arn, arm, label);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+    gen_set_label(label);
+    gen_goto_tb(ctx, 0, ((uint32_t)ctx->base.pc_next >> 1) + offset);
+    
+    ctx->base.is_jmp = DISAS_JUMP;
+    tcg_temp_free(arn);
+    tcg_temp_free(arm);
+}
+
 // BF 16bitOffset,COND
 static void gen_bf_16bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t cond)
 {

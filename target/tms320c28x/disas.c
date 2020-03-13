@@ -1163,10 +1163,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         }
                         case 0b10: //1000 1111 10nn nmmm CCCC CCCC CCCC CCCC BAR 16bitOffset,ARn,ARm,EQ
                         {
+                            uint32_t n = (insn >> 3) & 0b111;
+                            uint32_t m = insn & 0b111;
+                            int16_t imm = (uint16_t)(insn32&0xffff);
+                            fprintf_func(stream, "0x%08x; BAR #%d,AR%d,AR%d,EQ", insn32, imm, n, m);
+                            length = 4;
                             break;
                         }
                         case 0b11: //1000 1111 11nn nmmm CCCC CCCC CCCC CCCC BAR 16bitOffset,ARn,ARm,NEQ
                         {
+                            uint32_t n = (insn >> 3) & 0b111;
+                            uint32_t m = insn & 0b111;
+                            int16_t imm = (uint16_t)(insn32&0xffff);
+                            fprintf_func(stream, "0x%08x; BAR #%d,AR%d,AR%d,NEQ", insn32, imm, n, m);
+                            length = 4;
                             break;
                         }
                     }

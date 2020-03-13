@@ -938,10 +938,20 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         }
                         case 0b10: //1000 1111 10nn nmmm CCCC CCCC CCCC CCCC BAR 16bitOffset,ARn,ARm,EQ
                         {
+                            uint32_t n = (insn >> 3) & 0b111;
+                            uint32_t m = insn & 0b111;
+                            int16_t imm = insn2;
+                            gen_bar_16bitOffset_arn_arm_eq_neq(ctx, imm, n, m, TCG_COND_EQ);
+                            length = 4;
                             break;
                         }
                         case 0b11: //1000 1111 11nn nmmm CCCC CCCC CCCC CCCC BAR 16bitOffset,ARn,ARm,NEQ
                         {
+                            uint32_t n = (insn >> 3) & 0b111;
+                            uint32_t m = insn & 0b111;
+                            int16_t imm = insn2;
+                            gen_bar_16bitOffset_arn_arm_eq_neq(ctx, imm, n, m, TCG_COND_NE);
+                            length = 4;
                             break;
                         }
                     }
