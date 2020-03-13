@@ -282,6 +282,41 @@ static void gen_asr64_acc_p_t(DisasContext *ctx)
     tcg_temp_free(shift);
 }
 
+// ASRL ACC,T
+static void gen_asrl_acc_t(DisasContext *ctx)
+{
+    TCGLabel *shift_is_zero = gen_new_label();
+    TCGLabel *done = gen_new_label();
+
+    TCGv shift = tcg_temp_local_new();
+    TCGv c = tcg_temp_local_new();
+
+    gen_ld_reg_half(shift, cpu_xt, 1);//get t
+    tcg_gen_andi_i32(shift, shift, 0b11111);//shift = t[4:0]
+    //branch
+    tcg_gen_brcondi_i32(TCG_COND_EQ, shift, 0, shift_is_zero);
+    //shift != 0
+    TCGv a = tcg_temp_new();
+    //shift p
+    tcg_gen_subi_i32(shift, shift, 1);//shift = shift -1
+    tcg_gen_shr_i32(cpu_acc, cpu_acc, shift);
+    tcg_gen_andi_i32(c, cpu_acc, 1);//last bit out
+    tcg_gen_shri_i32(cpu_acc, cpu_acc, 1);
+
+    tcg_temp_free(a);
+    tcg_gen_br(done);
+    //shift == 0
+    gen_set_label(shift_is_zero);
+    tcg_gen_movi_i32(c, 0);
+    //done
+    gen_set_label(done);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
+
+    tcg_temp_free(c);
+    tcg_temp_free(shift);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {

@@ -524,6 +524,17 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             }
                             break;
                         }
+                        case 0b0001: //0101 0110 0001 ....
+                        {
+                            switch (insn & 0xf) {
+                                case 0b0000: //0101 0110 0001 0000 ASRL ACC,T
+                                {
+                                    gen_asrl_acc_t(ctx);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case 0b0010: //0101 0110 0010 ....
                         {
                             switch (insn & 0xf) {

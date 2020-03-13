@@ -635,6 +635,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 case 0b0110://0101 0110 .... ....
                     switch ((insn & 0x00f0) >> 4) {
                         case 0b0000: //0101 0110 0000 ....
+                        {
                             switch (insn & 0x000f) {
                                 case 0b0001: //0101 0110 0000 0001 0000 0000 LLLL LLLL ADDL loc32,ACC
                                 {
@@ -697,6 +698,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 }
                             }
                             break;
+                        }
+                        case 0b0001: //0101 0110 0001 ....
+                        {
+                            switch (insn & 0xf) {
+                                case 0b0000: //0101 0110 0001 0000 ASRL ACC,T
+                                {
+                                    fprintf_func(stream, "0x%04x;     ASRL ACC:P,T", insn);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case 0b0010: //0101 0110 0010 ....
                             switch (insn & 0xf) {
                                 case 0b0001: //0101 0110 0010 0001 xxxx xxxx LLLL LLLL MOVX TL,loc16
