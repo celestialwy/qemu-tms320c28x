@@ -756,6 +756,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                     break;
                                 }
+                                case 0b1100: //0101 0110 0010 1100 ASR64 ACC:P,T
+                                {
+                                    fprintf_func(stream, "0x%04x;     ASR64 ACC:P,T", insn);
+                                    break;
+                                }
                                 case 0b1101: //0101 0110 0010 1101 0000 0SHF LLLL LLLL MOV loc16,ACC<<2...8
                                 {
                                     if (((insn32 & 0xffff) >> 11) == 0) {

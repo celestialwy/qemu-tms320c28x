@@ -191,7 +191,7 @@ static void gen_asr_ax_t(DisasContext *ctx, bool is_AH)
     gen_helper_sign_extend_16(a, a);//signed extend a
 
     gen_ld_reg_half(shift, cpu_xt, 1);
-    tcg_gen_andi_i32(shift, cpu_xt, 0b1111);//shift = t[3:0]
+    tcg_gen_andi_i32(shift, shift, 0b1111);//shift = t[3:0]
     //branch
     tcg_gen_brcondi_i32(TCG_COND_EQ, shift, 0, shift_is_zero);
     //shift != 0
@@ -223,8 +223,7 @@ static void gen_asr64_acc_p_imm(DisasContext *ctx, uint32_t shift)
     TCGv a = tcg_temp_new();
     TCGv c = tcg_temp_new();
     //shift acc
-    tcg_gen_andi_i32(a, cpu_acc, (1 << (shift+1)) - 1);//get shift out bit of acc
-    tcg_gen_shli_i32(a, a, 32 - shift);
+    tcg_gen_shli_i32(a, cpu_acc, 32 - shift);
     tcg_gen_sari_i32(cpu_acc, cpu_acc, shift);
 
     //shift p
@@ -234,12 +233,53 @@ static void gen_asr64_acc_p_imm(DisasContext *ctx, uint32_t shift)
     //set high bit of p
     tcg_gen_or_i32(cpu_p, cpu_p, a);
 
-
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
 
     tcg_temp_free(a);
     tcg_temp_free(c);
+}
+
+// ASR64 ACC:P,T
+static void gen_asr64_acc_p_t(DisasContext *ctx)
+{
+    TCGLabel *shift_is_zero = gen_new_label();
+    TCGLabel *done = gen_new_label();
+
+    TCGv shift = tcg_temp_local_new();
+    TCGv c = tcg_temp_local_new();
+
+    gen_ld_reg_half(shift, cpu_xt, 1);//get t
+    tcg_gen_andi_i32(shift, shift, 0b111111);//shift = t[5:0]
+    //branch
+    tcg_gen_brcondi_i32(TCG_COND_EQ, shift, 0, shift_is_zero);
+    //shift != 0
+    TCGv a = tcg_temp_new();
+    TCGv tmp = tcg_const_i32(32);
+    //shift acc
+    tcg_gen_sub_i32(tmp, tmp, shift);//32-shift, 
+    tcg_gen_shl_i32(a, cpu_acc, tmp);//save acc shift out value
+    tcg_gen_sar_i32(cpu_acc, cpu_acc, shift);
+    //shift p
+    tcg_gen_subi_i32(tmp, shift, 1);//tmp = shift -1
+    tcg_gen_shr_i32(cpu_p, cpu_p, tmp);
+    tcg_gen_andi_i32(c, cpu_p, 1);//last bit out
+    tcg_gen_shri_i32(cpu_p, cpu_p, 1);
+    //set high bit of p
+    tcg_gen_or_i32(cpu_p, cpu_p, a);
+    tcg_temp_free(a);
+    tcg_temp_free(tmp);
+    tcg_gen_br(done);
+    //shift == 0
+    gen_set_label(shift_is_zero);
+    tcg_gen_movi_i32(c, 0);
+    //done
+    gen_set_label(done);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
+
+    tcg_temp_free(c);
+    tcg_temp_free(shift);
 }
 
 // SETC Mode

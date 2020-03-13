@@ -573,6 +573,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b1100: //0101 0110 0010 1100 ASR64 ACC:P,T
+                                {
+                                    gen_asr64_acc_p_t(ctx);
+                                    break;
+                                }
                                 case 0b1101: //0101 0110 0010 1101 0000 0SHF LLLL LLLL MOV loc16,ACC<<2...8
                                 {
                                     if ((insn2 >> 11) == 0) {
