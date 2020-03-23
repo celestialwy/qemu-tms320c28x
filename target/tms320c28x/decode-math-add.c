@@ -38,6 +38,8 @@ static void gen_add_acc_loc16_t(DisasContext *ctx, uint32_t mode)
     TCGv shift = tcg_temp_new();
 
     TCGLabel *repeat = gen_new_label();
+    TCGLabel *shift16 = gen_new_label();
+    TCGLabel *shift16_end = gen_new_label();
 
         tcg_gen_mov_i32(a, cpu_acc);//get a
         gen_ld_loc16(b, mode); //get b
