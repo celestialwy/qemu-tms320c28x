@@ -148,12 +148,36 @@ void HELPER(test_C_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t
     }
 }
 
+void HELPER(test_C_32_shift16)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
+{
+    uint64_t tmp = (uint64_t)a + (uint64_t)b;
+    if ((tmp >> 32) & 1) {
+        CPU_SET_STATUS(st0, C, 1);
+    }
+    else {// If you're using the ADD instruction with a shift of 16, the ADD instruction can set C,but cannot clear C
+        // CPU_SET_STATUS(st0, C, 0);
+    }
+}
+
 void HELPER(test_sub_C_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
 {
     b = ~b + 1;
     helper_test_C_32(env, a, b, result);
     if (b == 0) {
         CPU_SET_STATUS(st0, C, 1);
+    }
+}
+
+void HELPER(test_sub_C_32_shift16)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
+{
+    b = ~b + 1;
+
+    uint64_t tmp = (uint64_t)a + (uint64_t)b;
+    if ((tmp >> 32) & 1) {// If you're using the SUB instruction with a shift of 16, the SUB instruction can clear C,but cannot set C
+        // CPU_SET_STATUS(st0, C, 1);
+    }
+    else {
+        CPU_SET_STATUS(st0, C, 0);
     }
 }
 
