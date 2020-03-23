@@ -38,6 +38,8 @@ static void gen_add_acc_loc16_t(DisasContext *ctx, uint32_t mode)
     TCGv shift = tcg_temp_new();
 
     TCGLabel *repeat = gen_new_label();
+    TCGLabel *shift16 = gen_new_label();
+    TCGLabel *shift16_end = gen_new_label();
 
         tcg_gen_mov_i32(a, cpu_acc);//get a
         gen_ld_loc16(b, mode); //get b
@@ -53,7 +55,12 @@ static void gen_add_acc_loc16_t(DisasContext *ctx, uint32_t mode)
 
     tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
     
+    tcg_gen_brcondi_i32(TCG_COND_EQ, shift, 16, shift16);
         gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
+        tcg_gen_br(shift16_end);
+    gen_set_label(shift16);
+        gen_helper_test_C_32_shift16(cpu_env, a, b, cpu_acc);
+    gen_set_label(shift16_end);
         gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 
         gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
@@ -92,8 +99,10 @@ static void gen_add_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t s
         gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 
     tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
-    
-        gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
+        if (shift_imm == 16)
+            gen_helper_test_C_32_shift16(cpu_env, a, b, cpu_acc);
+        else
+            gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
         gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 
 

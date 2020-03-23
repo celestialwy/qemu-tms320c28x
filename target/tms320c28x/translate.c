@@ -205,8 +205,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_subl_acc_loc32(ctx, mode);
                     break;
                 }
-                case 0b0100:
+                case 0b0100: //0000 0100 LLLL LLLL SUB ACC,loc16<<#16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_sub_acc_loc16_shift(ctx, mode, 16);
                     break;
+                }
                 case 0b0101: //0000 0101 LLLL LLLL ADD ACC,loc16<<#16
                 {
                     uint32_t mode = insn & 0xff;
@@ -474,6 +478,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         case 0b0000: //0101 0110 0000 ....
                         {
                             switch (insn & 0x000f) {
+                                case 0b0000: //0101 0110 0000 0000 0000 SHFT LLLL LLLL SUB ACC,loc16<<#1...15
+                                {
+                                    if (((insn2 & 0xf000) >> 12) == 0) {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        uint32_t shift = insn2 >> 8;
+                                        gen_sub_acc_loc16_shift(ctx, mode, shift);
+                                    }
+                                    break;
+                                }
                                 case 0b0001: //0101 0110 0000 0001 0000 0000 LLLL LLLL ADDL loc32,ACC
                                 {
                                     if (((insn2 & 0xff00) >> 8) == 0) {
@@ -1104,6 +1118,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                 {
                     uint32_t mode = insn & 0xff;
                     gen_movl_loc32_xt(ctx, mode);
+                    break;
+                }
+                case 0b1110: //1010 1110 LLLL LLLL SUB ACC,loc16<<#0
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_sub_acc_loc16_shift(ctx, mode, 0);
                     break;
                 }
             }
