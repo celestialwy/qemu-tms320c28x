@@ -778,6 +778,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     SETC XF", insn);
                                     break;
                                 }
+                                case 0b0111: //0101 0110 0010 0111 0000 0000 LLLL LLLL SUB ACC,loc16<<T
+                                {
+                                    if (((insn32 >> 8) & 0xff) == 0) {
+                                        length = 4;
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC16);
+                                        fprintf_func(stream, "0x%08x; SUB ACC,%s<<T", insn32, str);
+                                    }
+                                    break;
+                                }
                                 case 0b1000: //0101 0110 0010 1000 0000 0000 LLLL LLLL MOVU loc16,OVC
                                 {
                                     if (((insn32 >> 8) & 0xff) == 0) {
@@ -1048,6 +1058,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     ADD %s,AH", insn, str);
                     break;
                 }
+                case 0b0100://0111 0100 LLLL LLLL SUB loc16,AL
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     SUB %s,AL", insn, str);
+                    break;
+                }
+                case 0b0101://0111 0101 LLLL LLLL SUB loc16,AH
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     SUB %s,AH", insn, str);
+                    break;
+                }
                 case 0b0110: //0111 0110 .... ....
                     if (((insn >> 7) & 0x1) == 1) { //0111 0110 1... .... MOVL XARn,#22bit 
                         uint32_t n = ((insn >> 6) & 0b11) + 6;//XAR6,XAR7
@@ -1309,6 +1333,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     }
                     else { // al
                         fprintf_func(stream, "0x%04x;     ADDB AL,#%d", insn, imm);
+                    }
+                    break;
+                }
+                case 0b111: //1001 111A LLLL LLLL SUB AX,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    if (((insn >> 8) & 1) == 1){ //ah
+                        fprintf_func(stream, "0x%04x;     SUB AH,%s", insn, str);
+                    }
+                    else { // al
+                        fprintf_func(stream, "0x%04x;     SUB AL,%s", insn, str);
                     }
                     break;
                 }
@@ -1618,6 +1654,14 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 }
                 case 0b1111://1111 1111 .... ....
                     switch ((insn & 0x00f0) >> 4) {
+                        case 0b0000: //1111 1111 0000 SHFT CCCC CCCC CCCC CCCC SUB ACC,#16bit<<#0...15
+                        {
+                            int32_t imm = insn32 & 0xffff;
+                            uint32_t shift = insn & 0x000f;
+                            fprintf_func(stream, "0x%08x; SUB ACC, #0x%x<<#%d", insn32, imm, shift);
+                            length = 4;
+                            break;
+                        }
                         case 0b0001: //1111 1111 0001 SHFT 32bit ADD ACC, #16bit<#0...15
                         {
                             int32_t imm = insn32 & 0xffff;

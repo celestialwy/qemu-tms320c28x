@@ -37,6 +37,7 @@ DEF_HELPER_2(test_N_Z_16, void, env, i32)
 DEF_HELPER_2(test_N_Z_32, void, env, i32)
 
 DEF_HELPER_4(test_C_V_16, void, env, i32, i32, i32)
+DEF_HELPER_4(test_sub_C_V_16, void, env, i32, i32, i32)
 DEF_HELPER_4(test_C_32, void, env, i32, i32, i32)
 DEF_HELPER_4(test_C_32_shift16, void, env, i32, i32, i32)
 DEF_HELPER_4(test_sub_C_32, void, env, i32, i32, i32)

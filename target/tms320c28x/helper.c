@@ -137,6 +137,35 @@ void HELPER(test_C_V_16)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32
     }
 }
 
+void HELPER(test_sub_C_V_16)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
+{
+    b = (~b + 1) & 0xffff;
+    uint32_t bit1 = (a >> 15) & 1;
+    uint32_t bit2 = (b >> 15) & 1;
+    uint32_t bit3 = (result >> 15) & 1;
+    uint32_t tmp = a + b;
+    if ((tmp >> 16) & 1) {
+        CPU_SET_STATUS(st0, C, 1);
+    }
+    else {
+        CPU_SET_STATUS(st0, C, 0);
+    }
+
+    if (b == 0) {
+        CPU_SET_STATUS(st0, C, 1);
+    }
+
+    if (bit1 == 1 && bit2 == 1 && bit3 == 0) {//neg overflow
+        CPU_SET_STATUS(st0, V, 1);
+    }
+    else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
+        CPU_SET_STATUS(st0, V, 1);
+    }
+    else {
+        // CPU_SET_STATUS(st0, V, 0);
+    }
+}
+
 void HELPER(test_C_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
 {
     uint64_t tmp = (uint64_t)a + (uint64_t)b;
@@ -194,7 +223,7 @@ void HELPER(test_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t
         CPU_SET_STATUS(st0, V, 1);
     }
     else {
-        CPU_SET_STATUS(st0, V, 0);
+        // CPU_SET_STATUS(st0, V, 0);
     }
 }
 
