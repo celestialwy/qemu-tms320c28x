@@ -210,6 +210,15 @@ static void gen_subbl_acc_loc32(DisasContext *ctx, uint32_t mode)
     tcg_temp_free_i32(tmp);
 }
 
+// SUBCU ACC,loc16
+static void gen_subcu_acc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new_i32();
+    gen_ld_loc16(a, mode);
+    gen_helper_subcu(cpu_env, a);//call helper function: calculate result, update flag bit N C Z
+    tcg_temp_free(a);
+}
+
 // SUBL ACC,loc32
 static void gen_subl_acc_loc32(DisasContext *ctx, uint32_t mode)
 {

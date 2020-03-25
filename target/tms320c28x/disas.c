@@ -460,6 +460,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOV %s,ACC", insn, str);
                     break;
                 }
+                case 0b1111: //0001 1111 LLLL LLLL SUBCU ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     SUBCU ACC,%s", insn, str);
+                    break;
+                }
             }
             break;
         case 0b0010:
