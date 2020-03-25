@@ -726,6 +726,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     length = 4;
                                     break;
                                 }
+                                case 0b0100: //0101 0110 0101 0100 0000 0000 LLLL LLLL SUBBL ACC,loc32
+                                {
+                                    if (((insn2 & 0xff00) >> 8) == 0) {
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_subbl_acc_loc32(ctx, mode);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b0110: //0101 0110 0101 0110 MOV TL,#0
                                 {
                                     gen_mov_tl_0(ctx);

@@ -94,14 +94,15 @@ static void gen_sub_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t sh
 }
 
 // SUB AX,loc16
-static void gen_sub_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH) {
+static void gen_sub_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH) 
+{
     TCGv b = tcg_temp_new();
     TCGv ax = tcg_temp_new();
     TCGv a = tcg_temp_new();
     gen_ld_loc16(b, mode);
 
     gen_ld_reg_half(a, cpu_acc, is_AH);
-// // gen_helper_print(ax);
+
     tcg_gen_sub_i32(ax, a, b);//sub
 
     gen_helper_test_N_Z_16(cpu_env, ax);
@@ -156,7 +157,6 @@ static void gen_sub_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
     tcg_temp_free_i32(result);
 }
 
-
 // SUBB ACC,#8bit
 static void gen_subb_acc_8bit(DisasContext *ctx, uint32_t imm) {
     TCGv b = tcg_const_i32(imm);
@@ -182,6 +182,32 @@ static void gen_subb_sp_7bit(DisasContext *ctx, uint32_t imm)
 static void gen_subb_xarn_7bit(DisasContext *ctx, uint32_t n, uint32_t imm)
 {
     tcg_gen_subi_i32(cpu_xar[n], cpu_xar[n], imm);
+}
+
+// SUBBL ACC,loc32
+static void gen_subbl_acc_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new();
+    tcg_gen_mov_i32(a, cpu_acc);
+
+    TCGv b = tcg_temp_local_new();
+    gen_ld_loc32(b, mode);
+
+    TCGv c = tcg_temp_local_new();
+    gen_get_bit(c, cpu_st0, C_BIT, C_MASK);
+    tcg_gen_not_i32(c, c);
+    tcg_gen_andi_i32(c, c, 1);
+
+    TCGv tmp = tcg_temp_local_new();
+    tcg_gen_sub_i32(tmp, a, b);
+    tcg_gen_sub_i32(cpu_acc, tmp, c);//ACC = ACC - loc32 + ~C
+
+    gen_helper_test2_sub_C_V_OVC_OVM_32(cpu_env, a, b,c, cpu_acc);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+    tcg_temp_free_i32(tmp);
 }
 
 // SUBL ACC,loc32

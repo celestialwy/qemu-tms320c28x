@@ -133,37 +133,19 @@ void HELPER(test_C_V_16)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32
         CPU_SET_STATUS(st0, V, 1);
     }
     else {
-        CPU_SET_STATUS(st0, V, 0);
+        // CPU_SET_STATUS(st0, V, 0);
     }
 }
 
 void HELPER(test_sub_C_V_16)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
 {
     b = (~b + 1) & 0xffff;
-    uint32_t bit1 = (a >> 15) & 1;
-    uint32_t bit2 = (b >> 15) & 1;
-    uint32_t bit3 = (result >> 15) & 1;
-    uint32_t tmp = a + b;
-    if ((tmp >> 16) & 1) {
-        CPU_SET_STATUS(st0, C, 1);
-    }
-    else {
-        CPU_SET_STATUS(st0, C, 0);
-    }
+    helper_test_C_V_16(env, a, b, result);
 
     if (b == 0) {
         CPU_SET_STATUS(st0, C, 1);
     }
 
-    if (bit1 == 1 && bit2 == 1 && bit3 == 0) {//neg overflow
-        CPU_SET_STATUS(st0, V, 1);
-    }
-    else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
-        CPU_SET_STATUS(st0, V, 1);
-    }
-    else {
-        // CPU_SET_STATUS(st0, V, 0);
-    }
 }
 
 void HELPER(test_C_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
@@ -222,7 +204,7 @@ void HELPER(test_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t
     else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
         CPU_SET_STATUS(st0, V, 1);
     }
-    else {
+    else { //if not overlow, v bit is not affected
         // CPU_SET_STATUS(st0, V, 0);
     }
 }
@@ -230,19 +212,7 @@ void HELPER(test_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t
 void HELPER(test_sub_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
 {
     b = ~b + 1;
-    uint32_t bit1 = a >> 31;
-    uint32_t bit2 = b >> 31;
-    uint32_t bit3 = result >> 31;
-
-    if (bit1 == 1 && bit2 == 1 && bit3 == 0) {//neg overflow
-        CPU_SET_STATUS(st0, V, 1);
-    }
-    else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
-        CPU_SET_STATUS(st0, V, 1);
-    }
-    else { //if not overlow, v bit is not affected
-        // CPU_SET_STATUS(st0, V, 0);
-    }
+    helper_test_V_32(env, a, b, result);
 }
 
 void HELPER(test_C_V_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result)
@@ -296,9 +266,10 @@ void HELPER(test_sub_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b
 
 void HELPER(test2_C_V_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t c, uint32_t result) 
 {
+    uint32_t is_overflow = 0;
     uint32_t bit1 = a >> 31;
-    uint32_t bit2 = (b + c) >> 31;
-    uint32_t bit3 = result >> 31;
+    uint32_t bit2 = b >> 31;
+    uint32_t bit3 = (a+b) >> 31;
     uint64_t tmp = (uint64_t)a + (uint64_t)b + (uint64_t)c;
     if ((tmp >> 32) & 1) {
         CPU_SET_STATUS(st0, C, 1);
@@ -308,6 +279,26 @@ void HELPER(test2_C_V_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t 
     }
 
     if (bit1 == 1 && bit2 == 1 && bit3 == 0) {//neg overflow
+        is_overflow = -1;
+    }
+    else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
+        is_overflow = 1;
+    }
+    else {    if (b == 0) {
+        CPU_SET_STATUS(st0, C, 1);
+    }
+        uint32_t bit1 = (a+b) >> 31;
+        uint32_t bit2 = c >> 31;
+        uint32_t bit3 = (result) >> 31;
+        if (bit1 == 1 && bit2 == 1 && bit3 == 0) {//neg overflow
+            is_overflow = -1;
+        }
+        else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
+            is_overflow = 1;
+        }
+    }
+
+    if (is_overflow == -1) {//neg overflow
         CPU_SET_STATUS(st0, V, 1);
         if (CPU_GET_STATUS(st0, OVM)) { //ovm = 1
             env->acc = 0x80000000;
@@ -318,7 +309,7 @@ void HELPER(test2_C_V_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t 
             CPU_SET_STATUS(st0, OVC, ovc);
         }
     }
-    else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
+    else if (is_overflow == 1) {//pos overflow
         CPU_SET_STATUS(st0, V, 1);
         if (CPU_GET_STATUS(st0, OVM)) { //ovm = 1
             env->acc = 0x7fffffff;
@@ -330,7 +321,16 @@ void HELPER(test2_C_V_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t 
         }
     }
     else {
-        CPU_SET_STATUS(st0, V, 0);
+        // CPU_SET_STATUS(st0, V, 0);
+    }
+}
+
+void HELPER(test2_sub_C_V_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t c, uint32_t result) 
+{
+    b = ~b + 1;
+    helper_test2_C_V_OVC_OVM_32(env, a, b, c, result);
+    if (b == 0) {
+        CPU_SET_STATUS(st0, C, 1);
     }
 }
 

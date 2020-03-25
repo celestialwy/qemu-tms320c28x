@@ -923,6 +923,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     length = 4;
                                     break;
                                 }
+                                case 0b0100: //0101 0110 0101 0100 0000 0000 LLLL LLLL SUBBL ACC,loc32
+                                {
+                                    if (((insn32 & 0xff00) >> 8) == 0) {
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC32);
+                                        fprintf_func(stream, "0x%08x; SUBBL ACC,%s", insn, str);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b0110: //0101 0110 0101 0110 MOV TL,#0
                                 {
                                     fprintf_func(stream, "0x%04x;     MOV TL,#0", insn);
