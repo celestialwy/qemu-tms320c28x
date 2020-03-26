@@ -718,6 +718,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_addcl_acc_loc32(ctx, mode);
                                     break;
                                 }
+                                case 0b0001: //0101 0110 0100 0001 0000 0000 LLLL LLLL SUBL loc32,ACC
+                                {
+                                    if ((insn2 >> 8) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_subl_loc32_acc(ctx, mode);
+                                    }
+                                    break;
+                                }
                                 case 0b1000: //0101 0110 0100 1000 0000 COND LLLL LLLL MOVL loc32,ACC,COND
                                 {
                                     uint32_t mode = insn2 & 0xff;
@@ -1320,7 +1330,23 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
             }
             break;
         case 0b1110:
+        {
+            switch((insn & 0x0f00) >> 8) {
+                case 0b1010://1110 1010 LLLL LLLL SUBR loc16,AL
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_subr_loc16_ax(ctx, mode, false);
+                    break;
+                }
+                case 0b1011://1110 1011 LLLL LLLL SUBR loc16,AH
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_subr_loc16_ax(ctx, mode, true);
+                    break;
+                }
+            }
             break;
+        }
         case 0b1111:
             switch ((insn & 0x0f00) >> 8) {
                 case 0b0100: //1111 0100 LLLL LLLL 32bit MOV *(0:16bit),loc16

@@ -262,3 +262,83 @@ static void gen_subl_acc_loc32(DisasContext *ctx, uint32_t mode)
     gen_helper_test_sub_C_V_32(cpu_env, a, b, cpu_acc);
     gen_helper_test_sub_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 }
+
+// SUBL loc32,ACC
+static void gen_subl_loc32_acc(DisasContext *ctx, uint32_t mode)
+{
+    if (is_reg_addressing_mode(mode, LOC32))
+    {
+        TCGv a = tcg_temp_new();
+        gen_ld_loc32(a, mode);
+
+        TCGv result = tcg_temp_new();
+        tcg_gen_sub_i32(result, a, cpu_acc);
+
+        gen_helper_test_N_Z_32(cpu_env, result);
+        gen_helper_test_sub_C_V_32(cpu_env, a, cpu_acc, result);
+        gen_helper_test_sub_OVC_OVM_32(cpu_env, a, cpu_acc, result);
+
+        gen_st_loc32(mode, result);
+        tcg_temp_free_i32(result);
+        tcg_temp_free_i32(a);
+    }
+    else 
+    {
+        TCGv a = tcg_temp_new();
+
+        TCGv addr = tcg_temp_new();
+        gen_get_loc_addr(addr, mode, LOC32);
+        gen_ld32u_swap(a, addr);//load loc32
+
+        TCGv result = tcg_temp_new();
+        tcg_gen_sub_i32(result, a, cpu_acc);
+
+        gen_helper_test_N_Z_32(cpu_env, result);
+        gen_helper_test_sub_C_V_32(cpu_env, a, cpu_acc, result);
+        gen_helper_test_sub_OVC_OVM_32(cpu_env, a, cpu_acc, result);
+
+        gen_st32u_swap(result, addr);
+
+        tcg_temp_free_i32(result);
+        tcg_temp_free_i32(a);
+        tcg_temp_free(addr);
+    }
+}
+
+// SUBR loc16,AX
+static void gen_subr_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH) 
+{
+    //reverse substract: b - a
+    TCGv a = tcg_temp_new();
+    TCGv b = tcg_temp_new();
+    TCGv result = tcg_temp_new();
+
+    if (is_reg_addressing_mode(mode, LOC16)) {
+        gen_ld_loc16(a, mode);
+        gen_ld_reg_half(b, cpu_acc, is_AH);
+        tcg_gen_sub_i32(result, b, a);//sub
+        gen_st_loc16(mode, result);//store
+        gen_helper_test_sub_C_V_16(cpu_env, b, a, result);
+        gen_helper_test_N_Z_16(cpu_env, result);
+    }
+    else {
+        TCGv_i32 addr = tcg_temp_new();
+        gen_get_loc_addr(addr, mode, LOC16);
+        gen_ld16u_swap(a, addr);
+
+        gen_ld_reg_half(b, cpu_acc, is_AH);
+
+        tcg_gen_sub_i32(result, b, a);//sub
+
+        gen_helper_test_sub_C_V_16(cpu_env, b, a, result);
+        gen_helper_test_N_Z_16(cpu_env, result);
+        
+        gen_st16u_swap(result, addr); //store
+
+        tcg_temp_free_i32(addr);
+    }
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+    tcg_temp_free_i32(result);
+}

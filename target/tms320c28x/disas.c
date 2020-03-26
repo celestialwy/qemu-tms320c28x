@@ -926,6 +926,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%08x; ADDCL ACC,%s", insn32, str);
                                     break;
                                 }
+                                case 0b0001: //0101 0110 0100 0001 0000 0000 LLLL LLLL SUBL loc32,ACC
+                                {
+                                    if (((insn32 >> 8) & 0xff) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC32);
+                                        fprintf_func(stream, "0x%08x; SUBL %s,ACC", insn32, str);
+                                    }
+                                    break;
+                                }
                                 case 0b1000: //0101 0110 0100 1000 0000 COND LLLL LLLL MOVL loc32,ACC,COND
                                 {
                                     uint32_t mode = insn32 & 0xff;
@@ -1631,7 +1642,25 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             }
             break;
         case 0b1110:
+        {
+            switch((insn & 0x0f00) >> 8) {
+                case 0b1010://1110 1010 LLLL LLLL SUBR loc16,AL
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str, mode, LOC16);
+                    fprintf_func(stream, "0x%04x;     SUBR %s,AL", insn, str);
+                    break;
+                }
+                case 0b1011://1110 1011 LLLL LLLL SUBR loc16,AH
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str, mode, LOC16);
+                    fprintf_func(stream, "0x%04x;     SUBR %s,AH", insn, str);
+                    break;
+                }
+            }
             break;
+        }
         case 0b1111:
             switch ((insn & 0x0f00) >> 8) {
                 case 0b0100: //1111 0100 LLLL LLLL 32bit MOV *(0:16bit),loc16

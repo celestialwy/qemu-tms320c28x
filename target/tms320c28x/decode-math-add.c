@@ -345,10 +345,10 @@ static void gen_addl_loc32_acc(DisasContext *ctx, uint32_t mode)
 {
     if (is_reg_addressing_mode(mode, LOC32))
     {
-        TCGv b = tcg_temp_local_new();
+        TCGv b = tcg_temp_new();
         gen_ld_loc32(b, mode);
 
-        TCGv tmp = tcg_temp_local_new();
+        TCGv tmp = tcg_temp_new();
         tcg_gen_add_i32(tmp, cpu_acc, b);
 
         gen_helper_test_N_Z_32(cpu_env, cpu_acc);
@@ -361,13 +361,13 @@ static void gen_addl_loc32_acc(DisasContext *ctx, uint32_t mode)
     }
     else 
     {
-        TCGv b = tcg_temp_local_new();
+        TCGv b = tcg_temp_new();
 
         TCGv_i32 addr = tcg_temp_new();
         gen_get_loc_addr(addr, mode, LOC32);
         gen_ld32u_swap(b, addr);
 
-        TCGv tmp = tcg_temp_local_new();
+        TCGv tmp = tcg_temp_new();
         tcg_gen_add_i32(tmp, cpu_acc, b);
 
         gen_helper_test_N_Z_32(cpu_env, cpu_acc);
