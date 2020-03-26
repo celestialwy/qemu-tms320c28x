@@ -467,7 +467,7 @@ void HELPER(subcu)(CPUTms320c28xState *env, uint32_t loc16)
     b = (~(b << 16) + 1) & 0x1ffffffff;//33bit length
     temp = a + b;
 
-    if (((temp >> 32) & 1) == 0)//temp(32:0) > 0
+    if (a > (loc16<<16))//temp(32:0) > 0
     {
         env->acc = (temp & 0xffffffff) + 1;//acc=temp(31:0) + 1
     }
@@ -477,7 +477,6 @@ void HELPER(subcu)(CPUTms320c28xState *env, uint32_t loc16)
     }
 
     helper_test_N_Z_32(env, env->acc);
-
 
     if ((temp >> 33) & 1) {
         CPU_SET_STATUS(st0, C, 1);
