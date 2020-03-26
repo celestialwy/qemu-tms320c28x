@@ -565,6 +565,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_clrc_amode(ctx);
                                     break;
                                 }
+                                case 0b0111: //0101 0110 0001 0111 0000 0000 LLLL LLLL SUBCUL ACC,loc32
+                                {
+                                    if ((insn2 >> 8) == 0) {
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_subcul_acc_loc32(ctx, mode);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b1010: //0101 0110 0001 1010 SETC M0M1MAP
                                 {
                                     gen_setc_m0m1map(ctx);

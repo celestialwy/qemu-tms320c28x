@@ -215,11 +215,28 @@ static void gen_subcu_acc_loc16(DisasContext *ctx, uint32_t mode)
 {
     TCGLabel *repeat = gen_new_label();
 
-
     TCGv a = tcg_temp_new_i32();
     gen_ld_loc16(a, mode);
     gen_helper_subcu(cpu_env, a);//call helper function: calculate result, update flag bit N C Z
-    gen_helper_print(cpu_acc);
+    tcg_temp_free(a);
+
+    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
+    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
+    gen_set_label(repeat);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+
+    ctx->base.is_jmp = DISAS_REPEAT;
+}
+
+// SUBCUL ACC,loc32
+static void gen_subcul_acc_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGLabel *repeat = gen_new_label();
+
+    TCGv a = tcg_temp_new_i32();
+    gen_ld_loc32(a, mode);
+    gen_helper_subcul(cpu_env, a);//call helper function: calculate result, update flag bit N C Z
     tcg_temp_free(a);
 
     tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);

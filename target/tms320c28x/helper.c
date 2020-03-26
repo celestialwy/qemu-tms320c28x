@@ -486,6 +486,38 @@ void HELPER(subcu)(CPUTms320c28xState *env, uint32_t loc16)
     }
 }
 
+void HELPER(subcul)(CPUTms320c28xState *env, uint32_t loc32)
+{
+    uint64_t temp, a, b;
+    a = (uint64_t)env->acc << 1;
+    a = a + (env->p >> 31);
+    b = loc32;
+    b = (~b + 1) & 0x1ffffffff;//33bit length
+    temp = a + b;
+
+    if (a > loc32)//temp(32:0) > 0
+    {
+        env->acc = (temp & 0xffffffff);//acc=temp(31:0)
+        env->p = (env->p << 1) + 1;//p = p<<1 + 1
+    }
+    else 
+    {
+        //acc:p = acc:p << 1
+        temp = env->p >> 31;
+        env->p = env->p << 1;
+        env->acc = (env->acc << 1) + temp;
+    }
+
+    helper_test_N_Z_32(env, env->acc);
+
+    if ((temp >> 33) & 1) {
+        CPU_SET_STATUS(st0, C, 1);
+    }
+    else {
+        CPU_SET_STATUS(st0, C, 0);
+    }
+}
+
 void HELPER(mov_16bit_loc16)(CPUTms320c28xState *env, uint32_t mode, uint32_t addr, uint32_t is_rpt)
 {
     uint32_t max;

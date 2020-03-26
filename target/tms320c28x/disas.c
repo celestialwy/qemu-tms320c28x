@@ -742,6 +742,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     CLRC AMODE", insn);
                                     break;
                                 }
+                                case 0b0111: //0101 0110 0001 0111 0000 0000 LLLL LLLL SUBCUL ACC,loc32
+                                {
+                                    if (((insn32 >> 8) & 0xff) == 0) {
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC32);
+                                        fprintf_func(stream, "0x%08x; SUBCUL ACC,%s", insn,str);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b1010: //0101 0110 0001 1010 SETC M0M1MAP
                                 {
                                     fprintf_func(stream, "0x%04x;     SETC M0M1MAP", insn);
