@@ -426,16 +426,28 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 case 0b0001: //0001 0001 LLLL LLLL MOVS T,loc16
                 {
                     uint32_t mode = insn & 0xff;
-                    get_loc_string(str,mode,LOC16);
-                    fprintf_func(stream, "0x%04x;     MOVS T,%s", insn, str);
+                    if (mode == 0b10101100)
+                    {
+                        fprintf_func(stream, "0x%04x;     SUBL ACC,P<<PM", insn);
+                    }
+                    else {
+                        get_loc_string(str,mode,LOC16);
+                        fprintf_func(stream, "0x%04x;     MOVS T,%s", insn, str);
+                    }
                     break;
                 }
                 case 0b0110: //0001 0110 LLLL LLLL MOVP T,loc16
                 {
 
                     uint32_t mode = insn & 0xff;
-                    get_loc_string(str,mode,LOC16);
-                    fprintf_func(stream, "0x%04x;     MOVP T,%s", insn, str);
+                    if (mode == 0b10101100)
+                    {
+                        fprintf_func(stream, "0x%04x;     MOVL ACC,P<<PM", insn);
+                    }
+                    else {
+                        get_loc_string(str,mode,LOC16);
+                        fprintf_func(stream, "0x%04x;     MOVP T,%s", insn, str);
+                    }
                     break;
                 }
                 case 0b1000: //0001 1000 LLLL LLLL CCCC CCCC CCCC CCCC AND loc16,#16bitSigned
