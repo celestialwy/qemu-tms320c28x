@@ -412,3 +412,37 @@ static void gen_subu_acc_loc16(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(b);
     ctx->base.is_jmp = DISAS_REPEAT;
 }
+
+// SUBUL ACC,loc32
+static void gen_subul_acc_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
+    gen_ld_loc32(b, mode);
+    tcg_gen_mov_i32(a, cpu_acc);
+    tcg_gen_sub_i32(cpu_acc, a, b);
+
+    gen_helper_test_sub_C_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_sub_OVCU_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+}
+
+// SUBUL P,loc32
+static void gen_subul_p_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
+    gen_ld_loc32(b, mode);
+    tcg_gen_mov_i32(a, cpu_p);
+    tcg_gen_sub_i32(cpu_p, a, b);
+
+    gen_helper_test_sub_C_V_32(cpu_env, a, b, cpu_p);
+    gen_helper_test_sub_OVCU_32(cpu_env, a, b, cpu_p);
+    gen_helper_test_N_Z_32(cpu_env, cpu_p);
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+}

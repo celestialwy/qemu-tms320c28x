@@ -988,6 +988,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                     break;
                                 }
+                                case 0b0101: //0101 0110 0101 0101 0000 0000 LLLL LLLL SUBUL ACC,loc32
+                                {
+                                    if (((insn32 & 0xff00) >> 8) == 0) {
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC32);
+                                        fprintf_func(stream, "0x%08x; SUBUL ACC,%s", insn, str);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b0110: //0101 0110 0101 0110 MOV TL,#0
                                 {
                                     fprintf_func(stream, "0x%04x;     MOV TL,#0", insn);
@@ -1006,6 +1016,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 case 0b1100: //0101 0110 0101 1100 CLRC OVC
                                 {
                                     fprintf_func(stream, "0x%04x;     CLRC OVC", insn);
+                                    break;
+                                }
+                                case 0b1101: //0101 0110 0101 1101 0000 0000 LLLL LLLL SUBUL P,loc32
+                                {
+                                    if (((insn32 & 0xff00) >> 8) == 0) {
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC32);
+                                        fprintf_func(stream, "0x%08x; SUBUL P,%s", insn, str);
+                                        length = 4;
+                                    }
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0101 1111 ABSTC  ACC

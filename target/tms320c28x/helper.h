@@ -51,6 +51,7 @@ DEF_HELPER_4(test_sub_OVC_OVM_32, void, env, i32, i32, i32) // affect acc value
 DEF_HELPER_5(test2_C_V_OVC_OVM_32, void, env, i32, i32, i32, i32) // affect acc value, used for 3 op add
 DEF_HELPER_5(test2_sub_C_V_OVC_OVM_32, void, env, i32, i32, i32, i32) // affect acc value, used for 3 op add
 DEF_HELPER_4(test_OVCU_32, void, env, i32, i32, i32) // affect acc value
+DEF_HELPER_4(test_sub_OVCU_32, void, env, i32, i32, i32) // affect acc value
 
 //load
 DEF_HELPER_2(extend_low_sxm, i32, env, i32) //signed extend value with sxm

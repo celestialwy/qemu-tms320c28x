@@ -343,6 +343,14 @@ void HELPER(test_OVCU_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint3
     }
 }
 
+void HELPER(test_sub_OVCU_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) {
+    if (a < b) {
+        int32_t ovc = CPU_GET_STATUS(st0, OVC);
+        ovc -= 1;
+        CPU_SET_STATUS(st0, OVC, ovc);
+    }
+}
+
 uint32_t HELPER(extend_low_sxm)(CPUTms320c28xState *env, uint32_t value)
 {
     uint32_t sxm = CPU_GET_STATUS(st0, SXM);
