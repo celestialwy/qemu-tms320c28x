@@ -342,3 +342,73 @@ static void gen_subr_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
     tcg_temp_free_i32(b);
     tcg_temp_free_i32(result);
 }
+
+// SUBRL loc32,ACC
+static void gen_subrl_loc32_acc(DisasContext *ctx, uint32_t mode)
+{
+    if (is_reg_addressing_mode(mode, LOC32))
+    {
+        TCGv b = tcg_temp_new();
+        gen_ld_loc32(b, mode);
+
+        TCGv result = tcg_temp_new();
+        tcg_gen_sub_i32(result, cpu_acc, b);
+
+        gen_helper_test_N_Z_32(cpu_env, result);
+        gen_helper_test_sub_C_V_32(cpu_env, cpu_acc, b, result);
+        gen_helper_test_sub_OVC_OVM_32(cpu_env, cpu_acc, b, result);
+
+        gen_st_loc32(mode, result);
+        tcg_temp_free_i32(result);
+        tcg_temp_free_i32(b);
+    }
+    else 
+    {
+        TCGv b = tcg_temp_new();
+
+        TCGv addr = tcg_temp_new();
+        gen_get_loc_addr(addr, mode, LOC32);
+        gen_ld32u_swap(b, addr);//load loc32
+
+        TCGv result = tcg_temp_new();
+        tcg_gen_sub_i32(result, cpu_acc, b);
+
+        gen_helper_test_N_Z_32(cpu_env, result);
+        gen_helper_test_sub_C_V_32(cpu_env, cpu_acc, b, result);
+        gen_helper_test_sub_OVC_OVM_32(cpu_env, cpu_acc, b, result);
+
+        gen_st32u_swap(result, addr);
+
+        tcg_temp_free_i32(result);
+        tcg_temp_free_i32(b);
+        tcg_temp_free(addr);
+    }
+}
+
+// SUBU ACC,loc16
+static void gen_subu_acc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGLabel *repeat = gen_new_label();
+
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
+    gen_ld_loc16(b, mode);
+    tcg_gen_mov_i32(a, cpu_acc);
+    tcg_gen_sub_i32(cpu_acc, a, b);
+    gen_helper_test_sub_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_sub_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+
+    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
+
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_sub_C_32(cpu_env, a, b, cpu_acc);
+
+    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
+    gen_set_label(repeat);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+    ctx->base.is_jmp = DISAS_REPEAT;
+}
