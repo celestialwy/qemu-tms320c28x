@@ -139,13 +139,12 @@ void HELPER(test_C_V_16)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32
 
 void HELPER(test_sub_C_V_16)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
 {
-    b = (~b + 1) & 0xffff;
+    b = (~b & 0xffff)  + 1;
     helper_test_C_V_16(env, a, b, result);
 
-    if (b == 0) {
-        CPU_SET_STATUS(st0, C, 1);
-    }
-
+    // if (b == 0) {
+    //     CPU_SET_STATUS(st0, C, 1);
+    // }
 }
 
 void HELPER(test_C_32)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) 
