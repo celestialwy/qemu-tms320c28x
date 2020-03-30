@@ -470,6 +470,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     SUBB ACC,#0x%x", insn, imm);
                     break;
                 }
+                case 0b1011: //0001 1011 LLLL LLLL CCCC CCCC CCCC CCCC CMP loc16,#16bitSigned
+                {
+                    length = 4;
+                    int32_t imm = insn32 & 0xffff;
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%08x; CMP %s,#0x%x", insn, str, imm);
+                    break;
+                }
                 case 0b1110: //0001 1110 .... .... MOVL loc32,ACC
                 {
                     uint32_t mode = insn & 0xff;
@@ -656,6 +665,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b0101:
             switch ((insn & 0x0f00) >> 8) {
+                case 0b0010:
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     CMP AL,#0x%x", insn, imm);
+                    break;
+                }
+                case 0b0011://0101 001A CCCC CCCC CMPB AX,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     CMP AH,#0x%x", insn, imm);
+                    break;
+                }
                 case 0b0100:
                 {
                     uint32_t mode = insn & 0xff;
@@ -1026,6 +1047,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         fprintf_func(stream, "0x%08x; SUBUL P,%s", insn, str);
                                         length = 4;
                                     }
+                                    break;
+                                }
+                                case 0b1110: //0101 0110 0101 1110 CMP64 ACC:P
+                                {
+                                    fprintf_func(stream, "0x%04x;     CMP64 ACC:P", insn);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0101 1111 ABSTC  ACC
@@ -1786,6 +1812,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 case 0b0110: //1111 1111 0101 0110 ABS ACC
                                 {
                                     fprintf_func(stream, "0x%04x;     ABS ACC", insn);
+                                    break;
+                                }
+                                case 0b1001: //1111 1111 0101 1001 CMPL ACC,P<<PM
+                                {
+                                    fprintf_func(stream, "0x%04x;     CMPL ACC,P<<PM", insn);
                                     break;
                                 }
                                 case 0b1010: //1111 1111 0101 1010 MOVL P,ACC

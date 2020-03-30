@@ -595,7 +595,7 @@ void HELPER(cmp32_N_Z_C)(CPUTms320c28xState *env, uint32_t a, uint32_t b)
 {
     uint64_t a64 = a;
     uint64_t b64 = b;
-    uint64_t result2 = a64 + ((~b64 + 1) & 0xffffffff);
+    uint64_t result2 = a64 + ((~b64) & 0xffffffff) + 1;
     //test C
     if ((result2 >> 32) & 1) {
         CPU_SET_STATUS(st0, C, 1);
@@ -624,4 +624,42 @@ void HELPER(cmp32_N_Z_C)(CPUTms320c28xState *env, uint32_t a, uint32_t b)
         CPU_SET_STATUS(st0, Z, 0);
     }
 
+}
+
+void HELPER(cmp64_acc_p)(CPUTms320c28xState *env)
+{
+    uint32_t V = CPU_GET_STATUS(st0, V);
+    uint32_t acc_31 = env->acc >> 31;
+
+    if (V == 1) {
+        if (acc_31 == 1)
+        {
+            CPU_SET_STATUS(st0, N, 0);
+        }
+        else 
+        {
+            CPU_SET_STATUS(st0, N, 1);
+        }
+    }
+    else {
+        if (acc_31 == 1)
+        {
+            CPU_SET_STATUS(st0, N, 1);
+        }
+        else 
+        {
+            CPU_SET_STATUS(st0, N, 0);
+        }
+    }
+
+    if ((env->acc == 0) && (env->p == 0))
+    {
+        CPU_SET_STATUS(st0, Z, 1);
+    }
+    else
+    {
+        CPU_SET_STATUS(st0, Z, 0);
+    }
+
+    CPU_SET_STATUS(st0, V, 0);
 }

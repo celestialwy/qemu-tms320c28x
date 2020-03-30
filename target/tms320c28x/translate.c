@@ -313,6 +313,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_subb_acc_8bit(ctx, imm);
                     break;
                 }
+                case 0b1011: //0001 1011 LLLL LLLL CCCC CCCC CCCC CCCC CMP loc16,#16bitSigned
+                {
+                    length = 4;
+                    int32_t imm = insn2;
+                    uint32_t mode = insn & 0xff;
+                    gen_cmp_loc16_16bit(ctx, mode, imm);
+                    break;
+                }
                 case 0b1110: //0001 1110 LLLL LLLL MOVL loc32,ACC
                 {
                     uint32_t mode = insn & 0xff;
@@ -476,6 +484,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
             break;
         case 0b0101:
             switch ((insn & 0x0f00) >> 8) {
+                case 0b0010:
+                case 0b0011://0101 001A CCCC CCCC CMPB AX,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    uint32_t is_AH = (insn >> 8) & 1;
+                    gen_cmp_ax_8bit(ctx, imm, is_AH);
+                    break;
+                }
                 case 0b0100:
                 case 0b0101://0101 010A LLLL LLLL CMP AX,loc16
                 {
@@ -808,6 +824,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         gen_subul_p_loc32(ctx, mode);
                                         length = 4;
                                     }
+                                    break;
+                                }
+                                case 0b1110: //0101 0110 0101 1110 CMP64 ACC:P
+                                {
+                                    gen_cmp64_acc_p(ctx);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0101 1111 ABSTC  ACC
@@ -1467,6 +1488,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 case 0b0110: //1111 1111 0101 0110 ABS ACC
                                 {
                                     gen_abs_acc(ctx);
+                                    break;
+                                }
+                                case 0b1001: //1111 1111 0101 1001 CMPL ACC,P<<PM
+                                {
+                                    gen_cmpl_acc_p_pm(ctx);
                                     break;
                                 }
                                 case 0b1010: //1111 1111 0101 1010 MOVL P,ACC
