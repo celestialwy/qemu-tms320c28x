@@ -790,6 +790,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                     break;
                                 }
+                                case 0b1000: //0101 0110 0001 1000 CMPR 2
+                                {
+                                    fprintf_func(stream, "0x%04x;     CMPR 2", insn);
+                                    break;
+                                }
+                                case 0b1001: //0101 0110 0001 1001 CMPR 1
+                                {
+                                    fprintf_func(stream, "0x%04x;     CMPR 1", insn);
+                                    break;
+                                }
                                 case 0b1010: //0101 0110 0001 1010 SETC M0M1MAP
                                 {
                                     fprintf_func(stream, "0x%04x;     SETC M0M1MAP", insn);
@@ -798,6 +808,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 case 0b1011: //0101 0110 0001 1011 CLRC XF
                                 {
                                     fprintf_func(stream, "0x%04x;     CLRC XF", insn);
+                                    break;
+                                }
+                                case 0b1100: //0101 0110 0001 1100 CMPR 3
+                                {
+                                    fprintf_func(stream, "0x%04x;     CMPR 3", insn);
+                                    break;
+                                }
+                                case 0b1101: //0101 0110 0001 1101 CMPR 0
+                                {
+                                    fprintf_func(stream, "0x%04x;     CMPR 0", insn);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0001 1111 SETC Objmode

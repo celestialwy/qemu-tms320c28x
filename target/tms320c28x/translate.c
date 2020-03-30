@@ -594,6 +594,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b1000: //0101 0110 0001 1000 CMPR 2
+                                {
+                                    gen_cmpr_0123(ctx, 2);
+                                    break;
+                                }
+                                case 0b1001: //0101 0110 0001 1001 CMPR 1
+                                {
+                                    gen_cmpr_0123(ctx, 1);
+                                    break;
+                                }
                                 case 0b1010: //0101 0110 0001 1010 SETC M0M1MAP
                                 {
                                     gen_setc_m0m1map(ctx);
@@ -602,6 +612,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 case 0b1011: //0101 0110 0001 1011 CLRC XF
                                 {
                                     gen_clrc_xf(ctx);
+                                    break;
+                                }
+                                case 0b1100: //0101 0110 0001 1100 CMPR 3
+                                {
+                                    gen_cmpr_0123(ctx, 3);
+                                    break;
+                                }
+                                case 0b1101: //0101 0110 0001 1101 CMPR 0
+                                {
+                                    gen_cmpr_0123(ctx, 0);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0001 1111 SETC Objmode
