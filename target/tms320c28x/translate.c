@@ -249,8 +249,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                 }
                 case 0b1010:
                     break;
-                case 0b1011:
+                case 0b1011: //0000 1011 LLLL LLLL DEC loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_dec_loc16(ctx, mode);
                     break;
+                }
                 case 0b1100: //0000 1100 LLLL LLLL ADDCU ACC,loc16
                 {
                     uint32_t mode = insn & 0xff;

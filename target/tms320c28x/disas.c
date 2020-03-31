@@ -382,8 +382,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 }
                 case 0b1010:
                     break;
-                case 0b1011:
+                case 0b1011: //0000 1011 LLLL LLLL DEC loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str, mode, LOC16);
+                    fprintf_func(stream, "0x%04x;     DEC %s", insn, str);
                     break;
+                }
                 case 0b1100: //0000 1100 LLLL LLLL ADDCU ACC,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -609,8 +614,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 case 0b1011: //0011 1011 CCCC CCCC SETC mode
                 {
                     uint32_t mode = insn & 0xff;
-                    get_status_bit_string(str, mode);
-                    fprintf_func(stream, "0x%04x;     SETC %s", insn, str);
+                    if (mode == 0b00010000) {
+                        fprintf_func(stream, "0x%04x;     DINT", insn);
+                    }
+                    else {
+                        get_status_bit_string(str, mode);
+                        fprintf_func(stream, "0x%04x;     SETC %s", insn, str);
+                    }
                     break;
                 }
                 case 0b1100://0011 110a LLLL LLLL MOVB loc16,AL.LSB
