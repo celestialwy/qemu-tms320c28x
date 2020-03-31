@@ -767,6 +767,24 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     length = 4;
                                     break;
                                 }
+                                case 0b0111: //0101 0110 0000 0111 .... //MAC P,loc16,*XAR7/++
+                                {
+                                    uint32_t mode2 = (insn32 >> 8) & 0xff;
+                                    uint32_t mode1 = insn32 & 0xff;
+                                    if (mode2 == 0b11000111)
+                                    {
+                                        length = 4;
+                                        get_loc_string(str, mode1, LOC16);
+                                        fprintf_func(stream, "0x%08x; MAC P,%s,*XAR7", insn32, str);
+                                    }
+                                    else if (mode2 == 0b10000111)
+                                    {
+                                        length = 4;
+                                        get_loc_string(str, mode1, LOC16);
+                                        fprintf_func(stream, "0x%08x; MAC P,%s,*XAR7++", insn32, str);
+                                    }
+                                    break;
+                                }
                                 case 0b1000: //0101 0110 0000 1000 CCCC CCCC CCCC CCCC AND ACC,#16bit<<#16
                                 {
                                     uint32_t imm = insn32 & 0xff;
@@ -1220,7 +1238,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 }
                 case 0b0110: //0111 0110 .... ....
                     if (((insn >> 7) & 0x1) == 1) { //0111 0110 1... .... MOVL XARn,#22bit 
-                        uint32_t n = ((insn >> 6) & 0b11) + 6;//XAR6,XAR7
+                        uint32_t n = ((insn >> 6) & 0b1) + 6;//XAR6,XAR7
                         uint32_t imm = insn32 & 0x3fffff;
                         fprintf_func(stream, "0x%08x; MOVL XAR%d, #0x%x", insn32, n,imm);
                         length = 4;

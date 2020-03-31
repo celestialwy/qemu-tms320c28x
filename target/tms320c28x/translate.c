@@ -566,6 +566,17 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b0111: //0101 0110 0000 0111 .... //MAC P,loc16,*XAR7/++
+                                {
+                                    uint32_t mode2 = insn2 >> 8;
+                                    uint32_t mode1 = insn2 & 0xff;
+                                    if ((mode2 == 0b11000111) || (mode2 == 0b10000111))
+                                    {
+                                        length = 4;
+                                        gen_mac_p_loc16_xar7(ctx, mode1, mode2);
+                                    }
+                                    break;
+                                }
                                 case 0b1000: //0101 0110 0000 1000 CCCC CCCC CCCC CCCC AND ACC,#16bit<<#16
                                 {
                                     uint32_t imm = insn2;
@@ -978,7 +989,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                 }
                 case 0b0110: //0111 0110 .... ....
                     if (((insn >> 7) & 0x1) == 1) { //0111 0110 1... .... MOVL XARn,#22bit 
-                        uint32_t n = ((insn >> 6) & 0b11) + 6;//XAR6,XAR7
+                        uint32_t n = ((insn >> 6) & 0b1) + 6;//XAR6,XAR7
                         uint32_t imm = ((insn & 0x3f)<< 16) | insn2;
                         gen_movl_xarn_22bit(ctx, n, imm);
                         length = 4;
