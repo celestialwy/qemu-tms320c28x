@@ -728,16 +728,21 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         case 0b0011: //0101 0110 0011 ....
                         {
                             switch (insn & 0xf) {
-                                case 0b1000: //0101 0110 0011 100A MOV PM,AX
-                                case 0b1001: //0101 0110 0011 100A MOV PM,AX
+                                case 0b0101: //0101 0110 0011 0101 CSB ACC
                                 {
-                                    uint32_t is_AH = insn & 1;
-                                    gen_mov_pm_ax(ctx, is_AH);
+                                    gen_csb_acc(ctx);
                                     break;
                                 }
                                 case 0b0110: //0101 0110 0011 0110 CLRC Objmode
                                 {
                                     gen_clrc_objmode(ctx);
+                                    break;
+                                }
+                                case 0b1000: //0101 0110 0011 100A MOV PM,AX
+                                case 0b1001: //0101 0110 0011 100A MOV PM,AX
+                                {
+                                    uint32_t is_AH = insn & 1;
+                                    gen_mov_pm_ax(ctx, is_AH);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0011 1111 CLRC M0M1MAP

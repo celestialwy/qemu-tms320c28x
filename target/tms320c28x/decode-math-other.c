@@ -113,3 +113,27 @@ static void gen_cmpr_0123(DisasContext *ctx, uint32_t mode)
         gen_exception(ctx, EXCP_INTERRUPT_ILLEGAL);
     }
 }
+
+// CSB ACC
+static void gen_csb_acc(DisasContext *ctx)
+{
+    TCGv sign_bit = tcg_temp_local_new();
+    tcg_gen_shri_i32(sign_bit, cpu_acc, 31);//get acc sign bit
+    TCGv compare_bit = tcg_temp_local_new();
+    TCGv temp_acc = tcg_temp_local_new();
+    tcg_gen_mov_i32(temp_acc, cpu_acc);
+    TCGv count = tcg_const_local_i32(0);
+
+    TCGLabel *repeat = gen_new_label();
+    gen_set_label(repeat);
+    tcg_gen_addi_i32(count, count, 1);
+    tcg_gen_shli_i32(temp_acc, temp_acc, 1);
+    tcg_gen_shri_i32(compare_bit, temp_acc, 31);
+    tcg_gen_brcond_i32(TCG_COND_EQ, sign_bit, compare_bit, repeat);
+    tcg_gen_subi_i32(count, count, 1);
+    gen_st_reg_high_half(cpu_xt, count);
+
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    //test TC
+    gen_set_bit(cpu_st0, TC_BIT, TC_MASK, sign_bit);
+}

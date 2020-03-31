@@ -936,6 +936,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         case 0b0011: //0101 0110 0011 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0101: //0101 0110 0011 0101 CSB ACC
+                                {
+                                    fprintf_func(stream, "0x%04x;     CSB ACC", insn);
+                                    break;
+                                }
+                                case 0b0110: //0101 0110 0011 0110 CLRC Objmode
+                                {
+                                    fprintf_func(stream, "0x%04x;     CLRC Objmode", insn);
+                                    break;
+                                }   
                                 case 0b1000: //0101 0110 0011 100A MOV PM,AX
                                 case 0b1001: //0101 0110 0011 100A MOV PM,AX
                                 {
@@ -947,12 +957,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         fprintf_func(stream, "0x%04x;     MOV PM,AL", insn);
                                     }
                                     break;
-                                }
-                                case 0b0110: //0101 0110 0011 0110 CLRC Objmode
-                                {
-                                    fprintf_func(stream, "0x%04x;     CLRC Objmode", insn);
-                                    break;
-                                }                                
+                                }                             
                                 case 0b1111: //0101 0110 0011 1111 CLRC M0M1MAP
                                 {
                                     fprintf_func(stream, "0x%04x;     CLRC M0M1MAP", insn);
