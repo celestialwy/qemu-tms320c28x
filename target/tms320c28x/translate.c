@@ -185,10 +185,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             length = 4;
                             break;
                         }
-                        case 0b10: // 0000 0000 10CC CCCC, LC 22bit
+                        case 0b10: // 0000 0000 10CC CCCC CCCC CCCC CCCC CCCC, LC 22bit
                             break;
-                        case 0b11: // 0000 0000 11CC CCCC, FFC XAR7,22bit
+                        case 0b11: // 0000 0000 11CC CCCC CCCC CCCC CCCC CCCC, FFC XAR7,22bit
+                        {
+                            uint32_t imm = ((insn & 0x3f)<< 16) | insn2;
+                            gen_ffc_xar7_imm(ctx, imm);
+                            length = 4;
                             break;
+                        }
                     }
                     break;
                 case 0b0001: //0000 0001 LLLL LLLL SUBU ACC,loc16

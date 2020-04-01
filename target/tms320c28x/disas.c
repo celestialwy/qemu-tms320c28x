@@ -313,10 +313,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             length = 4;
                             break;
                         }
-                        case 0b10: // 0000 0000 10CC CCCC, LC 22bit
+                        case 0b10: // 0000 0000 10CC CCCC CCCC CCCC CCCC CCCC, LC 22bit
                             break;
-                        case 0b11: // 0000 0000 11CC CCCC, FFC XAR7,22bit
+                        case 0b11: // 0000 0000 11CC CCCC CCCC CCCC CCCC CCCC, FFC XAR7,22bit
+                        {
+                            uint32_t imm = insn32 & 0x3fffff;
+                            fprintf_func(stream, "0x%08x; FFC XAR7,@0x%x", insn32, imm);
+                            length = 4;
                             break;
+                        }
                     }
                     break;
                 case 0b0001: //0000 0001 LLLL LLLL SUBU ACC,loc16

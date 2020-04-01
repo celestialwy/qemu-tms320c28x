@@ -80,6 +80,17 @@ static void gen_estop1(DisasContext *ctx)
     //increments the PC by 1
 }
 
+// FFC XAR7,22bit
+static void gen_ffc_xar7_imm(DisasContext *ctx, uint32_t imm)
+{
+    gen_reset_rptc(ctx);
+    //xar7 = pc + 2
+    tcg_gen_movi_i32(cpu_xar[7], ((uint32_t)ctx->base.pc_next >> 1) + 2);
+    //pc = 22bit
+    tcg_gen_movi_tl(cpu_pc, imm);
+    ctx->base.is_jmp = DISAS_JUMP;
+}
+
 // LB 22bit
 static void gen_lb_22bit(DisasContext *ctx, uint32_t imm) {
     gen_reset_rptc(ctx);
