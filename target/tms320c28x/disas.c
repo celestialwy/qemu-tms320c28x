@@ -1047,6 +1047,23 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                     break;
                                 }
+                                case 0b1011: //0101 0110 0100 1011 .... DMAC ACC:P,loc32,*XAR7/++
+                                {
+                                    uint32_t mode1 = insn32 & 0xff;
+                                    uint32_t mode2 = (insn32 >> 8) & 0xff;
+                                    get_loc_string(str, mode1, LOC32);
+                                    if (mode2 == 0b11000111)
+                                    {
+                                        length = 4;
+                                        fprintf_func(stream, "0x%08x; DMAC ACC:P,%s,*XAR7", insn32, str);
+                                    }
+                                    else if(mode2 == 0b10000111)
+                                    {
+                                        length = 4;
+                                        fprintf_func(stream, "0x%08x; DMAC ACC:P,%s,*XAR7++", insn32, str);
+                                    }
+                                    break;
+                                }
                             }
                             break;
                         }
