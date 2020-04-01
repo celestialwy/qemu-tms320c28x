@@ -446,6 +446,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     }
                     break;
                 }
+                case 0b0100: //0001 0100 LLLL LLLL CCCC CCCC CCCC CCCC MAC P,loc16,0:pma
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t addr = insn32 & 0xffff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%08x; MAC P,%s,0:#0x%04x", insn, str, addr);
+                    length = 4;
+                    break;
+                }
                 case 0b0110: //0001 0110 LLLL LLLL MOVP T,loc16
                 {
 
