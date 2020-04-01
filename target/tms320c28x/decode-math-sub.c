@@ -35,13 +35,11 @@ static void gen_dec_loc16(DisasContext *ctx, uint32_t mode)
 // SUBB ACC,loc16<<#0...16
 static void gen_sub_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t shift_imm)
 {
-    uint32_t insn_length = 2;
-    if ((shift_imm == 16) || (shift_imm == 0))
-        insn_length = 1;
-
     TCGv a = tcg_temp_local_new();
     TCGv b = tcg_temp_local_new();
-    TCGLabel *repeat = gen_new_label();
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
 
     tcg_gen_mov_i32(a, cpu_acc);
     gen_ld_loc16(b, mode);
@@ -53,21 +51,19 @@ static void gen_sub_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t s
     gen_helper_test_sub_V_32(cpu_env, a, b, cpu_acc);
     gen_helper_test_sub_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 
-    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+
     if (shift_imm == 16)
         gen_helper_test_sub_C_32_shift16(cpu_env, a, b, cpu_acc);
     else
         gen_helper_test_sub_C_32(cpu_env, a, b, cpu_acc);
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
-    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + insn_length);
-
-    gen_set_label(repeat);
-    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
-    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
 
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
-    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // SUB ACC,loc16<<T
@@ -77,7 +73,9 @@ static void gen_sub_acc_loc16_t(DisasContext *ctx, uint32_t mode)
     TCGv b = tcg_temp_local_new();
     TCGv shift = tcg_temp_new();
 
-    TCGLabel *repeat = gen_new_label();
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
 
         tcg_gen_mov_i32(a, cpu_acc);//get a
         gen_ld_loc16(b, mode); //get b
@@ -91,20 +89,16 @@ static void gen_sub_acc_loc16_t(DisasContext *ctx, uint32_t mode)
         gen_helper_test_sub_V_32(cpu_env, a, b, cpu_acc);
         gen_helper_test_sub_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 
-    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
-    
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+
         gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 
-        gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
-    gen_set_label(repeat);
-        tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
-        gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
-    
     tcg_temp_free_i32(a);
     tcg_temp_free_i32(b);
     tcg_temp_free_i32(shift);
-
-    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // SUB ACC,#16bit<<#0...15
@@ -247,39 +241,39 @@ static void gen_subbl_acc_loc32(DisasContext *ctx, uint32_t mode)
 // SUBCU ACC,loc16
 static void gen_subcu_acc_loc16(DisasContext *ctx, uint32_t mode)
 {
-    TCGLabel *repeat = gen_new_label();
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
 
     TCGv a = tcg_temp_new_i32();
     gen_ld_loc16(a, mode);
     gen_helper_subcu(cpu_env, a);//call helper function: calculate result, update flag bit N C Z
     tcg_temp_free(a);
 
-    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
-    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
-    gen_set_label(repeat);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
     tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
-    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+    tcg_gen_br(begin);
+    gen_set_label(end);
 
-    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // SUBCUL ACC,loc32
 static void gen_subcul_acc_loc32(DisasContext *ctx, uint32_t mode)
 {
-    TCGLabel *repeat = gen_new_label();
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
 
     TCGv a = tcg_temp_new_i32();
     gen_ld_loc32(a, mode);
     gen_helper_subcul(cpu_env, a);//call helper function: calculate result, update flag bit N C Z
     tcg_temp_free(a);
 
-    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
-    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
-    gen_set_label(repeat);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
     tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
-    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
-
-    ctx->base.is_jmp = DISAS_REPEAT;
+    tcg_gen_br(begin);
+    gen_set_label(end);
 }
 
 // SUBL ACC,loc32
@@ -422,29 +416,29 @@ static void gen_subrl_loc32_acc(DisasContext *ctx, uint32_t mode)
 // SUBU ACC,loc16
 static void gen_subu_acc_loc16(DisasContext *ctx, uint32_t mode)
 {
-    TCGLabel *repeat = gen_new_label();
-
     TCGv a = tcg_temp_local_new();
     TCGv b = tcg_temp_local_new();
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
     gen_ld_loc16(b, mode);
     tcg_gen_mov_i32(a, cpu_acc);
     tcg_gen_sub_i32(cpu_acc, a, b);
     gen_helper_test_sub_V_32(cpu_env, a, b, cpu_acc);
     gen_helper_test_sub_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 
-    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
 
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     gen_helper_test_sub_C_32(cpu_env, a, b, cpu_acc);
 
-    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
-    gen_set_label(repeat);
-    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
-    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
-
     tcg_temp_free(a);
     tcg_temp_free(b);
-    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // SUBUL ACC,loc32

@@ -180,14 +180,18 @@ static void gen_mac_p_loc16_pma(DisasContext *ctx, uint32_t mode, uint32_t addr)
 //MAC P,loc16,*XAR7/++
 static void gen_mac_p_loc16_xar7(DisasContext *ctx, uint32_t mode1, uint32_t mode2)
 {
-    TCGLabel *repeat = gen_new_label();
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
     TCGv a = tcg_temp_local_new();
     TCGv b = tcg_temp_local_new();
+    TCGv v1 = tcg_temp_local_new();
+    TCGv v2 = tcg_temp_local_new();
+
+    gen_set_label(begin);
     gen_helper_shift_by_pm(b, cpu_env, cpu_p);//b = P<<PM
     tcg_gen_mov_i32(a, cpu_acc);//a = ACC
     tcg_gen_add_i32(cpu_acc, a, b); //ACC = ACC + P<<PM
-    TCGv v1 = tcg_temp_local_new();
-    TCGv v2 = tcg_temp_local_new();
+
     //0xC7: *XAR7, 0x87: *XAR7++, 0x8F: *--XAR7
     if (mode1 == 0x8f) //*--XAR7
     {
@@ -223,19 +227,16 @@ static void gen_mac_p_loc16_xar7(DisasContext *ctx, uint32_t mode1, uint32_t mod
 
     gen_helper_test_V_32(cpu_env, a, b, cpu_acc);
 
-    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+
+    gen_set_label(end);
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
     gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
-
-    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 2);
-    gen_set_label(repeat);
-    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
-    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
-
     tcg_temp_free(a);
-    tcg_temp_free(b);    
+    tcg_temp_free(b);
     tcg_temp_free(v1);
     tcg_temp_free(v2);
-    ctx->base.is_jmp = DISAS_REPEAT;
 }

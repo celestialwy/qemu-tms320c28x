@@ -8,23 +8,21 @@ static void gen_and_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t sh
 // AND ACC,loc16
 static void gen_and_acc_loc16(DisasContext *ctx, uint32_t mode)
 {
-    TCGLabel *repeat = gen_new_label();
-
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
     TCGv a = tcg_temp_local_new();
+
+    gen_set_label(begin);
     gen_ld_loc16(a, mode);
     tcg_gen_and_i32(cpu_acc, cpu_acc, a);
 
-    tcg_gen_brcondi_i32(TCG_COND_GT, cpu_rptc, 0, repeat);
-
-    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
-
-    gen_goto_tb(ctx, 0, (ctx->base.pc_next >> 1) + 1);
-    gen_set_label(repeat);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
     tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
-    gen_goto_tb(ctx, 1, (ctx->base.pc_next >> 1));
+    tcg_gen_br(begin);
 
+    gen_set_label(end);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     tcg_temp_free(a);
-    ctx->base.is_jmp = DISAS_REPEAT;
 }
 
 // AND AX,loc16,#16bit
