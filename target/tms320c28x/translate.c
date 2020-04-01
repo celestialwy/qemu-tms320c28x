@@ -1019,6 +1019,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         }
                         else { //0111 0110 00.. ....
                             switch(insn & 0x3f) {
+                                case 0b011010: //0111 0110 0001 1010 EDIS
+                                {
+                                    gen_edis(ctx);
+                                    break;
+                                }
                                 case 0b011011: //0111 0110 0001 1011 ASP
                                 {
                                     gen_asp(ctx);
@@ -1029,6 +1034,21 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     uint32_t imm = insn2;
                                     gen_movw_dp_16bit(ctx, imm);
                                     length = 4;
+                                    break;
+                                }
+                                case 0b100010: //0111 0110 0010 0010 EALLOW
+                                {
+                                    gen_eallow(ctx);
+                                    break;
+                                }
+                                case 0b100100: //0111 0110 0010 0100 ESTOP1
+                                {
+                                    gen_estop1(ctx);
+                                    break;
+                                }
+                                case 0b100101: //0111 0110 0010 0101 ESTOP0
+                                {
+                                    gen_estop0(ctx);
                                     break;
                                 }
                                 case 0b100110: //0111 0110 0010 0110 CCCC CCCC CCCC CCCC AND IER,#16bit

@@ -67,6 +67,19 @@ static void gen_bf_16bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t 
     gen_b_16bitOffset_cond(ctx, offset, cond);
 }
 
+// ESTOP0
+static void gen_estop0(DisasContext *ctx) 
+{
+    //todo emulation software breakpoint
+}
+
+// ESTOP1
+static void gen_estop1(DisasContext *ctx) 
+{
+    //todo emulation software breakpoint
+    //increments the PC by 1
+}
+
 // LB 22bit
 static void gen_lb_22bit(DisasContext *ctx, uint32_t imm) {
     gen_reset_rptc(ctx);

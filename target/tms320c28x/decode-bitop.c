@@ -354,6 +354,18 @@ static void gen_clrc_mode(DisasContext *ctx, uint32_t mode)
     tcg_gen_andi_i32(cpu_st1, cpu_st1, st1_mask);
 }
 
+// EALLOW
+static void gen_eallow(DisasContext *ctx)
+{
+    gen_seti_bit(cpu_st1, EALLOW_BIT, EALLOW_MASK, 1);
+}
+
+// EDIS
+static void gen_edis(DisasContext *ctx)
+{
+    gen_seti_bit(cpu_st1, EALLOW_BIT, EALLOW_MASK, 0);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {

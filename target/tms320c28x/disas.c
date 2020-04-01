@@ -564,8 +564,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 case 0b1001: //0010 1001 CCCC CCCC CLRC mode
                 {
                     uint32_t mode = insn & 0xff;
-                    get_status_bit_string(str, mode);
-                    fprintf_func(stream, "0x%04x;     CLRC %s", insn, str);
+                    if (mode == 0b10000)
+                    {
+                        fprintf_func(stream, "0x%04x;     EINT", insn);
+                    }
+                    else
+                    {
+                        get_status_bit_string(str, mode);
+                        fprintf_func(stream, "0x%04x;     CLRC %s", insn, str);
+                    }
                     break;
                 }
                 case 0b1010:
@@ -1275,6 +1282,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         }
                         else { //0111 0110 00.. ....
                             switch(insn & 0x3f) {
+                                case 0b011010: //0111 0110 0001 1010 EDIS
+                                {
+                                    fprintf_func(stream, "0x%04x;     EDIS", insn);
+                                    break;
+                                }
                                 case 0b011011: //0111 0110 0001 1011 ASP
                                 {
                                     fprintf_func(stream, "0x%04x;     ASP", insn);
@@ -1285,6 +1297,21 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     uint32_t imm = insn32 & 0xffff;
                                     fprintf_func(stream, "0x%08x; MOVW DP, #0x%04x", insn32, imm);
                                     length = 4;
+                                    break;
+                                }
+                                case 0b100010: //0111 0110 0010 0010 EALLOW
+                                {
+                                    fprintf_func(stream, "0x%04x;     EALLOW", insn);
+                                    break;
+                                }
+                                case 0b100100: //0111 0110 0010 0100 ESTOP1
+                                {
+                                    fprintf_func(stream, "0x%04x;     ESTOP1", insn);
+                                    break;
+                                }
+                                case 0b100101: //0111 0110 0010 0101 ESTOP0
+                                {
+                                    fprintf_func(stream, "0x%04x;     ESTOP0", insn);
                                     break;
                                 }
                                 case 0b100110: //0111 0110 0010 0110 CCCC CCCC CCCC CCCC AND IER,#16bit
