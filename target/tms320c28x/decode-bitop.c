@@ -366,6 +366,49 @@ static void gen_edis(DisasContext *ctx)
     gen_seti_bit(cpu_st1, EALLOW_BIT, EALLOW_MASK, 0);
 }
 
+// FLIP AX
+static void gen_flip_ax(DisasContext *ctx, bool is_AH)
+{
+    TCGv a = tcg_temp_new_i32();
+    TCGv tmp = tcg_temp_new_i32();
+    TCGv tmp2 = tcg_temp_new_i32();
+    gen_ld_reg_half(a, cpu_acc, is_AH);
+    // n = ((n>>1) & 0x55555555) | ((n<<1) & 0xaaaaaaaa);
+    tcg_gen_shri_i32(tmp, a, 1);
+    tcg_gen_andi_i32(tmp, tmp, 0x55555555);
+    tcg_gen_shli_i32(tmp2, a, 1);
+    tcg_gen_andi_i32(tmp2, tmp2, 0xaaaaaaaa);
+    tcg_gen_or_i32(a, tmp, tmp2);
+    // n = ((n>>2) & 0x33333333) | ((n<<2) & 0xcccccccc);
+    tcg_gen_shri_i32(tmp, a, 2);
+    tcg_gen_andi_i32(tmp, tmp, 0x33333333);
+    tcg_gen_shli_i32(tmp2, a, 2);
+    tcg_gen_andi_i32(tmp2, tmp2, 0xcccccccc);
+    tcg_gen_or_i32(a, tmp, tmp2);
+    // n = ((n>>4) & 0x0f0f0f0f) | ((n<<4) & 0xf0f0f0f0);
+    tcg_gen_shri_i32(tmp, a, 4);
+    tcg_gen_andi_i32(tmp, tmp, 0x0f0f0f0f);
+    tcg_gen_shli_i32(tmp2, a, 4);
+    tcg_gen_andi_i32(tmp2, tmp2, 0xf0f0f0f0);
+    tcg_gen_or_i32(a, tmp, tmp2);
+    // n = ((n>>8) & 0x00ff00ff) | ((n<<8) & 0xff00ff00);
+    tcg_gen_shri_i32(tmp, a, 8);
+    tcg_gen_andi_i32(tmp, tmp, 0x00ff00ff);
+    tcg_gen_shli_i32(tmp2, a, 8);
+    tcg_gen_andi_i32(tmp2, tmp2, 0xff00ff00);
+    tcg_gen_or_i32(a, tmp, tmp2);
+    // n = n & 0x0000ffff;
+    tcg_gen_andi_i32(a, a, 0x0000ffff);
+
+    gen_helper_test_N_Z_16(cpu_env, a);
+    
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, a);
+    else
+        gen_st_reg_low_half(cpu_acc, a);
+
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {

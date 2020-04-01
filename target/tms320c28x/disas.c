@@ -1169,6 +1169,22 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             }
                             break;
                         }
+                        case 0b0111: //0101 0110 0111 ....
+                        {
+                            switch (insn & 0xf) {
+                                case 0b0000: //0101 0110 0111 0000 FLIP AL
+                                {
+                                    fprintf_func(stream, "0x%04x;     FLIP AL", insn);
+                                    break;
+                                }
+                                case 0b0001: //0101 0110 0111 0001 FLIP AH
+                                {
+                                    fprintf_func(stream, "0x%04x;     FLIP AH", insn);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case 0b1000: //0101 0110 1000 SHFT ASR64 ACC:P,#1...16
                         {
                             uint32_t shift = (insn & 0xf) + 1;
