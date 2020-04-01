@@ -1563,6 +1563,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOVL P,%s", insn, str);
                     break;
                 }
+                case 0b0101: //1010 0101 LLLL LLLL DMOV loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     DMOV %s", insn, str);
+                    break;
+                }
                 case 0b0110: //1010 0110 LLLL LLLL MOVDL XT,loc32
                 {
                     uint32_t mode = insn & 0xff;

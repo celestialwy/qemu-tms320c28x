@@ -1,3 +1,33 @@
+// DMOV loc16
+static void gen_dmov_loc16(DisasContext *ctx, uint32_t mode)
+{
+    //mode = reg addressing is illegal
+    if (mode >= 160 && mode <=173) {
+        gen_exception(ctx, EXCP_INTERRUPT_ILLEGAL);
+    }
+    else
+    {
+        TCGv a = tcg_temp_local_new();
+        TCGv addr = tcg_temp_local_new();
+        TCGLabel *begin = gen_new_label();
+        TCGLabel *end = gen_new_label();
+        gen_set_label(begin);
+
+        gen_get_loc_addr(addr, mode, LOC16);
+        gen_ld16u_swap(a, addr);
+        tcg_gen_addi_i32(addr, addr, 1);
+        gen_st16u_swap(a, addr);
+
+        tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+        tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+        tcg_gen_br(begin);
+        gen_set_label(end);
+
+        tcg_temp_free(a);
+        tcg_temp_free(addr);
+    }
+}
+
 // MOV *(0:16bit),loc16
 static void gen_16bit_loc16(DisasContext *ctx, uint32_t mode, uint32_t imm)
 {
