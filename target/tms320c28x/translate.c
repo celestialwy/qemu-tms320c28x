@@ -115,6 +115,7 @@ void tms320c28x_translate_init(void)
 #include "decode-bitop.c"
 #include "decode-branch.c"
 #include "decode-interrupt.c"
+#include "decode-other.c"
 
 static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_t insn2) 
 {
@@ -1057,6 +1058,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     length = 4;
                                     break;
                                 }
+                                case 0b100001: //0111 0110 0010 0001 IDLE
+                                {
+                                    gen_idle(ctx);
+                                    break;
+                                }
                                 case 0b100010: //0111 0110 0010 0010 EALLOW
                                 {
                                     gen_eallow(ctx);
@@ -1084,6 +1090,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     uint32_t imm = insn2;
                                     length = 4;
                                     gen_and_ifr_16bit(ctx, imm);
+                                    break;
+                                }
+                                case 0b111111://0111 0110 0011 1111 CCCC CCCC CCCC CCCC IACK #16bit
+                                {
+                                    length = 4;
+                                    uint32_t imm = insn2;
+                                    gen_iack_16bit(ctx, imm);
                                     break;
                                 }
                             }

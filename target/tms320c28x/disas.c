@@ -1320,6 +1320,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     length = 4;
                                     break;
                                 }
+                                case 0b100001: //0111 0110 0010 0001 IDLE
+                                {
+                                    fprintf_func(stream, "0x%04x;     IDLE", insn);
+                                    break;
+                                }
                                 case 0b100010: //0111 0110 0010 0010 EALLOW
                                 {
                                     fprintf_func(stream, "0x%04x;     EALLOW", insn);
@@ -1347,6 +1352,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     uint32_t imm = insn32 & 0xffff;
                                     length = 4;
                                     fprintf_func(stream, "0x%08x; AND IFR,#0x%04x", insn32, imm);
+                                    break;
+                                }
+                                case 0b111111://0111 0110 0011 1111 CCCC CCCC CCCC CCCC IACK #16bit
+                                {
+                                    length = 4;
+                                    uint32_t imm = insn32 & 0xffff;
+                                    fprintf_func(stream, "0x%08x; IACK #0x%04x", insn32, imm);
                                     break;
                                 }
                             }
