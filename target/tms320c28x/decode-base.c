@@ -198,6 +198,18 @@ static void gen_ld_reg_half(TCGv retval, TCGv reg, bool is_High)
     }
 }
 
+static void gen_ld_reg_half_signed_extend(TCGv retval, TCGv reg, bool is_High)
+{
+    if(is_High) {
+        tcg_gen_shri_i32(retval, reg, 16);
+    }
+    else
+    {
+        tcg_gen_andi_i32(retval, reg, 0xffff);
+    }
+    tcg_gen_ext16s_tl(retval, retval);
+}
+
 static void gen_st_reg_high_half(TCGv reg, TCGv_i32 oprand)
 {
     TCGv_i32 tmp = tcg_const_i32(0x0000ffff);

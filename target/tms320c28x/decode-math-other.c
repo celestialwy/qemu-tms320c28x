@@ -184,10 +184,10 @@ static void gen_dmac_accp_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t
         gen_ld_loc32(v1, mode1);
     }
     tcg_gen_mov_i32(cpu_xt, v1);
-    gen_ld_reg_half(v1_msb, v1, true);
-    gen_ld_reg_half(v1_lsb, v1, false);
-    gen_ld_reg_half(v2_msb, v2, true);
-    gen_ld_reg_half(v2_lsb, v2, false);
+    gen_ld_reg_half_signed_extend(v1_msb, v1, true);
+    gen_ld_reg_half_signed_extend(v1_lsb, v1, false);
+    gen_ld_reg_half_signed_extend(v2_msb, v2, true);
+    gen_ld_reg_half_signed_extend(v2_lsb, v2, false);
 
     tcg_gen_mov_i32(a, cpu_p);
     tcg_gen_mul_i32(b, v1_lsb, v2_lsb);
@@ -214,7 +214,28 @@ static void gen_dmac_accp_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t
     tcg_temp_free(b);
     tcg_temp_free(v1);
     tcg_temp_free(v2); 
+    tcg_temp_free(v1_lsb); 
+    tcg_temp_free(v1_msb);
+    tcg_temp_free(v2_lsb); 
+    tcg_temp_free(v2_msb); 
 }
+
+// //IMACL P,loc32,*XAR7/++
+// static void gen_imacl_p_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t mode2)
+// {
+
+
+//     TCGLabel *begin = gen_new_label();
+//     TCGLabel *end = gen_new_label();
+//     gen_set_label(begin);
+
+
+
+//     tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+//     tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+//     tcg_gen_br(begin);
+//     gen_set_label(end);
+// }
 
 //MAC P,loc16,0:pma
 static void gen_mac_p_loc16_pma(DisasContext *ctx, uint32_t mode, uint32_t addr)
@@ -234,7 +255,9 @@ static void gen_mac_p_loc16_pma(DisasContext *ctx, uint32_t mode, uint32_t addr)
     tcg_gen_add_i32(cpu_acc, a, b); //ACC = ACC + P<<PM
 
     gen_ld_loc16(v1, mode);
+    tcg_gen_ext16s_tl(v1, v1);//sigend extend
     gen_ld16u_swap(v2, addr_tcg);
+    tcg_gen_ext16s_tl(v2, v2);//signed extend
     tcg_gen_mul_i32(cpu_p, v1, v2);//P = signed T * signed Prog[*XAR7 or *XAR7++], use v1 instead of T
     gen_st_reg_high_half(cpu_xt, v1);//T = [loc16], store v1 to T
     tcg_gen_addi_i32(addr_tcg, addr_tcg, 1);//inc pma by 1, for each repetition
@@ -300,6 +323,8 @@ static void gen_mac_p_loc16_xar7(DisasContext *ctx, uint32_t mode1, uint32_t mod
         gen_ld_loc16(v2, mode2);
         gen_ld_loc16(v1, mode1);
     }
+    tcg_gen_ext16s_tl(v1, v1);//sigend extend
+    tcg_gen_ext16s_tl(v2, v2);//signed extend
     tcg_gen_mul_i32(cpu_p, v1, v2);//P = signed T * signed Prog[*XAR7 or *XAR7++], use v1 instead of T
     gen_st_reg_high_half(cpu_xt, v1);//T = [loc16], store v1 to T
 
