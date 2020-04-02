@@ -456,6 +456,7 @@ void HELPER(abstc_acc)(CPUTms320c28xState *env)
 
 uint32_t HELPER(shift_by_pm)(CPUTms320c28xState *env, uint32_t value)
 {
+    //only consider amode = 0
     int32_t pm = CPU_GET_STATUS(st0, PM);
     pm = 1 - pm;
     if (pm > 0) {

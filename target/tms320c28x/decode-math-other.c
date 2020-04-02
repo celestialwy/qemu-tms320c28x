@@ -220,22 +220,72 @@ static void gen_dmac_accp_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t
     tcg_temp_free(v2_msb); 
 }
 
-// //IMACL P,loc32,*XAR7/++
-// static void gen_imacl_p_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t mode2)
-// {
+//IMACL P,loc32,*XAR7/++
+static void gen_imacl_p_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t mode2)
+{
+    TCGv v1 = tcg_temp_local_new();
+    TCGv v2 = tcg_temp_local_new();
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
+    TCGv temp_low = tcg_temp_local_new();
+    TCGv temp_high = tcg_temp_local_new();
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
 
+    //0xC7: *XAR7, 0x87: *XAR7++, 0x8F: *--XAR7
+    if (mode1 == 0x8f) //*--XAR7
+    {
+        mode2 = 0xc7;
+        gen_ld_loc32(v2, mode2);//get XAR7
+        gen_ld_loc32(v1, mode1);//get *--XAR7
+    }
+    else if (mode1 == 0xc7)//*XAR7
+    {
+        if (mode2 == 0xc7)//*XAR7
+        {
+            gen_ld_loc32(v1, mode1);
+            tcg_gen_mov_i32(v2, v1);
+        }
+        else //*XAR7++
+        {
+            gen_ld_loc32(v1, mode2);
+            tcg_gen_mov_i32(v2, v1);
+        }
+    }
+    else if (mode1 == 0x87)//*XAR7++
+    {
+        gen_ld_loc32(v1, mode2);
+        tcg_gen_mov_i32(v2, v1);
+    }
+    else
+    {
+        gen_ld_loc32(v2, mode2);
+        gen_ld_loc32(v1, mode1);
+    }
+    tcg_gen_mov_i32(a, cpu_acc);
+    tcg_gen_mov_i32(b, cpu_p);
+    tcg_gen_add_i32(cpu_acc, a, b);
+    gen_helper_test_V_32(cpu_env, a, b, cpu_acc);//acc = acc + unsigned p
+    tcg_gen_muls2_i32(temp_low, temp_high, v1, v2);//temp(37:0) = lower 38bits ...
+    gen_shift_by_pm2(cpu_p, temp_low, temp_high);
 
-//     TCGLabel *begin = gen_new_label();
-//     TCGLabel *end = gen_new_label();
-//     gen_set_label(begin);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
 
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 
-
-//     tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
-//     tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
-//     tcg_gen_br(begin);
-//     gen_set_label(end);
-// }
+    tcg_temp_free(v1);
+    tcg_temp_free(v2);
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+    tcg_temp_free(temp_low);
+    tcg_temp_free(temp_high);
+}
 
 //MAC P,loc16,0:pma
 static void gen_mac_p_loc16_pma(DisasContext *ctx, uint32_t mode, uint32_t addr)

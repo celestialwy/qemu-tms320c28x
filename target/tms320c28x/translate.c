@@ -832,6 +832,17 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b1101: //0101 0110 0100 1101 .... IMACL P,loc32,*XAR7/++
+                                {
+                                    uint32_t mode1 = insn2 & 0xff;
+                                    uint32_t mode2 = (insn2 >> 8) & 0xff;
+                                    if ((mode2 == 0b11000111) || (mode2 == 0b10000111))
+                                    {
+                                        length = 4;
+                                        gen_imacl_p_loc32_xar7(ctx, mode1, mode2);
+                                    }
+                                    break;
+                                }
                             }
                             break;
                         }
