@@ -1839,22 +1839,20 @@ void tms320c28x_cpu_dump_state(CPUState *cs, FILE *f, int flags)
 
     qemu_fprintf(f, "PC =%08x RPC=%08x\n", env->pc, env->rpc);
     qemu_fprintf(f, "ACC=%08x AH =%04x AL=%04x\n", env->acc, env->acc >> 16, env->acc & 0xffff);
-    for (i = 0; i < 8; ++i) {
-        qemu_fprintf(f, "XAR%01d=%08x%c", i, env->xar[i], (i % 4) == 3 ? '\n' : ' ');
-    }
-    for (i = 0; i < 8; ++i) {
-        qemu_fprintf(f, "AR%01d=%04x%c", i, env->xar[i] & 0xffff, (i % 4) == 3 ? '\n' : ' ');
-    }
-    qemu_fprintf(f, "DP =%04x IFR=%04x IER=%04x DBGIER=%04x\n", env->dp, env->ifr, env->ier, env->dbgier);
-    qemu_fprintf(f, "P  =%08x PH =%04x PH =%04x\n", env->p, env->p >> 16, env->p & 0xffff);
+    qemu_fprintf(f, "P  =%08x PH =%04x PL =%04x\n", env->p, env->p >> 16, env->p & 0xffff);
     qemu_fprintf(f, "XT =%08x T  =%04x TL =%04x\n", env->xt, env->xt >> 16, env->xt & 0xffff);
-    qemu_fprintf(f, "SP =%04x ST0=%04x ST1=%04x\n", env->sp, env->st0, env->st1);
+    for (i = 0; i < 8; ++i) {
+        qemu_fprintf(f, "XAR%01d=%08x AR%01dH=%04x AR%01d=%04x\n", i, env->xar[i], i, env->xar[i] >> 16, i, env->xar[i] & 0xffff);
+    }
+    qemu_fprintf(f, "ST0=%04x\n", env->st0);
     qemu_fprintf(f, "OVC=%x PM=%x V=%x N=%x Z=%x\n", CPU_GET_STATUS(st0, OVC), CPU_GET_STATUS(st0, PM), CPU_GET_STATUS(st0, V), CPU_GET_STATUS(st0, N), CPU_GET_STATUS(st0, Z));
     qemu_fprintf(f, "C=%x TC=%x OVM=%x SXM=%x\n", CPU_GET_STATUS(st0, C), CPU_GET_STATUS(st0, TC), CPU_GET_STATUS(st0, OVM), CPU_GET_STATUS(st0, SXM));
+    qemu_fprintf(f, "ST1=%04x\n", env->st1);
     qemu_fprintf(f, "ARP=%x XF=%x MOM1MAP=%x OBJMODE=%x\n", CPU_GET_STATUS(st1, ARP), CPU_GET_STATUS(st1, XF), CPU_GET_STATUS(st1, M0M1MAP), CPU_GET_STATUS(st1, OBJMODE));
     qemu_fprintf(f, "AMODE=%x IDLESTAT=%x EALLOW=%x LOOP=%x\n", CPU_GET_STATUS(st1, AMODE), CPU_GET_STATUS(st1, IDLESTAT), CPU_GET_STATUS(st1, EALLOW), CPU_GET_STATUS(st1, LOOP));
     qemu_fprintf(f, "SPA=%x VMAP=%x PAGE0=%x DBGM=%x INTM=%x\n", CPU_GET_STATUS(st1, SPA), CPU_GET_STATUS(st1, VMAP), CPU_GET_STATUS(st1, PAGE0), CPU_GET_STATUS(st1, DBGM), CPU_GET_STATUS(st1, INTM));
-
+    qemu_fprintf(f, "DP =%04x SP =%04x IFR=%04x IER=%04x\n", env->dp, env->sp, env->ifr, env->ier);
+    qemu_fprintf(f, "DBGIER=%04x\n", env->dbgier);
     qemu_fprintf(f, "RPTC=%x\n",env->rptc);
 }
 
