@@ -1076,6 +1076,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                     break;
                                 }
+                                case 0b1100: //0101 0110 0100 1100 0000 0000 LLLL LLLL IMPYAL P,XT,loc32
+                                {
+                                    if (((insn32 >> 8) & 0xff) == 0)
+                                    {
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC32);
+                                        fprintf_func(stream, "0x%08x; IMPYAL P,XT,%s", insn32, str);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b1101: //0101 0110 0100 1101 .... IMACL P,loc32,*XAR7/++
                                 {
                                     uint32_t mode1 = insn32 & 0xff;

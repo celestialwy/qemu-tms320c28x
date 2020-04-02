@@ -832,6 +832,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b1100: //0101 0110 0100 1100 0000 0000 LLLL LLLL IMPYAL P,XT,loc32
+                                {
+                                    if ((insn2 >> 8) == 0)
+                                    {
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_impyal_p_xt_loc32(ctx, mode);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b1101: //0101 0110 0100 1101 .... IMACL P,loc32,*XAR7/++
                                 {
                                     uint32_t mode1 = insn2 & 0xff;
