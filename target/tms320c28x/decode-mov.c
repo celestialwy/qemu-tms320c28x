@@ -287,7 +287,7 @@ static void gen_mov_loc16_ovc(DisasContext *ctx, uint32_t mode)
 static void gen_mov_loc16_p(DisasContext *ctx, uint32_t mode)
 {
     TCGv a = tcg_temp_new();
-    gen_helper_shift_by_pm(a, cpu_env, cpu_p);
+    gen_shift_by_pm(a, cpu_p);
     gen_st_loc16(mode, a);
     gen_test_ax_N_Z(mode);
     tcg_temp_free(a);
@@ -376,7 +376,7 @@ static void gen_mova_t_loc16(DisasContext *ctx, uint32_t mode)
     gen_ld_loc16(t, mode);
     gen_st_reg_high_half(cpu_xt, t);
 
-    gen_helper_shift_by_pm(b, cpu_env, cpu_p);//b = P>>PM
+    gen_shift_by_pm(b, cpu_p);//b = P>>PM
 
     tcg_gen_mov_i32(a, cpu_acc);
     tcg_gen_add_i32(cpu_acc, a, b);
@@ -421,7 +421,7 @@ static void gen_movad_t_loc16(DisasContext *ctx, uint32_t mode)
 
         //acc = acc + p<<pm
         TCGv b = tcg_temp_local_new();
-        gen_helper_shift_by_pm(b, cpu_env, cpu_p);//b = P>>PM
+        gen_shift_by_pm(b, cpu_p);//b = P>>PM
 
         TCGv a = tcg_temp_local_new();
         tcg_gen_mov_i32(a, cpu_acc);
@@ -638,7 +638,7 @@ static void gen_movh_loc16_p(DisasContext *ctx, uint32_t mode)
     TCGLabel *end = gen_new_label();
     gen_set_label(begin);
 
-    gen_helper_shift_by_pm(a, cpu_env, cpu_p);
+    gen_shift_by_pm(a, cpu_p);
     tcg_gen_shri_i32(a, a, 16);
     gen_st_loc16(mode, a);
 
@@ -743,7 +743,7 @@ static void gen_movp_t_loc16(DisasContext *ctx, uint32_t mode)
     TCGv a = tcg_temp_new();
     gen_ld_loc16(a, mode);
     gen_st_reg_high_half(cpu_xt, a); //T = [loc16]
-    gen_helper_shift_by_pm(cpu_acc, cpu_env, cpu_p);//ACC = P << PM
+    gen_shift_by_pm(cpu_acc, cpu_p);//ACC = P << PM
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     tcg_temp_free(a);
 }
@@ -761,7 +761,7 @@ static void gen_movs_t_loc16(DisasContext *ctx, uint32_t mode)
     gen_st_reg_high_half(cpu_xt, a); //T = [loc16]
 
     tcg_gen_mov_i32(a, cpu_acc);
-    gen_helper_shift_by_pm(b, cpu_env, cpu_p);//b = P << PM
+    gen_shift_by_pm(b, cpu_p);//b = P << PM
     tcg_gen_sub_i32(cpu_acc, a, b);
     gen_helper_test_sub_V_32(cpu_env, a, b, cpu_acc);
     gen_helper_test_sub_OVC_OVM_32(cpu_env, a, b, cpu_acc);

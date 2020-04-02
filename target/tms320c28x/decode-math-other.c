@@ -63,7 +63,7 @@ static void gen_cmpl_acc_loc32(DisasContext *ctx, uint32_t mode)
 static void gen_cmpl_acc_p_pm(DisasContext *ctx)
 {
     TCGv b = tcg_temp_new();
-    gen_helper_shift_by_pm(b, cpu_env, cpu_p);
+    gen_shift_by_pm(b, cpu_p);
 
     gen_helper_cmp32_N_Z_C(cpu_env, cpu_acc, b);
     tcg_temp_free(b);
@@ -191,12 +191,12 @@ static void gen_dmac_accp_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t
 
     tcg_gen_mov_i32(a, cpu_p);
     tcg_gen_mul_i32(b, v1_lsb, v2_lsb);
-    gen_helper_shift_by_pm(b, cpu_env, b);
+    gen_shift_by_pm(b, b);
     tcg_gen_add_i32(cpu_p, a, b);
 
     tcg_gen_mov_i32(a, cpu_acc);
     tcg_gen_mul_i32(b, v1_msb, v2_msb);
-    gen_helper_shift_by_pm(b, cpu_env, b);
+    gen_shift_by_pm(b, b);
     tcg_gen_add_i32(cpu_acc, a, b);
 
 
@@ -300,7 +300,7 @@ static void gen_mac_p_loc16_pma(DisasContext *ctx, uint32_t mode, uint32_t addr)
 
     gen_set_label(begin);
 
-    gen_helper_shift_by_pm(b, cpu_env, cpu_p);//b = P<<PM
+    gen_shift_by_pm(b, cpu_p);//b = P<<PM
     tcg_gen_mov_i32(a, cpu_acc);//a = ACC
     tcg_gen_add_i32(cpu_acc, a, b); //ACC = ACC + P<<PM
 
@@ -339,7 +339,7 @@ static void gen_mac_p_loc16_xar7(DisasContext *ctx, uint32_t mode1, uint32_t mod
     TCGv v2 = tcg_temp_local_new();
 
     gen_set_label(begin);
-    gen_helper_shift_by_pm(b, cpu_env, cpu_p);//b = P<<PM
+    gen_shift_by_pm(b, cpu_p);//b = P<<PM
     tcg_gen_mov_i32(a, cpu_acc);//a = ACC
     tcg_gen_add_i32(cpu_acc, a, b); //ACC = ACC + P<<PM
 

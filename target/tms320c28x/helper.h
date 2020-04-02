@@ -67,7 +67,6 @@ DEF_HELPER_1(print_env, void, env)
 //math
 DEF_HELPER_1(abs_acc, void, env)
 DEF_HELPER_1(abstc_acc, void, env)
-DEF_HELPER_2(shift_by_pm, i32, env, i32) //signed right || left shift
 DEF_HELPER_2(subcu, void, env, i32)
 DEF_HELPER_2(subcul, void, env, i32)
 

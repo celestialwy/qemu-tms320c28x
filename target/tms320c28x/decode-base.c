@@ -421,28 +421,28 @@ static void gen_goto_tb(DisasContext *dc, int n, target_ulong dest)
     tcg_gen_exit_tb(dc->base.tb, n);
 }
 
-// static void gen_shift_by_pm(TCGv retval, TCGv oprand)
-// {
-//     TCGLabel *leftshift = gen_new_label();
-//     TCGLabel *done = gen_new_label();
-//     TCGv pm = tcg_temp_local_new();
-//     gen_get_bit(pm ,cpu_st0, PM_BIT, PM_MASK);
-//     tcg_gen_not_i32(pm, pm);
-//     tcg_gen_addi_i32(pm, pm, 2);
+static void gen_shift_by_pm(TCGv retval, TCGv oprand)
+{
+    TCGLabel *leftshift = gen_new_label();
+    TCGLabel *done = gen_new_label();
+    TCGv pm = tcg_temp_local_new();
+    gen_get_bit(pm ,cpu_st0, PM_BIT, PM_MASK);
+    tcg_gen_not_i32(pm, pm);
+    tcg_gen_addi_i32(pm, pm, 2);
 
-//     tcg_gen_brcondi_i32(TCG_COND_GT, pm, 0, leftshift);
-//     //signed right shift
-//     tcg_gen_not_i32(pm, pm);
-//     tcg_gen_addi_i32(pm, pm, 1);
-//     tcg_gen_andi_i32(pm, pm, 0b111);
-//     tcg_gen_sar_i32(retval, oprand, pm);
-//     tcg_gen_br(done);
-//     gen_set_label(leftshift);
-//     tcg_gen_shl_i32(retval, oprand, pm);
-//     gen_set_label(done);
+    tcg_gen_brcondi_i32(TCG_COND_GT, pm, 0, leftshift);
+    //signed right shift
+    tcg_gen_not_i32(pm, pm);
+    tcg_gen_addi_i32(pm, pm, 1);
+    tcg_gen_andi_i32(pm, pm, 0b111);
+    tcg_gen_sar_i32(retval, oprand, pm);
+    tcg_gen_br(done);
+    gen_set_label(leftshift);
+    tcg_gen_shl_i32(retval, oprand, pm);
+    gen_set_label(done);
 
-//     tcg_temp_free(pm);
-// }
+    tcg_temp_free(pm);
+}
 
 static void gen_shift_by_pm2(TCGv retval, TCGv oprand_low, TCGv oprand_high)
 {
