@@ -552,8 +552,8 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 }
                                 case 0b0011: /* 0101 0110 0000 0011  MOV ACC, loc16<<#1...15 */
                                 {
-                                    length = 4;
                                     if ((insn2 & 0xf000) == 0) { //this 4bit should be 0
+                                        length = 4;
                                         /* MOV ACC, loc16<<#1...15 */
                                         uint32_t shift = (insn2 & 0x0f00) >> 8;
                                         uint32_t mode = (insn2 & 0xff);
@@ -563,11 +563,21 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 }
                                 case 0b0100: // 0101 0110 0000 0100 ADD ACC,loc16<<#1...15
                                 {
-                                    length = 4;
                                     if ((insn2 & 0xf000) == 0) { //this 4bit should be 0
+                                        length = 4;
                                         uint32_t shift = (insn2 & 0x0f00) >> 8;
                                         uint32_t mode = (insn2 & 0xff);
                                         gen_add_acc_loc16_shift(ctx, mode, shift);
+                                    }
+                                    break;
+                                }
+                                case 0b0101: //0101 0110 0000 0101 0000 0000 LLLL LLLL IMPYL P,XT,loc32
+                                {
+                                    if (((insn2 >> 8) & 0xff) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_impyl_p_xt_loc32(ctx, mode);
                                     }
                                     break;
                                 }

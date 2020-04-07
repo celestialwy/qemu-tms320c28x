@@ -293,8 +293,8 @@ static void gen_impyal_p_xt_loc32(DisasContext *ctx, uint32_t mode)
     TCGv v2 = tcg_temp_new();
     TCGv a = tcg_temp_new();
     TCGv b = tcg_temp_new();
-    TCGv temp_low = tcg_temp_new();
-    TCGv temp_high = tcg_temp_new();
+    TCGv temp_low = tcg_temp_local_new();
+    TCGv temp_high = tcg_temp_local_new();
 
     gen_ld_loc32(v2, mode);
     
@@ -323,6 +323,23 @@ static void gen_impyl_acc_xt_loc32(DisasContext *ctx, uint32_t mode)
     tcg_gen_mul_i32(cpu_acc, cpu_xt, b);
 
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+}
+
+//IMPYL P,XT,loc32
+static void gen_impyl_p_xt_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv v2 = tcg_temp_new();
+    TCGv temp_low = tcg_temp_local_new();
+    TCGv temp_high = tcg_temp_local_new();
+
+    gen_ld_loc32(v2, mode);
+    
+    tcg_gen_muls2_i32(temp_low, temp_high, cpu_xt, v2);//temp(37:0) = lower 38bits ...
+    gen_shift_by_pm2(cpu_p, temp_low, temp_high);
+
+    tcg_temp_free(v2);
+    tcg_temp_free(temp_low);
+    tcg_temp_free(temp_high);
 }
 
 //MAC P,loc16,0:pma
