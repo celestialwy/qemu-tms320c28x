@@ -291,8 +291,8 @@ static void gen_imacl_p_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t m
 static void gen_impyal_p_xt_loc32(DisasContext *ctx, uint32_t mode)
 {
     TCGv v2 = tcg_temp_new();
-    TCGv a = tcg_temp_new();
-    TCGv b = tcg_temp_new();
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
     TCGv temp_low = tcg_temp_local_new();
     TCGv temp_high = tcg_temp_local_new();
 
@@ -338,6 +338,60 @@ static void gen_impyl_p_xt_loc32(DisasContext *ctx, uint32_t mode)
     gen_shift_by_pm2(cpu_p, temp_low, temp_high);
 
     tcg_temp_free(v2);
+    tcg_temp_free(temp_low);
+    tcg_temp_free(temp_high);
+}
+
+//IMPYSL P,XT,loc32
+static void gen_impysl_p_xt_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv v2 = tcg_temp_new();
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
+    TCGv temp_low = tcg_temp_local_new();
+    TCGv temp_high = tcg_temp_local_new();
+
+    gen_ld_loc32(v2, mode);
+    
+    tcg_gen_mov_i32(a, cpu_acc);
+    tcg_gen_mov_i32(b, cpu_p);
+    tcg_gen_sub_i32(cpu_acc, a, b);
+    tcg_gen_muls2_i32(temp_low, temp_high, cpu_xt, v2);//temp(37:0) = lower 38bits ...
+    gen_shift_by_pm2(cpu_p, temp_low, temp_high);
+
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_sub_C_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_sub_OVCU_32(cpu_env, a, b, cpu_acc);
+
+    tcg_temp_free(v2);
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+    tcg_temp_free(temp_low);
+    tcg_temp_free(temp_high);
+}
+
+//IMPYXUL P,XT,loc32
+static void gen_impyxul_p_xt_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv b = tcg_temp_new();
+    TCGv tmp = tcg_temp_new();
+    TCGv tmp2 = tcg_temp_new();
+    TCGv temp_low = tcg_temp_local_new();
+    TCGv temp_high = tcg_temp_local_new();
+
+    gen_ld_loc32(b, mode);
+    tcg_gen_shri_i32(tmp, b, 31);//tmp is sign bit of b
+    tcg_gen_andi_i32(b, b, 0x7fffffff);//clear sign bit of b
+    
+    tcg_gen_muls2_i32(temp_low, temp_high, cpu_xt, b);//temp(37:0) = lower 38bits ...
+    tcg_gen_mul_i32(tmp, cpu_xt, tmp);//tmp = sign_bit_b * cpu_xt
+    tcg_gen_shli_i32(tmp2, tmp, 31);//low = cpuxt_[0] at 32bit
+    tcg_gen_shri_i32(tmp, tmp, 1);//high = cpu_xt[30:1]
+    tcg_gen_add2_i32(temp_low, temp_high, temp_low, temp_high, tmp2, tmp);//64bit add
+
+    gen_shift_by_pm2(cpu_p, temp_low, temp_high);
+
+    tcg_temp_free(b);
     tcg_temp_free(temp_low);
     tcg_temp_free(temp_high);
 }
