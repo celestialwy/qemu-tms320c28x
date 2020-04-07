@@ -444,6 +444,7 @@ static void gen_shift_by_pm(TCGv retval, TCGv oprand)
     tcg_temp_free(pm);
 }
 
+//shift mpy result by pm, used in signed 32*32 mpy,
 static void gen_shift_by_pm2(TCGv retval, TCGv oprand_low, TCGv oprand_high)
 {
     TCGLabel *leftshift = gen_new_label();
