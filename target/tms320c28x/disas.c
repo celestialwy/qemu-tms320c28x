@@ -385,8 +385,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     ADDB ACC,#%d", insn, imm);
                     break;
                 }
-                case 0b1010:
+                case 0b1010: //0000 1010 LLLL LLLL INC loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str, mode, LOC16);
+                    fprintf_func(stream, "0x%04x;     INC %s", insn, str);
                     break;
+                }
                 case 0b1011: //0000 1011 LLLL LLLL DEC loc16
                 {
                     uint32_t mode = insn & 0xff;

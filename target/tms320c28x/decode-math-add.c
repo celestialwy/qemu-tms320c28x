@@ -454,3 +454,37 @@ static void gen_adrk_8bit(DisasContext *ctx, uint32_t imm)
     gen_helper_st_xar_arp(cpu_env, a);
     tcg_temp_free(a);
 }
+
+// INC loc16
+static void gen_inc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new();
+    TCGv b = tcg_const_i32(1);
+    TCGv result = tcg_temp_new();
+
+    if (is_reg_addressing_mode(mode, LOC16)) {
+        gen_ld_loc16(a, mode);
+        tcg_gen_add_i32(result, a, b);//add
+        gen_st_loc16(mode, result);//store
+        gen_helper_test_sub_C_V_16(cpu_env, a, b, result);
+        gen_helper_test_N_Z_16(cpu_env, result);
+    }
+    else {
+        TCGv_i32 addr = tcg_temp_new();
+        gen_get_loc_addr(addr, mode, LOC16);
+        gen_ld16u_swap(a, addr);
+
+        tcg_gen_add_i32(result, a, b);//add
+
+        gen_helper_test_sub_C_V_16(cpu_env, a, b, result);
+        gen_helper_test_N_Z_16(cpu_env, result);
+        
+        gen_st16u_swap(result, addr); //store
+
+        tcg_temp_free_i32(addr);
+    }
+
+    tcg_temp_free_i32(a);
+    tcg_temp_free_i32(b);
+    tcg_temp_free_i32(result);
+}
