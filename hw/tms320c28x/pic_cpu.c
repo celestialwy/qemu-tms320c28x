@@ -30,7 +30,7 @@ static void tms320c28x_pic_cpu_handler(void *opaque, int irq, int level)
 
     if (irq < 15 && irq >=0) {
         cs->interrupt_request = CPU_INTERRUPT_INT; //trigger interrupt
-        cs->exception_index = irq;
+        cs->exception_index = irq + 100;
     }
 }
 

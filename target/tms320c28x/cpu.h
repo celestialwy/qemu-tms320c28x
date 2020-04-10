@@ -154,6 +154,7 @@ typedef struct CPUTms320c28xState {
     struct {} end_reset_fields;
 
     void *irq[NR_IRQS];          /* Interrupt irq input */
+    target_ulong insn_length;//used in irq, to determine length of current instruction
 } CPUTms320c28xState;
 
 /**

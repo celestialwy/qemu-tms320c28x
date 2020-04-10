@@ -59,7 +59,8 @@ static TCGv cpu_sp; /* Stack pointer, reset to 0x0400 */
 static TCGv cpu_st0; /* Status register 0 */
 static TCGv cpu_st1; /* Status register 1, reset to 0x080b */
 static TCGv cpu_xt;         /* Multiplicand register, todo:t,tl*/
-static TCGv cpu_rptc; 
+static TCGv cpu_rptc;
+static TCGv cpu_insn_length;
 // static TCGv cpu_tmp[8]; 
 
 void tms320c28x_translate_init(void)
@@ -103,6 +104,8 @@ void tms320c28x_translate_init(void)
         cpu_xar[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,xar[i]),regnames[i]);
         // cpu_tmp[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,tmp[i]),regnames2[i]);
     }
+    cpu_insn_length = tcg_global_mem_new(cpu_env,
+                                offsetof(CPUTms320c28xState, insn_length), "insn_length");
 }
 
 // #include "decode-status.c"
@@ -1735,7 +1738,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
     }
 
     gen_reset_rptc(ctx);
-
+    tcg_gen_movi_i32(cpu_insn_length, length/2);//record current insn length
     if (!set_repeat_counter) {
         ctx->rpt_set = false;
     }

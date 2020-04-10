@@ -30,11 +30,19 @@ void tms320c28x_cpu_do_interrupt(CPUState *cs)
     CPUTms320c28xState *env = &cpu->env;
     int exception = cs->exception_index;
 
-    if (exception >= EXCP_INTERRUPT_RESET && exception <= EXCP_INTERRUPT_USER12) {
+    if (exception >= EXCP_INTERRUPT_RESET && exception <= EXCP_INTERRUPT_RTOSINT + 100) {
         qemu_log_mask(CPU_LOG_INT, "INTERRUPT: %s\n", INTERRUPT_NAME[exception]);
+        if (exception > EXCP_INTERRUPT_USER12) {//use +100 to intr and hw int
+            exception = exception - 100;
+            // clear corresponding IFR bit
+            uint32_t mask = 1 << (exception - 1);
+            env->ifr = env->ifr & (~mask);
+            // clear corresponding IER bit
+            env->ier = env->ier & (~mask);
+        }
 
-        // temp = pc + 1
-        int temp = env->pc + 1; //todo: depends on insn length
+        // temp = pc + 1 or + 2
+        int temp = env->pc + env->insn_length; 
         // sp = sp + 1, for odd address
         if ((env->sp & 1) == 1) {
             env->sp += 1;
@@ -80,13 +88,7 @@ void tms320c28x_cpu_do_interrupt(CPUState *cs)
         uint32_t vector_base = 0x3fffc0;
         uint32_t addr = vector_base + exception * 2;
         env->pc = ld32_swap(env, addr);
-
-        if (exception <= EXCP_INTERRUPT_RTOSINT) {
-            //clear corresponding IER bit
-            uint32_t mask = 1 << (exception - 1);
-            env->ier = env->ier & (~mask);
-        }
-
+        
     } else {
         cpu_abort(cs, "Unhandled exception 0x%x\n", exception);
     }
@@ -99,9 +101,20 @@ void tms320c28x_cpu_do_interrupt(CPUState *cs)
 // handle int from hw
 bool tms320c28x_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
 {
+    Tms320c28xCPU *cpu = TMS320C28X_CPU(cs);
+    CPUTms320c28xState *env = &cpu->env;
+    int exception = cs->exception_index - 100;
     if (interrupt_request == CPU_INTERRUPT_INT) {
-        tms320c28x_cpu_do_interrupt(cs);
-        return true;
+        // set the corresponding IFR bit
+        env->ifr = env->ifr | (1 << (exception - 1));
+        // is interrupt enabled?
+        int ier_bit = (env->ier >> (exception - 1)) & 1;
+        int intm_bit = cpu_get_st1(env, INTM_BIT, INTM_MASK);
+        if (ier_bit == 1 && intm_bit == 0)//interrupt enabled
+        {
+            tms320c28x_cpu_do_interrupt(cs);
+            return true;
+        }
     }
     return false;
 }
