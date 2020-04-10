@@ -24,3 +24,10 @@ static void gen_idle(DisasContext *ctx)
     //todo 
     //p198 idle mode
 }
+
+// IN loc16,*(PA)
+static void gen_in_loc16_pa(DisasContext *ctx, uint32_t mode, uint32_t pa)
+{
+    //todo
+    //p209
+}

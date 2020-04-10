@@ -86,7 +86,7 @@ static void tms320c28x_sim_init(MachineState *machine)
     ram_addr_t ram_size = machine->ram_size;// default=0x8,000,000 8mb
     const char *kernel_filename = machine->kernel_filename;
     Tms320c28xCPU *cpu = NULL;
-    MemoryRegion *ram;
+    MemoryRegion *system_mem, *program_mem, *data_mem, *io_mem;
     // qemu_irq *cpu_irqs[2];
     // qemu_irq serial_irq;
     int n;
@@ -106,9 +106,17 @@ static void tms320c28x_sim_init(MachineState *machine)
         qemu_register_reset(main_cpu_reset, cpu);
     }
 
-    ram = g_malloc(sizeof(*ram));
-    memory_region_init_ram(ram, NULL, "tms320c28x.ram", ram_size, &error_fatal);
-    memory_region_add_subregion(get_system_memory(), 0, ram);
+    system_mem = get_system_memory();
+    program_mem = g_new(MemoryRegion, 1);
+    data_mem = g_new(MemoryRegion, 1);
+    io_mem = g_new(MemoryRegion, 1);
+    // ram = g_malloc(sizeof(*ram));
+    memory_region_init_ram(program_mem, NULL, "tms320c28x.program", ram_size, &error_fatal);
+    memory_region_init_ram(data_mem, NULL, "tms320c28x.data", 0x400000, &error_fatal);
+    memory_region_init_ram(io_mem, NULL, "tms320c28x.io", 0x400000, &error_fatal);
+    memory_region_add_subregion(system_mem, 0, program_mem);
+    memory_region_add_subregion(system_mem, 0, data_mem);
+    // memory_region_add_subregion(system_mem, 0x100000000, io_mem);
 
     // if (nd_table[0].used) {
     //     openrisc_sim_net_init(0x92000000, 0x92000400, smp_cpus,
