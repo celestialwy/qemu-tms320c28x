@@ -31,9 +31,13 @@ void tms320c28x_cpu_do_interrupt(CPUState *cs)
     int exception = cs->exception_index;
 
     if (exception >= EXCP_INTERRUPT_RESET && exception <= EXCP_INTERRUPT_RTOSINT + 100) {
-        qemu_log_mask(CPU_LOG_INT, "INTERRUPT: %s\n", INTERRUPT_NAME[exception]);
+        if (exception <= EXCP_INTERRUPT_USER12)
+        {
+            qemu_log_mask(CPU_LOG_INT, "INTERRUPT: %s\n", INTERRUPT_NAME[exception]);
+        }
         if (exception > EXCP_INTERRUPT_USER12) {//use +100 to intr and hw int
             exception = exception - 100;
+            qemu_log_mask(CPU_LOG_INT, "INTERRUPT: %s\n", INTERRUPT_NAME[exception]);
             // clear corresponding IFR bit
             uint32_t mask = 1 << (exception - 1);
             env->ifr = env->ifr & (~mask);
@@ -70,10 +74,6 @@ void tms320c28x_cpu_do_interrupt(CPUState *cs)
         // [SP] = temp
         st32_swap(env, env->sp, temp);
         env->sp += 2;
-        // sp = sp + 1, for even address
-        if ((env->sp & 1) == 0) {
-            env->sp += 1;
-        }
         // INTM = 0
         cpu_set_st1(env, 0, INTM_BIT, INTM_MASK);
         // DBGM = 1

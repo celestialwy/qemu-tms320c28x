@@ -1380,6 +1380,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         }
                         else { //0111 0110 00.. ....
                             switch(insn & 0x3f) {
+                                case 0b000010: //0111 0110 0000 0010 IRET
+                                {
+                                    fprintf_func(stream, "0x%04x;     IRET", insn);
+                                    break;
+                                }
                                 case 0b011010: //0111 0110 0001 1010 EDIS
                                 {
                                     fprintf_func(stream, "0x%04x;     EDIS", insn);

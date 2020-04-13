@@ -1108,6 +1108,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         }
                         else { //0111 0110 00.. ....
                             switch(insn & 0x3f) {
+                                case 0b000010: //0111 0110 0000 0010 IRET
+                                {
+                                    gen_iret(ctx);
+                                    break;
+                                }
                                 case 0b011010: //0111 0110 0001 1010 EDIS
                                 {
                                     gen_edis(ctx);
@@ -1279,7 +1284,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         case 0b01: //1000 1111 01cc cccc cccc cccc cccc cccc MOVL XAR5,#22bit
                         {
                             uint32_t imm = ((insn & 0x3f)<< 16) | insn2;
-                            gen_movl_xarn_22bit(ctx, 4, imm);
+                            gen_movl_xarn_22bit(ctx, 5, imm);
                             length = 4;
                             break;
                         }

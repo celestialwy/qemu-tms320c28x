@@ -86,7 +86,10 @@ static void tms320c28x_sim_init(MachineState *machine)
     ram_addr_t ram_size = machine->ram_size;// default=0x8,000,000 8mb
     const char *kernel_filename = machine->kernel_filename;
     Tms320c28xCPU *cpu = NULL;
-    MemoryRegion *system_mem, *program_mem, *data_mem, *io_mem;
+    MemoryRegion *system_mem;
+    MemoryRegion *program_mem;
+    MemoryRegion *data_mem;
+    MemoryRegion *io_mem;
     // qemu_irq *cpu_irqs[2];
     // qemu_irq serial_irq;
     int n;
