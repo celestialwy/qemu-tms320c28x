@@ -164,7 +164,7 @@ static void gen_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm)
 // MOV loc16,#0
 static void gen_mov_loc16_0(DisasContext *ctx, uint32_t mode)
 {
-    TCGv a = tcg_const_i32(0);
+    TCGv a = tcg_const_local_i32(0);
 
     TCGLabel *begin = gen_new_label();
     TCGLabel *end = gen_new_label();

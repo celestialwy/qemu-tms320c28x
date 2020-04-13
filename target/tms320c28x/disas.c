@@ -1385,6 +1385,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     IRET", insn);
                                     break;
                                 }
+                                case 0b000100: //0111 0110 0000 0100 LC *XAR7
+                                {
+                                    fprintf_func(stream, "0x%04x;     LC *XAR7", insn);
+                                    break;
+                                }
+                                case 0b010100: //0111 0110 0001 0100 LRET
+                                {
+                                    fprintf_func(stream, "0x%04x;     LRET", insn);
+                                    break;
+                                }
                                 case 0b011010: //0111 0110 0001 1010 EDIS
                                 {
                                     fprintf_func(stream, "0x%04x;     EDIS", insn);
@@ -1400,6 +1410,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     uint32_t imm = insn32 & 0xffff;
                                     fprintf_func(stream, "0x%08x; MOVW DP, #0x%04x", insn32, imm);
                                     length = 4;
+                                    break;
+                                }
+                                case 0b100000: //0111 0110 0010 0000 LB *XAR7
+                                {
+                                    fprintf_func(stream, "0x%04x;     LB *XAR7", insn);
                                     break;
                                 }
                                 case 0b100001: //0111 0110 0010 0001 IDLE

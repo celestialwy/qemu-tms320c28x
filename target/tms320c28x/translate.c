@@ -1113,6 +1113,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_iret(ctx);
                                     break;
                                 }
+                                case 0b000100: //0111 0110 0000 0100 LC *XAR7
+                                {
+                                    gen_lc_xar7(ctx);
+                                    break;
+                                }
+                                case 0b010100: //0111 0110 0001 0100 LRET
+                                {
+                                    gen_lret(ctx);
+                                    break;
+                                }
                                 case 0b011010: //0111 0110 0001 1010 EDIS
                                 {
                                     gen_edis(ctx);
@@ -1128,6 +1138,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     uint32_t imm = insn2;
                                     gen_movw_dp_16bit(ctx, imm);
                                     length = 4;
+                                    break;
+                                }
+                                case 0b100000: //0111 0110 0010 0000 LB *XAR7
+                                {
+                                    gen_lb_xar7(ctx);
                                     break;
                                 }
                                 case 0b100001: //0111 0110 0010 0001 IDLE
