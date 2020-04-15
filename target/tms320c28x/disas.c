@@ -690,6 +690,19 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             }
                             break;
                         }
+                        case 0b0110://0011 1110 0110 ....
+                        {
+                            if (((insn >> 3) & 1) == 0) //0011 1110 0110 0RRR LCR *XARn
+                            {
+                                uint32_t n = insn & 0b111;
+                                fprintf_func(stream, "0x%04x;     LCR *XAR%d", insn, n);
+                            }
+                            else
+                            {
+
+                            }
+                            break;
+                        }
                     }
                     break;
                 }
@@ -1380,8 +1393,10 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         length = 4;
                     }
                     else { // 0111 0110 0... ....
-                        if (((insn >> 6) & 0x1) == 1) { //0111 0110 01.. .... LCR #22bit todo
-
+                        if (((insn >> 6) & 0x1) == 1) { //0111 0110 01.. .... LCR #22bit
+                            length = 4;
+                            uint32_t imm = insn32 & 0x3fffff;
+                            fprintf_func(stream, "0x%08x; LCR @0x%x", insn32, imm);
                         }
                         else { //0111 0110 00.. ....
                             switch(insn & 0x3f) {

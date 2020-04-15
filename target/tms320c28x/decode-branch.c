@@ -147,6 +147,56 @@ static void gen_lc_22bit(DisasContext *ctx, uint32_t imm)
     ctx->base.is_jmp = DISAS_JUMP;
 }
 
+// LCR 22bit
+static void gen_lcr_22bit(DisasContext *ctx, uint32_t imm)
+{
+    gen_reset_rptc(ctx);
+
+    TCGv temp = tcg_temp_new_i32();
+    //[sp]  = RPC(15:0)
+    tcg_gen_andi_i32(temp, cpu_rpc, 0xffff);
+    gen_st16u_swap(temp, cpu_sp);
+    //sp = sp + 1
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 1);
+    //[sp] = rpc(21:16)
+    tcg_gen_shri_i32(temp, cpu_rpc, 16);
+    gen_st16u_swap(temp, cpu_sp);
+    //sp = sp + 1
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 1);
+    //rpc = pc + 2
+    tcg_gen_movi_i32(cpu_rpc, (((uint32_t)ctx->base.pc_next >> 1) + 2) & 0x3fffff);
+    //pc = 22bit
+    tcg_gen_movi_i32(cpu_pc, imm & 0x3fffff);
+    //
+    tcg_temp_free(temp);
+    ctx->base.is_jmp = DISAS_JUMP;
+}
+
+// LCR *XARn
+static void gen_lcr_xarn(DisasContext *ctx, uint32_t n)
+{
+    gen_reset_rptc(ctx);
+
+    TCGv temp = tcg_temp_new_i32();
+    //[sp]  = RPC(15:0)
+    tcg_gen_andi_i32(temp, cpu_rpc, 0xffff);
+    gen_st16u_swap(temp, cpu_sp);
+    //sp = sp + 1
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 1);
+    //[sp] = rpc(21:16)
+    tcg_gen_shri_i32(temp, cpu_rpc, 16);
+    gen_st16u_swap(temp, cpu_sp);
+    //sp = sp + 1
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 1);
+    //rpc = pc + 2
+    tcg_gen_movi_i32(cpu_rpc, (((uint32_t)ctx->base.pc_next >> 1) + 2) & 0x3fffff);
+    //pc = xarn(21:0)
+    tcg_gen_andi_i32(cpu_pc, cpu_xar[n], 0x3fffff);
+    //
+    tcg_temp_free(temp);
+    ctx->base.is_jmp = DISAS_JUMP;
+}
+
 // LRET
 static void gen_lret(DisasContext *ctx)
 {

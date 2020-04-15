@@ -499,6 +499,19 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             }
                             break;
                         }
+                        case 0b0110://0011 1110 0110 ....
+                        {
+                            if (((insn >> 3) & 1) == 0) //0011 1110 0110 0RRR LCR *XARn
+                            {
+                                uint32_t n = insn & 0b111;
+                                gen_lcr_xarn(ctx, n);
+                            }
+                            else
+                            {
+
+                            }
+                            break;
+                        }
                     }
                     break;
                 }
@@ -1108,8 +1121,10 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         length = 4;
                     }
                     else { // 0111 0110 0... ....
-                        if (((insn >> 6) & 0x1) == 1) { //0111 0110 01.. .... LCR #22bit todo
-
+                        if (((insn >> 6) & 0x1) == 1) { //0111 0110 01.. .... LCR #22bit
+                            length = 4;
+                            uint32_t imm = ((insn & 0x3f)<< 16) | insn2;
+                            gen_lcr_22bit(ctx, imm);
                         }
                         else { //0111 0110 00.. ....
                             switch(insn & 0x3f) {
