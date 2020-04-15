@@ -251,6 +251,30 @@ static void gen_lret(DisasContext *ctx)
     ctx->base.is_jmp = DISAS_JUMP;
 }
 
+// LRETE
+static void gen_lrete(DisasContext *ctx)
+{
+    TCGv temp = tcg_temp_new_i32();
+    TCGv temp2 = tcg_temp_new_i32();
+    //sp = sp - 1
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
+    //temp(31:16) = [sp]
+    gen_ld16u_swap(temp, cpu_sp);
+    tcg_gen_shli_i32(temp, temp, 16);
+    //sp = sp - 1
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
+    //temp(15:0) = [sp]
+    gen_ld16u_swap(temp2, cpu_sp);
+    //pc = temp(21:0)
+    tcg_gen_or_i32(cpu_pc, temp, temp2);
+    //INTM = 0
+    gen_seti_bit(cpu_st1, INTM_BIT, INTM_MASK, 0);
+    //
+    tcg_temp_free(temp);
+    tcg_temp_free(temp2);
+    ctx->base.is_jmp = DISAS_JUMP;
+}
+
 // LRETR
 static void gen_lretr(DisasContext *ctx)
 {

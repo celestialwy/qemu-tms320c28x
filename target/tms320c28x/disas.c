@@ -1429,6 +1429,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     LC *XAR7", insn);
                                     break;
                                 }
+                                case 0b010000: //0111 0110 0001 0000 LRETE
+                                {
+                                    fprintf_func(stream, "0x%04x;     LRETE", insn);
+                                    break;
+                                }
                                 case 0b010100: //0111 0110 0001 0100 LRET
                                 {
                                     fprintf_func(stream, "0x%04x;     LRET", insn);

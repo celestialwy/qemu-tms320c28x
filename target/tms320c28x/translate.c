@@ -1155,6 +1155,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_lc_xar7(ctx);
                                     break;
                                 }
+                                case 0b010000: //0111 0110 0001 0000 LRETE
+                                {
+                                    gen_lrete(ctx);
+                                    break;
+                                }
                                 case 0b010100: //0111 0110 0001 0100 LRET
                                 {
                                     gen_lret(ctx);
