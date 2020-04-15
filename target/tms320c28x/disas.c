@@ -599,8 +599,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOV %s,#0", insn, str);
                     break;
                 }
-                case 0b1100:
+                case 0b1100: //0010 1100 LLLL LLLL CCCC CCCC CCCC CCCC LOOPZ loc16,#16bit
+                {
+                    length = 4;
+                    uint32_t mask = insn32 & 0xffff;
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%08x; LOOPZ %s,#0x%d", insn, str, mask);
                     break;
+                }
                 case 0b1101: //0010 1101 LLLL LLLL MOV T,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -608,8 +615,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOV T,%s", insn, str);
                     break;
                 }
-                case 0b1110:
+                case 0b1110: //0010 1110 LLLL LLLL CCCC CCCC CCCC CCCC LOOPNZ loc16,#16bit
+                {
+                    length = 4;
+                    uint32_t mask = insn32 & 0xffff;
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%08x; LOOPNZ %s,#0x%d", insn, str, mask);
                     break;
+                }
                 case 0b1111: //0010 1111 LLLL LLLL MOV PH,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -621,14 +635,14 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b0011:
             switch ((insn & 0xf00) >> 8) {
-                case 0b1000: //1100 0110 LLLL LLLL MOVB AL.MSB,loc16
+                case 0b1000: //0011 0110 LLLL LLLL MOVB AL.MSB,loc16
                 {
                     uint32_t mode = insn & 0xff;
                     get_loc_string(str,mode,LOC16);
                     fprintf_func(stream, "0x%04x;     MOVB AL.MSB,%s", insn, str);
                     break;
                 }
-                case 0b1001: //1100 0111 LLLL LLLL MOVB AH.MSB,loc16
+                case 0b1001: //0011 0111 LLLL LLLL MOVB AH.MSB,loc16
                 {
                     uint32_t mode = insn & 0xff;
                     get_loc_string(str,mode,LOC16);
@@ -901,6 +915,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 case 0b1101: //0101 0110 0001 1101 CMPR 0
                                 {
                                     fprintf_func(stream, "0x%04x;     CMPR 0", insn);
+                                    break;
+                                }
+                                case 0b1110: //0101 0110 0001 1110 LPADDR
+                                {
+                                    fprintf_func(stream, "0x%04x;     LPADDR", insn);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0001 1111 SETC Objmode

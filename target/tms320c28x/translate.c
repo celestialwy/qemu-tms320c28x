@@ -425,16 +425,28 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_mov_loc16_0(ctx, mode);
                     break;
                 }
-                case 0b1100:
+                case 0b1100: //0010 1100 LLLL LLLL CCCC CCCC CCCC CCCC LOOPZ loc16,#16bit
+                {
+                    length = 4;
+                    uint32_t mask = insn2;
+                    uint32_t mode = insn & 0xff;
+                    gen_loopz_loc16_16bit(ctx, mode, mask);
                     break;
+                }
                 case 0b1101: //0010 1101 LLLL LLLL MOV T,loc16
                 {
                     uint32_t mode = insn & 0xff;
                     gen_mov_t_loc16(ctx, mode);
                     break;
                 }
-                case 0b1110:
+                case 0b1110: //0010 1110 LLLL LLLL CCCC CCCC CCCC CCCC LOOPNZ loc16,#16bit
+                {
+                    length = 4;
+                    uint32_t mask = insn2;
+                    uint32_t mode = insn & 0xff;
+                    gen_loopnz_loc16_16bit(ctx, mode, mask);
                     break;
+                }
                 case 0b1111: //0010 1111 LLLL LLLL MOV PH,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -445,13 +457,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
             break;
         case 0b0011:
             switch ((insn & 0xf00) >> 8) {
-                case 0b1000: //1100 0110 LLLL LLLL MOVB AL.MSB,loc16
+                case 0b1000: //0011 0110 LLLL LLLL MOVB AL.MSB,loc16
                 {
                     uint32_t mode = insn & 0xff;
                     gen_movb_al_msb_loc16(ctx, mode);
                     break;
                 }
-                case 0b1001: //1100 0111 LLLL LLLL MOVB AH.MSB,loc16
+                case 0b1001: //0011 0111 LLLL LLLL MOVB AH.MSB,loc16
                 {
                     uint32_t mode = insn & 0xff;
                     gen_movb_ah_msb_loc16(ctx, mode);
@@ -686,6 +698,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 case 0b1101: //0101 0110 0001 1101 CMPR 0
                                 {
                                     gen_cmpr_0123(ctx, 0);
+                                    break;
+                                }
+                                case 0b1110: //0101 0110 0001 1110 LPADDR
+                                {
+                                    gen_lpaddr(ctx);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0001 1111 SETC Objmode

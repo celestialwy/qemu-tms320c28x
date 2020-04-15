@@ -197,6 +197,38 @@ static void gen_lcr_xarn(DisasContext *ctx, uint32_t n)
     ctx->base.is_jmp = DISAS_JUMP;
 }
 
+// LOOPNZ loc16,#16bit
+static void gen_loopnz_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t mask)
+{
+    TCGv tmp = tcg_temp_local_new_i32();
+    TCGLabel *begin = gen_new_label();
+    gen_set_label(begin);
+
+    gen_seti_bit(cpu_st1, LOOP_BIT, LOOP_MASK, 1);
+    gen_ld_loc16(tmp, mode);
+    tcg_gen_andi_i32(tmp, tmp, mask);
+    gen_helper_test_N_Z_16(cpu_env, tmp);
+    tcg_gen_brcondi_i32(TCG_COND_NE, tmp, 0, begin);
+    gen_seti_bit(cpu_st1, LOOP_BIT, LOOP_MASK, 0);
+    tcg_temp_free(tmp);
+}
+
+// LOOPZ loc16,#16bit
+static void gen_loopz_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t mask)
+{
+    TCGv tmp = tcg_temp_local_new_i32();
+    TCGLabel *begin = gen_new_label();
+    gen_set_label(begin);
+
+    gen_seti_bit(cpu_st1, LOOP_BIT, LOOP_MASK, 1);
+    gen_ld_loc16(tmp, mode);
+    tcg_gen_andi_i32(tmp, tmp, mask);
+    gen_helper_test_N_Z_16(cpu_env, tmp);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, tmp, 0, begin);
+    gen_seti_bit(cpu_st1, LOOP_BIT, LOOP_MASK, 0);
+    tcg_temp_free(tmp);
+}
+
 // LRET
 static void gen_lret(DisasContext *ctx)
 {

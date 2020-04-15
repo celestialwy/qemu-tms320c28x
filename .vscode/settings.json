@@ -22,7 +22,14 @@
         "loader.h": "c",
         "algorithm": "c",
         "ldst.h": "c",
-        "helper-proto.h": "c"
+        "helper-proto.h": "c",
+        "deque": "c",
+        "list": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "vector": "c",
+        "string_view": "c",
+        "initializer_list": "c"
     },
     "files.exclude": {
         "**/.git": true,

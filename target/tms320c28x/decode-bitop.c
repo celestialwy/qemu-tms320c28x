@@ -407,6 +407,13 @@ static void gen_flip_ax(DisasContext *ctx, bool is_AH)
 
 }
 
+// LPADDR
+static void gen_lpaddr(DisasContext *ctx)
+{
+    //p226, todo putting the device in C2xLP compatible addressing mode
+    gen_seti_bit(cpu_st1, AMODE_BIT, AMODE_MASK, 1);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {
