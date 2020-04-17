@@ -437,6 +437,26 @@ static void gen_lsl_acc_imm(DisasContext *ctx, uint32_t shift)
     tcg_temp_free(tmp);
 }
 
+// LSL ACC,T
+static void gen_lsl_acc_t(DisasContext *ctx)
+{
+    TCGv tmp = tcg_const_i32(32);
+    TCGv shift = tcg_temp_new_i32();
+    gen_ld_reg_half(shift, cpu_xt, true);
+    tcg_gen_andi_i32(shift, shift, 0b1111);//shift = T[3:0]
+
+    tcg_gen_sub_i32(tmp, tmp, shift);
+    tcg_gen_shr_i32(tmp, cpu_acc, tmp);
+    tcg_gen_andi_i32(tmp, tmp, 1);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, tmp);
+
+    tcg_gen_shl_i32(cpu_acc, cpu_acc, shift);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    tcg_temp_free(tmp);
+    tcg_temp_free(shift);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {

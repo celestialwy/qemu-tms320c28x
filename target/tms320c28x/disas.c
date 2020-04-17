@@ -2111,6 +2111,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         }
                         case 0b0101: //1111 1111 0101 ....
                             switch (insn & 0xf) {
+                                case 0b0000: //1111 1111 0101 0000 LSL ACC,T
+                                {
+                                    fprintf_func(stream, "0x%04x;     LSL ACC,T", insn);
+                                    break;
+                                }
                                 case 0b0110: //1111 1111 0101 0110 ABS ACC
                                 {
                                     fprintf_func(stream, "0x%04x;     ABS ACC", insn);
