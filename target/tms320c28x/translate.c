@@ -1739,6 +1739,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             length = 4;
                             break;
                         }
+                        case 0b0011: //1111 1111 0011 SHFT LSL ACC,#1...16
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            gen_lsl_acc_imm(ctx, shift);
+                            break;
+                        }
                         case 0b0101: //1111 1111 0101 ....
                             switch (insn & 0xf) {
                                 case 0b0110: //1111 1111 0101 0110 ABS ACC

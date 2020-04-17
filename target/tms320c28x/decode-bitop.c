@@ -414,6 +414,29 @@ static void gen_lpaddr(DisasContext *ctx)
     gen_seti_bit(cpu_st1, AMODE_BIT, AMODE_MASK, 1);
 }
 
+// LSL ACC,#1...16
+static void gen_lsl_acc_imm(DisasContext *ctx, uint32_t shift)
+{
+    TCGv tmp = tcg_temp_new_i32();
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    tcg_gen_shri_i32(tmp, cpu_acc, 32 - shift);
+    tcg_gen_andi_i32(tmp, tmp, 1);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, tmp);
+    tcg_gen_shli_i32(cpu_acc, cpu_acc, shift);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    tcg_temp_free(tmp);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {
