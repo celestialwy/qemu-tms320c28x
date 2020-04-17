@@ -229,7 +229,7 @@ static void gen_asr64_acc_p_imm(DisasContext *ctx, uint32_t shift)
     //set high bit of p
     tcg_gen_or_i32(cpu_p, cpu_p, a);
 
-    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_N_Z_64(cpu_env, cpu_acc, cpu_p);
     gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
 
     tcg_temp_free(a);
@@ -271,7 +271,7 @@ static void gen_asr64_acc_p_t(DisasContext *ctx)
     tcg_gen_movi_i32(c, 0);
     //done
     gen_set_label(done);
-    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_N_Z_64(cpu_env, cpu_acc, cpu_p);
     gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
 
     tcg_temp_free(c);
@@ -440,7 +440,7 @@ static void gen_lsl_acc_imm(DisasContext *ctx, uint32_t shift)
 // LSL ACC,T
 static void gen_lsl_acc_t(DisasContext *ctx)
 {
-    TCGv tmp = tcg_const_i32(32);
+    TCGv tmp = tcg_const_i32(16);
     TCGv shift = tcg_temp_new_i32();
     gen_ld_reg_half(shift, cpu_xt, true);
     tcg_gen_andi_i32(shift, shift, 0b1111);//shift = T[3:0]
@@ -464,7 +464,7 @@ static void gen_lsl_ax_imm(DisasContext *ctx, uint32_t shift, bool is_AH)
     TCGv ax = tcg_temp_new_i32();
     gen_ld_reg_half(ax, cpu_acc, is_AH);
 
-    tcg_gen_shri_i32(tmp, ax, 32 - shift);
+    tcg_gen_shri_i32(tmp, ax, 16 - shift);
     tcg_gen_andi_i32(tmp, tmp, 1);
     gen_set_bit(cpu_st0, C_BIT, C_MASK, tmp);
     tcg_gen_shli_i32(ax, ax, shift);
@@ -504,6 +504,24 @@ static void gen_lsl_ax_t(DisasContext *ctx, bool is_AH)
     tcg_temp_free(ax);
     tcg_temp_free(shift);
 }
+
+// LSL64 ACC:P,#1...16
+static void gen_lsl64_acc_p_imm(DisasContext *ctx, uint32_t shift)
+{
+    TCGv tmp = tcg_temp_new_i32();
+    tcg_gen_shri_i32(tmp, cpu_acc, 32 - shift);
+    tcg_gen_andi_i32(tmp, tmp, 1);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, tmp);
+
+    tcg_gen_shli_i32(cpu_acc, cpu_acc, shift);
+    tcg_gen_shri_i32(tmp, cpu_p, 32 - shift);
+    tcg_gen_or_i32(cpu_acc, cpu_acc, tmp);
+    tcg_gen_shli_i32(cpu_p, cpu_p, shift);
+
+    gen_helper_test_N_Z_64(cpu_env, cpu_acc, cpu_p);
+    tcg_temp_free(tmp);
+}
+
 
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)

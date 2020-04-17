@@ -1043,6 +1043,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             gen_asr64_acc_p_imm(ctx, shift);
                             break;
                         }
+                        case 0b1010: //0101 0110 1010 SHFT LSL64 ACC:P,#1...16
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            gen_lsl64_acc_p_imm(ctx, shift);
+                            break;
+                        }
                         case 0b1011: //0101 0110 1011 COND CCCC CCCC LLLL LLLL MOVB loc16,#8bit,COND
                         {
                             uint32_t cond = insn & 0xf;

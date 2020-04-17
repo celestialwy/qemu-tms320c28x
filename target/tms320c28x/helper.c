@@ -115,6 +115,21 @@ void HELPER(test_N_Z_32)(CPUTms320c28xState *env, uint32_t value) {
     }
 }
 
+void HELPER(test_N_Z_64)(CPUTms320c28xState *env, uint32_t v_high, uint32_t v_low) {
+    if ((v_high >> 31) == 1) {
+        CPU_SET_STATUS(st0, N, 1);
+    }
+    else {
+        CPU_SET_STATUS(st0, N, 0);
+    }
+    if ((v_high == 0) && (v_low == 0)) {
+        CPU_SET_STATUS(st0, Z, 1);
+    }
+    else {
+        CPU_SET_STATUS(st0, Z, 0);
+    }
+}
+
 void HELPER(test_C_V_16)(CPUTms320c28xState *env, uint32_t a, uint32_t b, uint32_t result) {
     uint32_t bit1 = (a >> 15) & 1;
     uint32_t bit2 = (b >> 15) & 1;
