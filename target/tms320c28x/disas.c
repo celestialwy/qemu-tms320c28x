@@ -1186,6 +1186,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         case 0b0101: //0101 0110 0101 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0010: //0101 0110 0101 0010 LSL64 ACC:P,T
+                                {
+                                    fprintf_func(stream, "0x%04x;     LSL64 ACC:P,T", insn);
+                                    break;
+                                }
                                 case 0b0011: //0101 0110 0101 0011 xxxx xxxx LLLL LLLL ADDUL ACC,loc32
                                 {
                                     uint32_t mode = insn32 & 0xff;

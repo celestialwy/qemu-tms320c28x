@@ -522,6 +522,30 @@ static void gen_lsl64_acc_p_imm(DisasContext *ctx, uint32_t shift)
     tcg_temp_free(tmp);
 }
 
+// LSL64 ACC:P,T
+static void gen_lsl64_acc_p_t(DisasContext *ctx)
+{
+    TCGv tmp = tcg_temp_new_i32();
+    TCGv shift = tcg_temp_new_i32();
+    TCGv shift2 = tcg_const_i32(32);
+    gen_ld_reg_half(shift, cpu_xt, true);
+    tcg_gen_andi_i32(shift, shift, 0b111111);//shift = T[5:0]
+    tcg_gen_sub_i32(shift2, shift2, shift);
+
+    tcg_gen_shr_i32(tmp, cpu_acc, shift2);
+    tcg_gen_andi_i32(tmp, tmp, 1);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, tmp);
+
+    tcg_gen_shl_i32(cpu_acc, cpu_acc, shift);
+    tcg_gen_shr_i32(tmp, cpu_p, shift2);
+    tcg_gen_or_i32(cpu_acc, cpu_acc, tmp);
+    tcg_gen_shl_i32(cpu_p, cpu_p, shift);
+
+    gen_helper_test_N_Z_64(cpu_env, cpu_acc, cpu_p);
+    tcg_temp_free(tmp);
+    tcg_temp_free(shift);
+    tcg_temp_free(shift2);
+}
 
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)

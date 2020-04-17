@@ -931,6 +931,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         case 0b0101: //0101 0110 0101 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0010: //0101 0110 0101 0010 LSL64 ACC:P,T
+                                {
+                                    gen_lsl64_acc_p_t(ctx);
+                                    break;
+                                }
                                 case 0b0011: //0101 0110 0101 0011 xxxx xxxx LLLL LLLL ADDUL ACC,loc32
                                 {
                                     uint32_t mode = insn2 & 0xff;
