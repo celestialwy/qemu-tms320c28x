@@ -2157,8 +2157,29 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         fprintf_func(stream, "0x%04x;     ASR AH,T", insn);
                                         break;
                                     }
+                                    case 0b110:
+                                    {
+                                        fprintf_func(stream, "0x%04x;     LSL AL,T", insn);
+                                        break;
+                                    }
+                                    case 0b111: //1111 1111 0110 011a LSL AX,T
+                                    {
+                                        fprintf_func(stream, "0x%04x;     LSL AH,T", insn);
+                                        break;
+                                    }
                                 }
                             }
+                            break;
+                        }
+                        case 0b1000:
+                        case 0b1001://1111 1111 100A SHFT LSL AX,#1...16
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            uint32_t is_AH = (insn >> 4) & 1;
+                            if (is_AH) 
+                                fprintf_func(stream, "0x%04x;     LSL AH,#%d", insn, shift);
+                            else
+                                fprintf_func(stream, "0x%04x;     LSL AL,#%d", insn, shift);
                             break;
                         }
                         case 0b1010:

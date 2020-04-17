@@ -1784,8 +1784,23 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         gen_asr_ax_t(ctx, is_AH);
                                         break;
                                     }
+                                    case 0b110:
+                                    case 0b111: //1111 1111 0110 011a LSL AX,T
+                                    {
+                                        uint32_t is_AH = insn & 1;
+                                        gen_lsl_ax_t(ctx, is_AH);
+                                        break;
+                                    }
                                 }
                             }
+                            break;
+                        }
+                        case 0b1000:
+                        case 0b1001://1111 1111 100A SHFT LSL AX,#1...16
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            uint32_t is_AH = (insn >> 4) & 1;
+                            gen_lsl_ax_imm(ctx, shift, is_AH);
                             break;
                         }
                         case 0b1010:

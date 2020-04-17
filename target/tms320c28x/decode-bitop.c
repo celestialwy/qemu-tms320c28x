@@ -457,6 +457,54 @@ static void gen_lsl_acc_t(DisasContext *ctx)
     tcg_temp_free(shift);
 }
 
+// LSL AX,#1...16
+static void gen_lsl_ax_imm(DisasContext *ctx, uint32_t shift, bool is_AH)
+{
+    TCGv tmp = tcg_temp_new_i32();
+    TCGv ax = tcg_temp_new_i32();
+    gen_ld_reg_half(ax, cpu_acc, is_AH);
+
+    tcg_gen_shri_i32(tmp, ax, 32 - shift);
+    tcg_gen_andi_i32(tmp, tmp, 1);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, tmp);
+    tcg_gen_shli_i32(ax, ax, shift);
+    gen_helper_test_N_Z_16(cpu_env, ax);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, ax);
+    else
+        gen_st_reg_low_half(cpu_acc, ax);
+    tcg_temp_free(tmp);
+    tcg_temp_free(ax);
+}
+
+// LSL AX,T
+static void gen_lsl_ax_t(DisasContext *ctx, bool is_AH)
+{
+    TCGv tmp = tcg_const_i32(32);
+    TCGv shift = tcg_temp_new_i32();
+    TCGv ax = tcg_temp_new_i32();
+    gen_ld_reg_half(ax, cpu_acc, is_AH);
+
+    gen_ld_reg_half(shift, cpu_xt, true);
+    tcg_gen_andi_i32(shift, shift, 0b1111);//shift = T[3:0]
+
+    tcg_gen_sub_i32(tmp, tmp, shift);
+    tcg_gen_shr_i32(tmp, ax, tmp);
+    tcg_gen_andi_i32(tmp, tmp, 1);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, tmp);
+
+    tcg_gen_shl_i32(ax, ax, shift);
+    gen_helper_test_N_Z_16(cpu_env, ax);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, ax);
+    else
+        gen_st_reg_low_half(cpu_acc, ax);
+
+    tcg_temp_free(tmp);
+    tcg_temp_free(ax);
+    tcg_temp_free(shift);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {
