@@ -214,18 +214,17 @@ static void gen_st_reg_high_half(TCGv reg, TCGv_i32 oprand)
 {
     TCGv_i32 tmp = tcg_const_i32(0x0000ffff);
     tcg_gen_and_tl(reg, reg, tmp);// get low 16bit
-    tcg_gen_shli_tl(oprand, oprand, 16); // shift imm value
-    tcg_gen_or_tl(reg, reg, oprand);// concat high 16bit
+    tcg_gen_shli_tl(tmp, oprand, 16); // shift imm value
+    tcg_gen_or_tl(reg, reg, tmp);// concat high 16bit
     tcg_temp_free_i32(tmp);
 }
 
 static void gen_st_reg_low_half(TCGv reg, TCGv_i32 oprand)
 {
-    tcg_gen_andi_i32(oprand, oprand, 0xffff);
-
     TCGv_i32 tmp = tcg_const_i32(0xffff0000);
     tcg_gen_and_tl(reg, reg, tmp);// get high 16bit
-    tcg_gen_or_tl(reg, reg, oprand);// concat low 16bit
+    tcg_gen_andi_i32(tmp, oprand, 0xffff);
+    tcg_gen_or_tl(reg, reg, tmp);// concat low 16bit
     tcg_temp_free_i32(tmp);
 }
 
