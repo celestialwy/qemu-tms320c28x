@@ -293,11 +293,11 @@ static void gen_asrl_acc_t(DisasContext *ctx)
     tcg_gen_brcondi_i32(TCG_COND_EQ, shift, 0, shift_is_zero);
     //shift != 0
     TCGv a = tcg_temp_new();
-    //shift p
+    //shift acc
     tcg_gen_subi_i32(shift, shift, 1);//shift = shift -1
-    tcg_gen_shr_i32(cpu_acc, cpu_acc, shift);
+    tcg_gen_sar_i32(cpu_acc, cpu_acc, shift);
     tcg_gen_andi_i32(c, cpu_acc, 1);//last bit out
-    tcg_gen_shri_i32(cpu_acc, cpu_acc, 1);
+    tcg_gen_sari_i32(cpu_acc, cpu_acc, 1);
 
     tcg_temp_free(a);
     tcg_gen_br(done);
@@ -545,6 +545,185 @@ static void gen_lsl64_acc_p_t(DisasContext *ctx)
     tcg_temp_free(tmp);
     tcg_temp_free(shift);
     tcg_temp_free(shift2);
+}
+
+// LSLL ACC,T
+static void gen_lsll_acc_t(DisasContext *ctx)
+{
+    TCGv tmp = tcg_const_i32(16);
+    TCGv shift = tcg_temp_new_i32();
+    gen_ld_reg_half(shift, cpu_xt, true);
+    tcg_gen_andi_i32(shift, shift, 0b11111);//shift = T[4:0]
+
+    tcg_gen_sub_i32(tmp, tmp, shift);
+    tcg_gen_shr_i32(tmp, cpu_acc, tmp);
+    tcg_gen_andi_i32(tmp, tmp, 1);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, tmp);
+
+    tcg_gen_shl_i32(cpu_acc, cpu_acc, shift);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    tcg_temp_free(tmp);
+    tcg_temp_free(shift);
+}
+
+// LSR AX,#1...16
+static void gen_lsr_ax_imm(DisasContext *ctx, uint32_t shift, bool is_AH)
+{
+    TCGv a = tcg_temp_new();
+    TCGv c = tcg_temp_new();
+    gen_ld_reg_half(a, cpu_acc, is_AH);//ax
+    if (shift != 1)
+        tcg_gen_shri_i32(a, a, shift - 1);
+    tcg_gen_andi_i32(c, a, 1);//C = last bit out
+    tcg_gen_shri_i32(a, a, 1);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, a);
+    else
+        gen_st_reg_low_half(cpu_acc, a);
+    gen_helper_test_N_Z_16(cpu_env, a);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
+
+    tcg_temp_free(a);
+    tcg_temp_free(c);
+}
+
+// LSR AX,T
+static void gen_lsr_ax_t(DisasContext *ctx, bool is_AH)
+{
+    TCGLabel *shift_is_zero = gen_new_label();
+    TCGLabel *done = gen_new_label();
+
+    TCGv a = tcg_temp_local_new();
+    TCGv shift = tcg_temp_local_new();
+    TCGv c = tcg_temp_local_new();
+    gen_ld_reg_half(a, cpu_acc, is_AH);//a = ax
+
+    gen_ld_reg_half(shift, cpu_xt, 1);
+    tcg_gen_andi_i32(shift, shift, 0b1111);//shift = t[3:0]
+    //branch
+    tcg_gen_brcondi_i32(TCG_COND_EQ, shift, 0, shift_is_zero);
+    //shift != 0
+    tcg_gen_subi_i32(shift, shift, 1);
+    tcg_gen_shr_i32(a, a, shift);
+    tcg_gen_andi_i32(c, a, 1);//C = last bit out
+    tcg_gen_shri_i32(a, a, 1);
+    tcg_gen_br(done);
+    //shift == 0
+    gen_set_label(shift_is_zero);
+    tcg_gen_movi_i32(c, 0);
+    //done
+    gen_set_label(done);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, a);
+    else
+        gen_st_reg_low_half(cpu_acc, a);
+    gen_helper_test_N_Z_16(cpu_env, a);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
+
+    tcg_temp_free(a);
+    tcg_temp_free(c);
+    tcg_temp_free(shift);
+}
+
+// LSR64 ACC:P,#1...16
+static void gen_lsr64_acc_p_imm(DisasContext *ctx, uint32_t shift)
+{
+    TCGv a = tcg_temp_new();
+    TCGv c = tcg_temp_new();
+    //shift acc
+    tcg_gen_shli_i32(a, cpu_acc, 32 - shift);
+    tcg_gen_shri_i32(cpu_acc, cpu_acc, shift);
+
+    //shift p
+    tcg_gen_shri_i32(cpu_p, cpu_p, shift - 1);
+    tcg_gen_andi_i32(c, cpu_p, 1);//last bit out
+    tcg_gen_shri_i32(cpu_p, cpu_p, 1);
+    //set high bit of p
+    tcg_gen_or_i32(cpu_p, cpu_p, a);
+
+    gen_helper_test_N_Z_64(cpu_env, cpu_acc, cpu_p);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
+
+    tcg_temp_free(a);
+    tcg_temp_free(c);
+}
+
+// LSR64 ACC:P,T
+static void gen_lsr64_acc_p_t(DisasContext *ctx)
+{
+    TCGLabel *shift_is_zero = gen_new_label();
+    TCGLabel *done = gen_new_label();
+
+    TCGv shift = tcg_temp_local_new();
+    TCGv c = tcg_temp_local_new();
+
+    gen_ld_reg_half(shift, cpu_xt, 1);//get t
+    tcg_gen_andi_i32(shift, shift, 0b111111);//shift = t[5:0]
+    //branch
+    tcg_gen_brcondi_i32(TCG_COND_EQ, shift, 0, shift_is_zero);
+    //shift != 0
+    TCGv a = tcg_temp_new();
+    TCGv tmp = tcg_const_i32(32);
+    //shift acc
+    tcg_gen_sub_i32(tmp, tmp, shift);//32-shift, 
+    tcg_gen_shl_i32(a, cpu_acc, tmp);//save acc shift out value
+    tcg_gen_shr_i32(cpu_acc, cpu_acc, shift);
+    //shift p
+    tcg_gen_subi_i32(tmp, shift, 1);//tmp = shift -1
+    tcg_gen_shr_i32(cpu_p, cpu_p, tmp);
+    tcg_gen_andi_i32(c, cpu_p, 1);//last bit out
+    tcg_gen_shri_i32(cpu_p, cpu_p, 1);
+    //set high bit of p
+    tcg_gen_or_i32(cpu_p, cpu_p, a);
+    tcg_temp_free(a);
+    tcg_temp_free(tmp);
+    tcg_gen_br(done);
+    //shift == 0
+    gen_set_label(shift_is_zero);
+    tcg_gen_movi_i32(c, 0);
+    //done
+    gen_set_label(done);
+    gen_helper_test_N_Z_64(cpu_env, cpu_acc, cpu_p);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
+
+    tcg_temp_free(c);
+    tcg_temp_free(shift);
+}
+
+// LSRL ACC,T
+static void gen_lsrl_acc_t(DisasContext *ctx)
+{
+    TCGLabel *shift_is_zero = gen_new_label();
+    TCGLabel *done = gen_new_label();
+
+    TCGv shift = tcg_temp_local_new();
+    TCGv c = tcg_temp_local_new();
+
+    gen_ld_reg_half(shift, cpu_xt, 1);//get t
+    tcg_gen_andi_i32(shift, shift, 0b11111);//shift = t[4:0]
+    //branch
+    tcg_gen_brcondi_i32(TCG_COND_EQ, shift, 0, shift_is_zero);
+    //shift != 0
+    TCGv a = tcg_temp_new();
+    //shift acc
+    tcg_gen_subi_i32(shift, shift, 1);//shift = shift -1
+    tcg_gen_shr_i32(cpu_acc, cpu_acc, shift);
+    tcg_gen_andi_i32(c, cpu_acc, 1);//last bit out
+    tcg_gen_shri_i32(cpu_acc, cpu_acc, 1);
+
+    tcg_temp_free(a);
+    tcg_gen_br(done);
+    //shift == 0
+    gen_set_label(shift_is_zero);
+    tcg_gen_movi_i32(c, 0);
+    //done
+    gen_set_label(done);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, c);
+
+    tcg_temp_free(c);
+    tcg_temp_free(shift);
 }
 
 // SETC Mode

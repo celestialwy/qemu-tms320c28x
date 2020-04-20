@@ -723,6 +723,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_movx_tl_loc16(ctx, mode);
                                     break;
                                 }
+                                case 0b0010: //0101 0110 0010 0010 LSRL ACC,T
+                                {
+                                    gen_lsrl_acc_t(ctx);
+                                    break;
+                                }
                                 case 0b0011: //0101 0110 0010 0011 32bit ADD ACC,loc16<<T
                                 {
                                     length = 4;
@@ -824,6 +829,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 {
                                     uint32_t is_AH = insn & 1;
                                     gen_mov_pm_ax(ctx, is_AH);
+                                    break;
+                                }
+                                case 0b1011: //0101 0110 0011 1011 LSLL ACC,T
+                                {
+                                    gen_lsll_acc_t(ctx);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0011 1111 CLRC M0M1MAP
@@ -975,6 +985,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b1011: //0101 0110 0101 1011 LSR64 ACC:P,T
+                                {
+                                    gen_lsr64_acc_p_t(ctx);
+                                    break;
+                                }
                                 case 0b1100: //0101 0110 0101 1100 CLRC OVC
                                 {
                                     gen_clrc_ovc(ctx);
@@ -1046,6 +1061,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         {
                             uint32_t shift = (insn & 0xf) + 1;
                             gen_asr64_acc_p_imm(ctx, shift);
+                            break;
+                        }
+                        case 0b1001: //0101 0110 1001 SHFT
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            gen_lsr64_acc_p_imm(ctx, shift);
                             break;
                         }
                         case 0b1010: //0101 0110 1010 SHFT LSL64 ACC:P,#1...16
@@ -1788,6 +1809,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             }
                             else {//1111 1111 0110 0...
                                 switch(insn & 0b111) {
+                                    case 0b010:
+                                    case 0b011://1111 1111 0110 0010 LSR AX,T
+                                    {
+                                        uint32_t is_AH = insn & 1;
+                                        gen_lsr_ax_t(ctx, is_AH);
+                                        break;
+                                    }
                                     case 0b100:
                                     case 0b101: //1111 1111 0110 010a ASR AX,T
                                     {
@@ -1820,6 +1848,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             uint32_t shift = (insn & 0xf) + 1;
                             uint32_t is_AH = (insn >> 4) & 1;
                             gen_asr_ax_imm(ctx, shift, is_AH);
+                            break;
+                        }
+                        case 0b1100://1111 1111 1100 SHFT LSR AL,#1...16
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            gen_lsr_ax_imm(ctx, shift, false);
+                            break;
+                        }
+                        case 0b1101://1111 1111 1101 SHFT LSR AH,#1...16
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            gen_lsr_ax_imm(ctx, shift, true);
                             break;
                         }
                         case 0b1110://1111 1111 1110 COND CCCC CCCC CCCC CCCC B 16bitOffset,COND

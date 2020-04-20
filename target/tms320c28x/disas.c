@@ -940,6 +940,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%08x; MOVX TL,%s", insn32, str);
                                     break;
                                 }
+                                case 0b0010: //0101 0110 0010 0010 LSRL ACC,T
+                                {
+                                    fprintf_func(stream, "0x%04x;     LSRL ACC,T", insn);
+                                    break;
+                                }
                                 case 0b0011: //0101 0110 0010 0011 32bit ADD ACC,loc16<<T
                                 {
                                     length = 4;
@@ -1059,7 +1064,12 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         fprintf_func(stream, "0x%04x;     MOV PM,AL", insn);
                                     }
                                     break;
-                                }                             
+                                }
+                                case 0b1011: //0101 0110 0011 1011 LSLL ACC,T
+                                {
+                                    fprintf_func(stream, "0x%04x;     LSLL ACC,T", insn);
+                                    break;
+                                }
                                 case 0b1111: //0101 0110 0011 1111 CLRC M0M1MAP
                                 {
                                     fprintf_func(stream, "0x%04x;     CLRC M0M1MAP", insn);
@@ -1234,6 +1244,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     length = 4;
                                     break;
                                 }
+                                case 0b1011: //0101 0110 0101 1011 LSR64 ACC:P,T
+                                {
+                                    fprintf_func(stream, "0x%04x;     LSR64 ACC:P,T", insn);
+                                    break;
+                                }
                                 case 0b1100: //0101 0110 0101 1100 CLRC OVC
                                 {
                                     fprintf_func(stream, "0x%04x;     CLRC OVC", insn);
@@ -1308,6 +1323,12 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         {
                             uint32_t shift = (insn & 0xf) + 1;
                             fprintf_func(stream, "0x%04x;     ASR64 ACC:P,#%d", insn, shift);
+                            break;
+                        }
+                        case 0b1001: //0101 0110 1001 SHFT
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            fprintf_func(stream, "0x%04x;     LSR64 ACC:P,#%d", insn, shift);
                             break;
                         }
                         case 0b1010: //0101 0110 1010 SHFT LSL64 ACC:P,#1...16
@@ -2158,6 +2179,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             }
                             else {//1111 1111 0110 0...
                                 switch(insn & 0b111) {
+                                    case 0b010://1111 1111 0110 0010 LSR AL,T
+                                    {
+                                        fprintf_func(stream, "0x%04x;     LSR AL,T", insn);
+                                        break;
+                                    }
+                                    case 0b011://1111 1111 0110 0010 LSR AH,T
+                                    {
+                                        fprintf_func(stream, "0x%04x;     LSR AH,T", insn);
+                                        break;
+                                    }
                                     case 0b100:
                                     {
                                         fprintf_func(stream, "0x%04x;     ASR AL,T", insn);
@@ -2202,6 +2233,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 fprintf_func(stream, "0x%04x;     ASR AH,#%d", insn, shift);
                             else
                                 fprintf_func(stream, "0x%04x;     ASR AL,#%d", insn, shift);
+                            break;
+                        }
+                        case 0b1100://1111 1111 1100 SHFT LSR AL,#1...16
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            fprintf_func(stream, "0x%04x;     LSR AL,#%d", insn, shift);
+                            break;
+                        }
+                        case 0b1101://1111 1111 1101 SHFT LSR AH,#1...16
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            fprintf_func(stream, "0x%04x;     LSR AH,#%d", insn, shift);
                             break;
                         }
                         case 0b1110://1111 1111 1110 COND CCCC CCCC CCCC CCCC B 16bitOffset,COND
