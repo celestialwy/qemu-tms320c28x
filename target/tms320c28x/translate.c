@@ -1029,6 +1029,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         case 0b0110: //0101 0110 0110 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0001: //0101 0110 0110 0001 0000 0000 LLLL LLLL MAXL ACC,loc32
+                                {
+                                    if ((insn2 >> 8) == 0) {
+                                        uint32_t mode = insn2 & 0xff;
+                                        length = 4;
+                                        gen_maxl_acc_loc32(ctx, mode);
+                                    }
+                                    break;
+                                }
                                 case 0b0010: //0101 0110 0110 0010 0000 0000 LLLL LLLL MOVU OVC,loc16
                                 {
                                     if ((insn2 >> 8) == 0) {

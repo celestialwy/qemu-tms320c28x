@@ -546,3 +546,35 @@ static void gen_maxcul_p_loc32(DisasContext *ctx, uint32_t mode)
     gen_ld_loc32(a, mode);
     gen_helper_maxcul_p_loc32(cpu_env, a);
 }
+
+//MAXL ACC,loc32
+static void gen_maxl_acc_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new_i32();
+    TCGv b = tcg_temp_local_new_i32();
+    TCGv result = tcg_temp_local_new_i32();
+    TCGLabel *done = gen_new_label();
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    tcg_gen_mov_i32(a, cpu_acc);
+    gen_ld_loc32(b, mode);
+    tcg_gen_brcond_tl(TCG_COND_GE, a, b, done);
+    tcg_gen_mov_i32(cpu_acc, b);
+    gen_seti_bit(cpu_st0, V_BIT, V_MASK, 1);//if acc<loc32,set V
+    gen_set_label(done);
+    tcg_gen_sub_i32(result, a, b);
+    gen_helper_test_sub_C_32(cpu_env, a, b, result);
+    gen_helper_test_N_Z_32(cpu_env, result);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+    tcg_temp_free(result);
+}
