@@ -114,6 +114,7 @@ void tms320c28x_translate_init(void)
 #include "decode-mov.c"
 #include "decode-math-add.c"
 #include "decode-math-sub.c"
+#include "decode-math-mpy.c"
 #include "decode-math-other.c"
 #include "decode-bitop.c"
 #include "decode-branch.c"
@@ -314,6 +315,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movs_t_loc16(ctx, mode);
                     break;
                 }
+                case 0b0010: //0001 0010 LLLL LLLL MPY ACC,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mpy_acc_t_loc16(ctx, mode);
+                    break;
+                }
                 case 0b0100: //0001 0100 LLLL LLLL CCCC CCCC CCCC CCCC MAC P,loc16,0:pma
                 {
                     uint32_t mode = insn & 0xff;
@@ -457,13 +464,21 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
             break;
         case 0b0011:
             switch ((insn & 0xf00) >> 8) {
-                case 0b1000: //0011 0110 LLLL LLLL MOVB AL.MSB,loc16
+                case 0b0100: //0011 0100 LLLL LLLL CCCC CCCC CCCC CCCC MPY ACC,loc16,#16bit
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t imm = insn2;
+                    gen_mpy_acc_loc16_16bit(ctx, mode, imm);
+                    length = 4;
+                    break;
+                }
+                case 0b1000: //0011 1000 LLLL LLLL MOVB AL.MSB,loc16
                 {
                     uint32_t mode = insn & 0xff;
                     gen_movb_al_msb_loc16(ctx, mode);
                     break;
                 }
-                case 0b1001: //0011 0111 LLLL LLLL MOVB AH.MSB,loc16
+                case 0b1001: //0011 1001 LLLL LLLL MOVB AH.MSB,loc16
                 {
                     uint32_t mode = insn & 0xff;
                     gen_movb_ah_msb_loc16(ctx, mode);
