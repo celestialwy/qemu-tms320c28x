@@ -1196,6 +1196,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         case 0b0101: //0101 0110 0101 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0000: //0101 0110 0101 0000 0000 0000 LLLL LLLL MINL ACC,loc32
+                                {
+                                    if (((insn32 & 0xff00) >> 8) == 0) {
+                                        length = 4;
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC32);
+                                        fprintf_func(stream, "0x%08x; MINL ACC,%s", insn, str);
+                                    }
+                                    break;
+                                }
                                 case 0b0001: //0101 0110 0101 0001 0000 0000 LLLL LLLL MAXCUL P,loc32
                                 {
                                     if (((insn32 & 0xff00) >> 8) == 0) {
@@ -1252,6 +1262,14 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         fprintf_func(stream, "0x%08x; ADDUL P,%s", insn, str);
                                     }
                                     length = 4;
+                                    break;
+                                }
+                                case 0b1001: //0101 0110 0101 1001 XXXX XXXX LLLL LLLL MINCUL P,loc32
+                                {
+                                    length = 4;
+                                    uint32_t mode = insn32 & 0xff;
+                                    get_loc_string(str, mode, LOC32);
+                                    fprintf_func(stream, "0x%08x; MINCUL P,%s", insn, str);
                                     break;
                                 }
                                 case 0b1011: //0101 0110 0101 1011 LSR64 ACC:P,T
@@ -1355,6 +1373,28 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         uint32_t mode = insn32 & 0xff;
                                         get_loc_string(str, mode, LOC16);
                                         fprintf_func(stream, "0x%08x; MAX AH,%s", insn, str);
+                                    }
+                                    break;
+                                }
+                                case 0b0100://0101 0110 0111 0100 0000 0000 LLLL LLLL MIN AL,loc16
+                                {
+                                    if (((insn32 >> 8) & 0xff) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC16);
+                                        fprintf_func(stream, "0x%08x; MIN AL,%s", insn, str);
+                                    }
+                                    break;
+                                }
+                                case 0b0101://0101 0110 0111 0101 0000 0000 LLLL LLLL MIN AH,loc16
+                                {
+                                    if (((insn32 >> 8) & 0xff) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC16);
+                                        fprintf_func(stream, "0x%08x; MIN AH,%s", insn, str);
                                     }
                                     break;
                                 }

@@ -681,3 +681,19 @@ void HELPER(maxcul_p_loc32)(CPUTms320c28xState *env, uint32_t value)
     }
     //if ((N == 0) && (Z == 0)) --> unchanged
 }
+
+void HELPER(mincul_p_loc32)(CPUTms320c28xState *env, uint32_t value)
+{
+    uint32_t N = cpu_get_st0(env, N_BIT, N_MASK);
+    uint32_t Z = cpu_get_st0(env, Z_BIT, Z_MASK);
+    if ((N == 0) && (Z == 0))
+    {
+        env->p = value;
+    }
+    if ((N == 0) && (Z == 1) && (env->p > value))
+    {
+        cpu_set_st0(env, 1, V_BIT, V_MASK);
+        env->p = value;
+    }
+    //if ((N == 1) && (Z == 0)) --> unchanged
+}

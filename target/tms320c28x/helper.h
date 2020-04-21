@@ -80,5 +80,6 @@ DEF_HELPER_3(cmp16_N_Z_C, void, env, i32, i32)// cmp, test N,Z,C
 DEF_HELPER_3(cmp32_N_Z_C, void, env, i32, i32)// cmpl, test N,Z,C
 DEF_HELPER_1(cmp64_acc_p, void, env)// cmp64 ACC:P, test N,Z,V
 DEF_HELPER_2(maxcul_p_loc32, void, env, i32)// maxcul p,loc32
+DEF_HELPER_2(mincul_p_loc32, void, env, i32)// mincul p,loc32
 
 //bitop

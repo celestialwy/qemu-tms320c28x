@@ -578,3 +578,79 @@ static void gen_maxl_acc_loc32(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(b);
     tcg_temp_free(result);
 }
+
+//MIN AX,loc16
+static void gen_min_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH)
+{
+    TCGv ax = tcg_temp_local_new_i32();
+    TCGv b = tcg_temp_local_new_i32();
+    TCGv result = tcg_temp_local_new_i32();
+    TCGLabel *done = gen_new_label();
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    gen_ld_reg_half_signed_extend(ax, cpu_acc, is_AH);
+    gen_ld_loc16(b, mode);
+    tcg_gen_ext16s_tl(b, b);
+    tcg_gen_brcond_tl(TCG_COND_LE, ax, b, done);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, b);
+    else
+        gen_st_reg_low_half(cpu_acc, b);
+    gen_seti_bit(cpu_st0, V_BIT, V_MASK, 1);//if ax>loc16,set V
+    gen_set_label(done);
+    tcg_gen_sub_i32(result, ax, b);
+    gen_helper_test_sub_C_32(cpu_env, ax, b, result);
+    gen_helper_test_N_Z_32(cpu_env, result);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+
+    tcg_temp_free(ax);
+    tcg_temp_free(b);
+    tcg_temp_free(result);
+}
+
+//MINCUL P,loc32
+static void gen_mincul_p_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new_i32();
+    gen_ld_loc32(a, mode);
+    gen_helper_mincul_p_loc32(cpu_env, a);
+}
+
+//MINL ACC,loc32
+static void gen_minl_acc_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new_i32();
+    TCGv b = tcg_temp_local_new_i32();
+    TCGv result = tcg_temp_local_new_i32();
+    TCGLabel *done = gen_new_label();
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    tcg_gen_mov_i32(a, cpu_acc);
+    gen_ld_loc32(b, mode);
+    tcg_gen_brcond_tl(TCG_COND_LE, a, b, done);
+    tcg_gen_mov_i32(cpu_acc, b);
+    gen_seti_bit(cpu_st0, V_BIT, V_MASK, 1);//if acc>loc32,set V
+    gen_set_label(done);
+    tcg_gen_sub_i32(result, a, b);
+    gen_helper_test_sub_C_32(cpu_env, a, b, result);
+    gen_helper_test_N_Z_32(cpu_env, result);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+    tcg_temp_free(result);
+}

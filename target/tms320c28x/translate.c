@@ -941,6 +941,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         case 0b0101: //0101 0110 0101 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0000: //0101 0110 0101 0000 0000 0000 LLLL LLLL MINL ACC,loc32
+                                {
+                                    if (((insn2 & 0xff00) >> 8) == 0) {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_minl_acc_loc32(ctx, mode);
+                                    }
+                                    break;
+                                }
                                 case 0b0001: //0101 0110 0101 0001 0000 0000 LLLL LLLL MAXCUL P,loc32
                                 {
                                     if (((insn2 & 0xff00) >> 8) == 0) {
@@ -992,6 +1001,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         gen_addul_p_loc32(ctx, mode);
                                         length = 4;
                                     }
+                                    break;
+                                }
+                                case 0b1001: //0101 0110 0101 1001 XXXX XXXX LLLL LLLL MINCUL P,loc32
+                                {
+                                    length = 4;
+                                    uint32_t mode = insn2 & 0xff;
+                                    gen_mincul_p_loc32(ctx, mode);
                                     break;
                                 }
                                 case 0b1011: //0101 0110 0101 1011 LSR64 ACC:P,T
@@ -1089,6 +1105,26 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         length = 4;
                                         uint32_t mode = insn2 & 0xff;
                                         gen_max_ax_loc16(ctx, mode, true);
+                                    }
+                                    break;
+                                }
+                                case 0b0100://0101 0110 0111 0100 0000 0000 LLLL LLLL MIN AL,loc16
+                                {
+                                    if ((insn2 >> 8) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_min_ax_loc16(ctx, mode, false);
+                                    }
+                                    break;
+                                }
+                                case 0b0101://0101 0110 0111 0101 0000 0000 LLLL LLLL MIN AH,loc16
+                                {
+                                    if ((insn2 >> 8) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_min_ax_loc16(ctx, mode, true);
                                     }
                                     break;
                                 }
