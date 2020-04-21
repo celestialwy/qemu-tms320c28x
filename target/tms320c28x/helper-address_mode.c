@@ -235,11 +235,13 @@ uint32_t HELPER(ld_loc32)(CPUTms320c28xState *env, uint32_t loc)
             case 0b00: //b00 III III @6bit
                 tmp = env->dp;
                 dest_addr = (tmp << 6) +  (loc & 0x3f);
+                dest_addr = dest_addr & 0xfffffffe;
                 dest_value = ld32_swap(env, dest_addr);
                 break;
             case 0b01: //b01 III III *-SP[6bit]
                 tmp = env->sp;
                 dest_addr = tmp -  (loc & 0x3f);
+                dest_addr = dest_addr & 0xfffffffe;
                 dest_value = ld32_swap(env, dest_addr);
                 break;
             case 0b10: //b10 ... ...
@@ -248,6 +250,7 @@ uint32_t HELPER(ld_loc32)(CPUTms320c28xState *env, uint32_t loc)
                         tmp = loc & 0b00000111;
                         CPU_SET_STATUS(st1, ARP, tmp);
                         dest_addr = env->xar[tmp];
+                        dest_addr = dest_addr & 0xfffffffe;
                         dest_value = ld32_swap(env, dest_addr);
                         env->xar[tmp] = env->xar[tmp] + loc_type;
                         break;
@@ -256,18 +259,21 @@ uint32_t HELPER(ld_loc32)(CPUTms320c28xState *env, uint32_t loc)
                         CPU_SET_STATUS(st1, ARP, tmp);
                         env->xar[tmp] = env->xar[tmp] - loc_type;
                         dest_addr = env->xar[tmp];
+                        dest_addr = dest_addr & 0xfffffffe;
                         dest_value = ld32_swap(env, dest_addr);
                         break;
                     case 0b010: //b10 010 AAA *+XARn[AR0]
                         tmp = loc & 0b00000111;
                         CPU_SET_STATUS(st1, ARP, tmp);
                         dest_addr = env->xar[tmp] + (env->xar[0] & 0xffff);
+                        dest_addr = dest_addr & 0xfffffffe;
                         dest_value = ld32_swap(env, dest_addr);
                         break;
                     case 0b011: //b10 011 AAA *+XARn[AR1]
                         tmp = loc & 0b00000111;
                         CPU_SET_STATUS(st1, ARP, tmp);
                         dest_addr = env->xar[tmp] + (env->xar[1] & 0xffff);
+                        dest_addr = dest_addr & 0xfffffffe;
                         dest_value = ld32_swap(env, dest_addr);
                         break;
                     case 0b100: //@XARn
@@ -288,6 +294,7 @@ uint32_t HELPER(ld_loc32)(CPUTms320c28xState *env, uint32_t loc)
                             case 0b110: //b10 101 110 *BR0++
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 dest_value = ld32_swap(env, dest_addr);
                                 //rcadd: XAR(ARP)(15:0)= AR(ARP)rcadd AR0
                                 //XAR(ARP)(31:16) = unchanged
@@ -300,6 +307,7 @@ uint32_t HELPER(ld_loc32)(CPUTms320c28xState *env, uint32_t loc)
                             case 0b111: //b10 101 111 *BR0--
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 dest_value = ld32_swap(env, dest_addr);
                                 //XAR(ARP)(15:0)= AR(ARP)rbsub AR0 {see note [1]}
                                 //XAR(ARP)(31:16) = unchanged
@@ -314,6 +322,7 @@ uint32_t HELPER(ld_loc32)(CPUTms320c28xState *env, uint32_t loc)
                     case 0b110: //b10 110 RRR *,ARPn
                         tmp = CPU_GET_STATUS(st1, ARP);
                         dest_addr = env->xar[tmp];
+                        dest_addr = dest_addr & 0xfffffffe;
                         dest_value = ld32_swap(env, dest_addr);
                         tmp2 = loc & 0b00000111;
                         CPU_SET_STATUS(st1, ARP, tmp2);
@@ -323,44 +332,52 @@ uint32_t HELPER(ld_loc32)(CPUTms320c28xState *env, uint32_t loc)
                             case 0b000: //b10 111 000 *
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 dest_value = ld32_swap(env, dest_addr);
                                 break;
                             case 0b001: //b10 111 001 *++
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 dest_value = ld32_swap(env, dest_addr);
                                 env->xar[tmp] = env->xar[tmp] + loc_type;
                                 break;
                             case 0b010: //b10 111 010 *--
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 dest_value = ld32_swap(env, dest_addr);
                                 env->xar[tmp] = env->xar[tmp] - loc_type;
                                 break;
                             case 0b011: //b10 111 011 *0++
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 dest_value = ld32_swap(env, dest_addr);
                                 env->xar[tmp] = env->xar[tmp] + (env->xar[0] & 0xffff);
                                 break;
                             case 0b100: //b10 111 100 *0--
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 dest_value = ld32_swap(env, dest_addr);
                                 env->xar[tmp] = env->xar[tmp] - (env->xar[0] & 0xffff);
                                 break;
                             case 0b101: //b10 111 101 *SP++
                                 dest_addr = env->sp;
+                                dest_addr = dest_addr & 0xfffffffe;
                                 dest_value = ld32_swap(env, dest_addr);
                                 env->sp = env->sp + loc_type;
                                 break;
                             case 0b110: //b10 111 110 *--SP
                                 env->sp = env->sp - loc_type;
                                 dest_addr = env->sp;
+                                dest_addr = dest_addr & 0xfffffffe;
                                 dest_value = ld32_swap(env, dest_addr);
                                 break;
                             case 0b111: //b10 111 111 *AR6%++
                                 dest_addr = env->xar[6];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 dest_value = ld32_swap(env, dest_addr);
                                 if ((env->xar[6] & 0xff) == (env->xar[1] & 0xff)) {// XAR6(7:0)==XAR1(7:0)
                                     env->xar[6] = env->xar[6] & 0xffffff00; //XAR6(7:0) = 0x00
@@ -381,6 +398,7 @@ uint32_t HELPER(ld_loc32)(CPUTms320c28xState *env, uint32_t loc)
                 CPU_SET_STATUS(st1, ARP, tmp);
                 tmp2 = (loc >> 3) & 0b00000111;//3bit III
                 dest_addr = env->xar[tmp] + tmp2;
+                dest_addr = dest_addr & 0xfffffffe;
                 dest_value = ld32_swap(env, dest_addr);
                 break;
         }
@@ -624,11 +642,13 @@ void HELPER(st_loc32)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
             case 0b00: //b00 III III @6bit
                 tmp = env->dp;
                 dest_addr = (tmp << 6) +  (loc & 0x3f);
+                dest_addr = dest_addr & 0xfffffffe;
                 st32_swap(env, dest_addr, value);
                 break;
             case 0b01: //b01 III III *-SP[6bit]
                 tmp = env->sp;
                 dest_addr = tmp -  (loc & 0x3f);
+                dest_addr = dest_addr & 0xfffffffe;
                 st32_swap(env, dest_addr, value);
                 break;
             case 0b10: //b10 ... ...
@@ -637,6 +657,7 @@ void HELPER(st_loc32)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
                         tmp = loc & 0b00000111;
                         CPU_SET_STATUS(st1, ARP, tmp);
                         dest_addr = env->xar[tmp];
+                        dest_addr = dest_addr & 0xfffffffe;
                         st32_swap(env, dest_addr, value);
                         env->xar[tmp] = env->xar[tmp] + loc_type;
                         break;
@@ -645,18 +666,21 @@ void HELPER(st_loc32)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
                         CPU_SET_STATUS(st1, ARP, tmp);
                         env->xar[tmp] = env->xar[tmp] - loc_type;
                         dest_addr = env->xar[tmp];
+                        dest_addr = dest_addr & 0xfffffffe;
                         st32_swap(env, dest_addr, value);
                         break;
                     case 0b010: //b10 010 AAA *+XARn[AR0]
                         tmp = loc & 0b00000111;
                         CPU_SET_STATUS(st1, ARP, tmp);
                         dest_addr = env->xar[tmp] + (env->xar[0] & 0xffff);
+                        dest_addr = dest_addr & 0xfffffffe;
                         st32_swap(env, dest_addr, value);
                         break;
                     case 0b011: //b10 011 AAA *+XARn[AR1]
                         tmp = loc & 0b00000111;
                         CPU_SET_STATUS(st1, ARP, tmp);
                         dest_addr = env->xar[tmp] + (env->xar[1] & 0xffff);
+                        dest_addr = dest_addr & 0xfffffffe;
                         st32_swap(env, dest_addr, value);
                         break;
                     case 0b100: //@XARn
@@ -677,6 +701,7 @@ void HELPER(st_loc32)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
                             case 0b110: //b10 101 110 *BR0++
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 st32_swap(env, dest_addr, value);
                                 //rcadd: XAR(ARP)(15:0)= AR(ARP)rcadd AR0
                                 //XAR(ARP)(31:16) = unchanged
@@ -689,6 +714,7 @@ void HELPER(st_loc32)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
                             case 0b111: //b10 101 111 *BR0--
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 st32_swap(env, dest_addr, value);
                                 //XAR(ARP)(15:0)= AR(ARP)rbsub AR0 {see note [1]}
                                 //XAR(ARP)(31:16) = unchanged
@@ -703,6 +729,7 @@ void HELPER(st_loc32)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
                     case 0b110: //b10 110 RRR *,ARPn
                         tmp = CPU_GET_STATUS(st1, ARP);
                         dest_addr = env->xar[tmp];
+                        dest_addr = dest_addr & 0xfffffffe;
                         st32_swap(env, dest_addr, value);
                         tmp2 = loc & 0b00000111;
                         CPU_SET_STATUS(st1, ARP, tmp2);
@@ -712,44 +739,52 @@ void HELPER(st_loc32)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
                             case 0b000: //b10 111 000 *
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 st32_swap(env, dest_addr, value);
                                 break;
                             case 0b001: //b10 111 001 *++
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 st32_swap(env, dest_addr, value);
                                 env->xar[tmp] = env->xar[tmp] + loc_type;
                                 break;
                             case 0b010: //b10 111 010 *--
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 st32_swap(env, dest_addr, value);
                                 env->xar[tmp] = env->xar[tmp] - loc_type;
                                 break;
                             case 0b011: //b10 111 011 *0++
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 st32_swap(env, dest_addr, value);
                                 env->xar[tmp] = env->xar[tmp] + (env->xar[0] & 0xffff);
                                 break;
                             case 0b100: //b10 111 100 *0--
                                 tmp = CPU_GET_STATUS(st1, ARP);
                                 dest_addr = env->xar[tmp];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 st32_swap(env, dest_addr, value);
                                 env->xar[tmp] = env->xar[tmp] - (env->xar[0] & 0xffff);
                                 break;
                             case 0b101: //b10 111 101 *SP++
                                 dest_addr = env->sp;
+                                dest_addr = dest_addr & 0xfffffffe;
                                 st32_swap(env, dest_addr, value);
                                 env->sp = env->sp + loc_type;
                                 break;
                             case 0b110: //b10 111 110 *--SP
                                 env->sp = env->sp - loc_type;
                                 dest_addr = env->sp;
+                                dest_addr = dest_addr & 0xfffffffe;
                                 st32_swap(env, dest_addr, value);
                                 break;
                             case 0b111: //b10 111 111 *AR6%++
                                 dest_addr = env->xar[6];
+                                dest_addr = dest_addr & 0xfffffffe;
                                 st32_swap(env, dest_addr, value);
                                 if ((env->xar[6] & 0xff) == (env->xar[1] & 0xff)) {// XAR6(7:0)==XAR1(7:0)
                                     env->xar[6] = env->xar[6] & 0xffffff00; //XAR6(7:0) = 0x00
@@ -770,6 +805,7 @@ void HELPER(st_loc32)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
                 CPU_SET_STATUS(st1, ARP, tmp);
                 tmp2 = (loc >> 3) & 0b00000111;//3bit III
                 dest_addr = env->xar[tmp] + tmp2;
+                dest_addr = dest_addr & 0xfffffffe;
                 st32_swap(env, dest_addr, value);
                 break;
         }

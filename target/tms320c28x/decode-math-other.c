@@ -538,3 +538,11 @@ static void gen_max_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH)
     tcg_temp_free(b);
     tcg_temp_free(result);
 }
+
+//MAXCUL P,loc32
+static void gen_maxcul_p_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_new_i32();
+    gen_ld_loc32(a, mode);
+    gen_helper_maxcul_p_loc32(cpu_env, a);
+}

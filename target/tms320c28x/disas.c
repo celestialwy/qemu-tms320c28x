@@ -1196,6 +1196,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         case 0b0101: //0101 0110 0101 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0001: //0101 0110 0101 0001 0000 0000 LLLL LLLL MAXCUL P,loc32
+                                {
+                                    if (((insn32 & 0xff00) >> 8) == 0) {
+                                        length = 4;
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC32);
+                                        fprintf_func(stream, "0x%08x; MAXCUL P,%s", insn, str);
+                                    }
+                                    break;
+                                }
                                 case 0b0010: //0101 0110 0101 0010 LSL64 ACC:P,T
                                 {
                                     fprintf_func(stream, "0x%04x;     LSL64 ACC:P,T", insn);
