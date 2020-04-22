@@ -428,3 +428,27 @@ static void gen_mpy_p_t_loc16(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(t);
     tcg_temp_free(oprand);
 }
+
+//MPYA P,loc16,#16bit
+static void gen_mpya_p_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm)
+{
+    int32_t oprand = (int16_t)imm;
+    TCGv a  = tcg_temp_local_new_i32();
+    TCGv b  = tcg_temp_local_new_i32();
+    TCGv t  = tcg_temp_new_i32();
+    //ACC = ACC + P<<PM
+    tcg_gen_mov_i32(a, cpu_acc);//a = acc
+    gen_shift_by_pm(b, cpu_p);//b = p<<pm
+    tcg_gen_add_i32(cpu_acc, a, b);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_C_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+    //load loc16
+    gen_ld_loc16(t, mode);
+    gen_st_reg_high_half(cpu_xt, t);//T = [loc16]
+    tcg_gen_ext16s_tl(t, t);//sigend extend
+    //P = signed [loc16] * signed 16bit
+    tcg_gen_muli_i32(cpu_p, t, oprand);
+    //free
+    tcg_temp_free(t);
+}

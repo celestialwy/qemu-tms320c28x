@@ -477,6 +477,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     length = 4;
                     break;
                 }
+                case 0b0101: //0001 0101 LLLL LLLL CCCC CCCC CCCC CCCC MPYA P,loc16,#16bit
+                {
+                    uint32_t mode = insn & 0xff;
+                    int32_t imm = (int16_t)(insn32 & 0xffff);
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%08x; MPYA P,%s,#%d", insn, str, imm);
+                    length = 4;
+                    break;
+                }
                 case 0b0110: //0001 0110 LLLL LLLL MOVP T,loc16
                 {
 
