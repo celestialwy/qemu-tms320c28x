@@ -451,4 +451,38 @@ static void gen_mpya_p_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t im
     tcg_gen_muli_i32(cpu_p, t, oprand);
     //free
     tcg_temp_free(t);
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+}
+
+//MPYA P,T,loc16
+static void gen_mpya_p_t_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a  = tcg_temp_local_new_i32();
+    TCGv b  = tcg_temp_local_new_i32();
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    //ACC = ACC + P<<PM
+    tcg_gen_mov_i32(a, cpu_acc);//a = acc
+    gen_shift_by_pm(b, cpu_p);//b = p<<pm
+    tcg_gen_add_i32(cpu_acc, a, b);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_C_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+    //P = signed T * signed [loc16]
+    gen_ld_reg_half_signed_extend(a, cpu_xt, true);//a = T, signed extend
+    gen_ld_loc16(b, mode);
+    tcg_gen_ext16s_tl(b, b);//b = loc16, signed extend
+    tcg_gen_mul_i32(cpu_p, a, b);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+    //free
+    tcg_temp_free(a);
+    tcg_temp_free(b);
 }

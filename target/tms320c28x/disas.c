@@ -500,6 +500,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     }
                     break;
                 }
+                case 0b0111: //0001 0111 LLLL LLLL MPYA P,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MPYA P,T,%s", insn, str);
+                    break;
+                }
                 case 0b1000: //0001 1000 LLLL LLLL CCCC CCCC CCCC CCCC AND loc16,#16bitSigned
                 {
                     uint32_t mode = insn & 0xff;

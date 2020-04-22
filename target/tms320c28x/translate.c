@@ -344,6 +344,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movp_t_loc16(ctx, mode);
                     break;
                 }
+                case 0b0111: //0001 0111 LLLL LLLL MPYA P,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mpya_p_t_loc16(ctx, mode);
+                    break;
+                }
                 case 0b1000: //0001 1000 LLLL LLLL CCCC CCCC CCCC CCCC AND loc16,#16bitSigned
                 {
                     uint32_t mode = insn & 0xff;
