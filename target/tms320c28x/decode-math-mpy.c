@@ -486,3 +486,22 @@ static void gen_mpya_p_t_loc16(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(a);
     tcg_temp_free(b);
 }
+
+//MPYB ACC,T,#8bit
+static void gen_mpyb_acc_t_8bit(DisasContext *ctx, uint32_t imm)
+{
+    TCGv t = tcg_temp_new_i32();
+    gen_ld_reg_half_signed_extend(t, cpu_xt, true);//T, signed extend
+    tcg_gen_muli_i32(cpu_acc, t, imm);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    tcg_temp_free(t);
+}
+
+//MPYB P,T,#8bit
+static void gen_mpyb_p_t_8bit(DisasContext *ctx, uint32_t imm)
+{
+    TCGv t = tcg_temp_new_i32();
+    gen_ld_reg_half_signed_extend(t, cpu_xt, true);//T, signed extend
+    tcg_gen_muli_i32(cpu_p, t, imm);
+    tcg_temp_free(t);
+}

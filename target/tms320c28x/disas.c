@@ -658,6 +658,12 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b0011:
             switch ((insn & 0xf00) >> 8) {
+                case 0b0001: //0011 0001 CCCC CCCC MPYB P,T,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     MPYB P,T,#%d", insn, imm);
+                    break;
+                }
                 case 0b0011: //0011 0011 LLLL LLLL MPY P,T,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -672,6 +678,12 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     get_loc_string(str,mode,LOC16);
                     fprintf_func(stream, "0x%08x; MPY ACC,%s,#%d", insn, str, imm);
                     length = 4;
+                    break;
+                }
+                case 0b0101: //0011 0101 CCCC CCCC MPYB ACC,T,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     MPYB ACC,T,#%d", insn, imm);
                     break;
                 }
                 case 0b1000: //0011 1000 LLLL LLLL MOVB AL.MSB,loc16
