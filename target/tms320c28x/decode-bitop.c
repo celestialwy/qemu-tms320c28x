@@ -726,6 +726,20 @@ static void gen_lsrl_acc_t(DisasContext *ctx)
     tcg_temp_free(shift);
 }
 
+//NASP
+static void gen_nasp(DisasContext *ctx)
+{
+    TCGLabel *done = gen_new_label();
+    TCGv spa = tcg_temp_new_i32();
+    gen_get_bit(spa, cpu_st1, SPA_BIT, SPA_MASK);
+
+    tcg_gen_brcondi_i32(TCG_COND_NE, spa, 1, done);
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
+    gen_seti_bit(cpu_st1, SPA_BIT, SPA_MASK, 0);
+    gen_set_label(done);
+    tcg_temp_free(spa);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {

@@ -1348,6 +1348,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_lret(ctx);
                                     break;
                                 }
+                                case 0b010111: //0111 0110 0001 0111 NASP
+                                {
+                                    gen_nasp(ctx);
+                                    break;
+                                }
                                 case 0b011010: //0111 0110 0001 1010 EDIS
                                 {
                                     gen_edis(ctx);

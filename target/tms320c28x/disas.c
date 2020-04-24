@@ -1639,6 +1639,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     LRET", insn);
                                     break;
                                 }
+                                case 0b010111: //0111 0110 0001 0111 NASP
+                                {
+                                    fprintf_func(stream, "0x%04x;     NASP", insn);
+                                    break;
+                                }
                                 case 0b011010: //0111 0110 0001 1010 EDIS
                                 {
                                     fprintf_func(stream, "0x%04x;     EDIS", insn);
