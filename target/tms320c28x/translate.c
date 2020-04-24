@@ -484,10 +484,22 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
             break;
         case 0b0011:
             switch ((insn & 0xf00) >> 8) {
+                case 0b0000: //0011 0000 LLLL LLLL MPYXU ACC,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mpyxu_acc_t_loc16(ctx, mode);
+                    break;
+                }
                 case 0b0001: //0011 0001 CCCC CCCC MPYB P,T,#8bit
                 {
                     uint32_t imm = insn & 0xff;
                     gen_mpyb_p_t_8bit(ctx, imm);
+                    break;
+                }
+                case 0b0010: //0011 0010 LLLL LLLL MPYXU P,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mpyxu_p_t_loc16(ctx, mode);
                     break;
                 }
                 case 0b0011: //0011 0011 LLLL LLLL MPY P,T,loc16
@@ -508,6 +520,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                 {
                     uint32_t imm = insn & 0xff;
                     gen_mpyb_acc_t_8bit(ctx, imm);
+                    break;
+                }
+                case 0b0110: //0011 0111 LLLL LLLL MPYU ACC,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mpyu_acc_t_loc16(ctx, mode);
+                    break;
+                }
+                case 0b0111: //0011 0111 LLLL LLLL MPYU P,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_mpyu_p_t_loc16(ctx, mode);
                     break;
                 }
                 case 0b1000: //0011 1000 LLLL LLLL MOVB AL.MSB,loc16

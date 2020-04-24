@@ -537,3 +537,61 @@ static void gen_mpys_p_t_loc16(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(a);
     tcg_temp_free(b);
 }
+
+//MPYU P,T,loc16
+static void gen_mpyu_p_t_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a  = tcg_temp_new_i32();
+    TCGv b  = tcg_temp_new_i32();
+    //P = unsigned T * unssigned [loc16]
+    gen_ld_reg_half(a, cpu_xt, true);//a = T
+    gen_ld_loc16(b, mode);
+    tcg_gen_mul_i32(cpu_p, a, b);
+    //free
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+}
+
+//MPYU ACC,T,loc16
+static void gen_mpyu_acc_t_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a  = tcg_temp_new_i32();
+    TCGv b  = tcg_temp_new_i32();
+    //acc = unsigned T * unssigned [loc16]
+    gen_ld_reg_half(a, cpu_xt, true);//a = T
+    gen_ld_loc16(b, mode);
+    tcg_gen_mul_i32(cpu_acc, a, b);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    //free
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+}
+
+//MPYXU ACC,T,loc16
+static void gen_mpyxu_acc_t_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a  = tcg_temp_new_i32();
+    TCGv b  = tcg_temp_new_i32();
+    //acc = signed T * unsigned [loc16]
+    gen_ld_reg_half_signed_extend(a, cpu_xt, true);//a = T, signed
+    gen_ld_loc16(b, mode);
+    tcg_gen_mul_i32(cpu_acc, a, b);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    //free
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+}
+
+//MPYXU P,T,loc16
+static void gen_mpyxu_p_t_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a  = tcg_temp_new_i32();
+    TCGv b  = tcg_temp_new_i32();
+    //acc = signed T * unsigned [loc16]
+    gen_ld_reg_half_signed_extend(a, cpu_xt, true);//a = T, signed
+    gen_ld_loc16(b, mode);
+    tcg_gen_mul_i32(cpu_p, a, b);
+    //free
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+}

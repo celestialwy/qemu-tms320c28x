@@ -665,10 +665,24 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b0011:
             switch ((insn & 0xf00) >> 8) {
+                case 0b0000: //0011 0000 LLLL LLLL MPYXU ACC,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MPYXU ACC,T,%s", insn, str);
+                    break;
+                }
                 case 0b0001: //0011 0001 CCCC CCCC MPYB P,T,#8bit
                 {
                     uint32_t imm = insn & 0xff;
                     fprintf_func(stream, "0x%04x;     MPYB P,T,#%d", insn, imm);
+                    break;
+                }
+                case 0b0010: //0011 0010 LLLL LLLL MPYXU P,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MPYXU P,T,%s", insn, str);
                     break;
                 }
                 case 0b0011: //0011 0011 LLLL LLLL MPY P,T,loc16
@@ -691,6 +705,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 {
                     uint32_t imm = insn & 0xff;
                     fprintf_func(stream, "0x%04x;     MPYB ACC,T,#%d", insn, imm);
+                    break;
+                }
+                case 0b0110: //0011 0111 LLLL LLLL MPYU ACC,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MPYU ACC,T,%s", insn, str);
+                    break;
+                }
+                case 0b0111: //0011 0111 LLLL LLLL MPYU P,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MPYU P,T,%s", insn, str);
                     break;
                 }
                 case 0b1000: //0011 1000 LLLL LLLL MOVB AL.MSB,loc16
