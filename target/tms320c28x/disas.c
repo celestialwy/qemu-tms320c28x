@@ -468,6 +468,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MPY ACC,T,%s", insn, str);
                     break;
                 }
+                case 0b0011: //0001 0011 LLLL LLLL MPYS P,T,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     MPYS P,T,%s", insn, str);
+                    break;
+                }
                 case 0b0100: //0001 0100 LLLL LLLL CCCC CCCC CCCC CCCC MAC P,loc16,0:pma
                 {
                     uint32_t mode = insn & 0xff;
