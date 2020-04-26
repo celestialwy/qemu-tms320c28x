@@ -740,6 +740,60 @@ static void gen_nasp(DisasContext *ctx)
     tcg_temp_free(spa);
 }
 
+//NEG ACC
+static void gen_neg_acc(DisasContext *ctx)
+{
+    TCGv tmp = tcg_temp_local_new_i32();
+    TCGLabel *acc_eq_8000 = gen_new_label();
+    TCGLabel *acc_eq_0 = gen_new_label();
+    TCGLabel *ovm_eq_1 = gen_new_label();
+    TCGLabel *n_bit_set = gen_new_label();
+    TCGLabel *part2 = gen_new_label();
+    TCGLabel *part3 = gen_new_label();
+    TCGLabel *done = gen_new_label();
+    //if acc == 0x80000000
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_acc, 0x80000000, acc_eq_8000);
+    //false:
+    //acc = -acc
+    tcg_gen_neg_i32(cpu_acc, cpu_acc);
+    tcg_gen_br(part2);
+    gen_set_label(acc_eq_8000);
+    //true:
+    //v = 1
+    gen_seti_bit(cpu_st0, V_BIT, V_MASK, 1);
+    //if ovm == 1
+    gen_get_bit(tmp, cpu_st0, OVM_BIT, OVM_MASK);//ovm bit
+    tcg_gen_brcondi_i32(TCG_COND_EQ, tmp, 1, ovm_eq_1);
+    //false
+    tcg_gen_movi_i32(cpu_acc, 0x80000000);
+    tcg_gen_br(part2);
+    gen_set_label(ovm_eq_1);
+    //true
+    tcg_gen_movi_i32(cpu_acc, 0x7fffffff);
+    gen_set_label(part2);
+    //if acc == 0
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_acc, 0, acc_eq_0);
+    //false
+    gen_seti_bit(cpu_st0, C_BIT, C_MASK, 0);//c = 0
+    tcg_gen_br(part3);
+    gen_set_label(acc_eq_0);
+    //true
+    gen_seti_bit(cpu_st0, C_BIT, C_MASK, 1);//c = 1
+    gen_set_label(part3);
+    //if acc[31] == 1
+    tcg_gen_shri_i32(tmp, cpu_acc, 31);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, tmp, 1, n_bit_set);
+    //false 
+    gen_seti_bit(cpu_st0, N_BIT, N_MASK, 0);
+    tcg_gen_br(done);
+    //true
+    gen_set_label(n_bit_set);
+    gen_seti_bit(cpu_st0, N_BIT, N_MASK, 1);
+    gen_set_label(done);
+    //done
+    tcg_temp_free(tmp);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {
