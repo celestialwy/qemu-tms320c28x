@@ -1080,6 +1080,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b1000: //0101 0110 0101 1000 NEG64 ACC:P
+                                {
+                                    gen_neg64_acc_p(ctx);
+                                    break;
+                                }
                                 case 0b1001: //0101 0110 0101 1001 XXXX XXXX LLLL LLLL MINCUL P,loc32
                                 {
                                     length = 4;

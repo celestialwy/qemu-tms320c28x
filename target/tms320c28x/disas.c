@@ -1350,6 +1350,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     length = 4;
                                     break;
                                 }
+                                case 0b1000: //0101 0110 0101 1000 NEG64 ACC:P
+                                {
+                                    fprintf_func(stream, "0x%04x;     NEG64 ACC:P", insn);
+                                    break;
+                                }
                                 case 0b1001: //0101 0110 0101 1001 XXXX XXXX LLLL LLLL MINCUL P,loc32
                                 {
                                     length = 4;
