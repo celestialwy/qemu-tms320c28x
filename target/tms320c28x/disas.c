@@ -1721,6 +1721,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         }
                     }
                     break;
+                case 0b0111: //0111 0111 LLLL LLLL NOP {*ind}{ARPn}
+                {
+                    uint32_t mode = insn & 0xff;
+                    if (mode == 0)
+                    {
+                        fprintf_func(stream, "0x%04x;     NOP", insn);
+                    }
+                    else
+                    {
+                        get_loc_string(str,mode,LOC16);
+                        fprintf_func(stream, "0x%04x;     NOP %s", insn, str);
+                    }
+                    break;
+                }
                 case 0b1000: 
                 case 0b1001: 
                 case 0b1010: 

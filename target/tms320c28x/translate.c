@@ -1430,6 +1430,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         }
                     }
                     break;
+                case 0b0111: //0111 0111 LLLL LLLL NOP {*ind}{ARPn}
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_nop_ind_arpn(ctx, mode);
+                    break;
+                }
                 case 0b1000: 
                 case 0b1001: 
                 case 0b1010: 

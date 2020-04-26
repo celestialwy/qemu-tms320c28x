@@ -31,3 +31,21 @@ static void gen_in_loc16_pa(DisasContext *ctx, uint32_t mode, uint32_t pa)
     //todo
     //p209
 }
+
+// NOP {*ind}{ARPn}
+static void gen_nop_ind_arpn(DisasContext *ctx, uint32_t mode)
+{
+    TCGv tmp = tcg_temp_local_new_i32();
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    gen_get_loc_addr(tmp, mode, LOC16);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+
+    tcg_temp_free_i32(tmp);
+}
