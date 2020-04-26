@@ -1968,6 +1968,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_movl_p_acc(ctx);
                                     break;
                                 }
+                                case 0b1100: //1111 1111 0101 1100 NEG AL
+                                {
+                                    gen_neg_ax(ctx, false);
+                                    break;
+                                }
+                                case 0b1101: //1111 1111 0101 1101 NEG AH
+                                {
+                                    gen_neg_ax(ctx, true);
+                                    break;
+                                }
                             }
                             break;
                         case 0b0110: //1111 1111 0110 ....

@@ -2350,6 +2350,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     MOVL P,ACC", insn);
                                     break;
                                 }
+                                case 0b1100: //1111 1111 0101 1100 NEG AL
+                                {
+                                    fprintf_func(stream, "0x%04x;     NEG AL", insn);
+                                    break;
+                                }
+                                case 0b1101: //1111 1111 0101 1101 NEG AH
+                                {
+                                    fprintf_func(stream, "0x%04x;     NEG AH", insn);
+                                    break;
+                                }
                             }
                             break;
                         case 0b0110: //1111 1111 0110 ....
