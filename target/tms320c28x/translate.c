@@ -891,6 +891,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         case 0b0011: //0101 0110 0011 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0010: //0101 0110 0011 0010 NEGTC ACC
+                                {
+                                    gen_negtc_acc(ctx);
+                                    break;
+                                }
                                 case 0b0101: //0101 0110 0011 0101 CSB ACC
                                 {
                                     gen_csb_acc(ctx);

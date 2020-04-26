@@ -881,6 +881,19 @@ static void gen_neg64_acc_p(DisasContext *ctx)
 
 }
 
+//NEGTC ACC
+static void gen_negtc_acc(DisasContext *ctx)
+{
+    TCGv tc = tcg_temp_new_i32();
+    TCGLabel *done = gen_new_label();
+
+    gen_get_bit(tc, cpu_st0, TC_BIT, TC_MASK);
+    tcg_gen_brcondi_i32(TCG_COND_NE, tc, 1, done);
+    gen_neg_acc(ctx);
+    gen_set_label(done);
+    tcg_temp_free_i32(tc);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {
