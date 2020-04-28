@@ -1018,6 +1018,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         }
                         case 0b0010: //0101 0110 0010 ....
                             switch (insn & 0xf) {
+                                case 0b0000: //0101 0110 0010 0000 NORM ACC,*--
+                                {
+                                    fprintf_func(stream, "0x%04x;     NORM ACC,*--", insn);
+                                    break;
+                                }
                                 case 0b0001: //0101 0110 0010 0001 xxxx xxxx LLLL LLLL MOVX TL,loc16
                                 {
                                     length = 4;
@@ -1039,6 +1044,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         get_loc_string(str,loc16,LOC16);
                                         fprintf_func(stream, "0x%08x; ADD ACC,%s<<T", insn32, str);
                                     }
+                                    break;
+                                }
+                                case 0b0100: //0101 0110 0010 0100 NORM ACC,*
+                                {
+                                    fprintf_func(stream, "0x%04x;     NORM ACC,*", insn);
                                     break;
                                 }
                                 case 0b0110: //0101 0110 0010 0110 SETC XF
@@ -1129,6 +1139,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         case 0b0011: //0101 0110 0011 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0000: //0101 0110 0011 0000 NORM ACC,*0--
+                                {
+                                    fprintf_func(stream, "0x%04x;     NORM ACC,*0--", insn);
+                                    break;
+                                }
                                 case 0b0010: //0101 0110 0011 0010 NEGTC ACC
                                 {
                                     fprintf_func(stream, "0x%04x;     NEGTC ACC", insn);
@@ -1368,6 +1383,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%08x; MINCUL P,%s", insn, str);
                                     break;
                                 }
+                                case 0b1010: //0101 0110 0101 1010 NORM ACC,*++
+                                {
+                                    fprintf_func(stream, "0x%04x;     NORM ACC,*++", insn);
+                                    break;
+                                }
                                 case 0b1011: //0101 0110 0101 1011 LSR64 ACC:P,T
                                 {
                                     fprintf_func(stream, "0x%04x;     LSR64 ACC:P,T", insn);
@@ -1492,6 +1512,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         get_loc_string(str, mode, LOC16);
                                         fprintf_func(stream, "0x%08x; MIN AH,%s", insn, str);
                                     }
+                                    break;
+                                }
+                                case 0b0111://0101 0110 0111 0111 NORM ACC,*0++
+                                {
+                                    fprintf_func(stream, "0x%04x;     NORM ACC,*0++", insn);
                                     break;
                                 }
                             }
@@ -2431,6 +2456,19 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         break;
                                     }
                                 }
+                            }
+                            break;
+                        }
+                        case 0b0111: //1111 1111 0111 1/0nnn NORM ACC,XARn++/--
+                        {
+                            uint32_t type = insn & 0xf;
+                            if (type < 8)
+                            {
+                                fprintf_func(stream, "0x%04x;     NORM ACC,XAR%d--", insn, type);
+                            }
+                            else
+                            {
+                                fprintf_func(stream, "0x%04x;     NORM ACC,XAR%d++", insn, type-8);
                             }
                             break;
                         }

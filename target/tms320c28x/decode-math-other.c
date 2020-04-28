@@ -289,3 +289,54 @@ static void gen_minl_acc_loc32(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(b);
     tcg_temp_free(result);
 }
+
+//NORM ACC,*ind/XARn++/XARn--
+//type =0...7 --> xarn--
+//type = 8...15 --> xarn++
+//type = 184: *; 185:*++; 186:*--; 187:*0++; 188:*0--
+static void gen_norm_acc_type(DisasContext *ctx, uint32_t type)
+{
+    TCGv bit31 = tcg_temp_local_new_i32();
+    TCGv bit30 = tcg_temp_local_new_i32();
+    TCGLabel *done = gen_new_label();
+    TCGLabel *cond_else = gen_new_label();
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_acc, 0, done);
+    tcg_gen_shri_i32(bit31, cpu_acc, 31);
+    tcg_gen_shri_i32(bit30, cpu_acc, 30);
+    tcg_gen_xor_i32(bit31, bit31, bit30);
+    tcg_gen_andi_i32(bit31, bit31, 1);
+    tcg_gen_brcondi_i32(TCG_COND_NE, bit31, 0, cond_else);
+    tcg_gen_shli_i32(cpu_acc, cpu_acc, 1);
+    gen_seti_bit(cpu_st0, TC_BIT, TC_MASK, 0);
+    if (type < 8)//xarn--
+    {
+        tcg_gen_subi_i32(cpu_xar[type], cpu_xar[type], 1);
+    }
+    else if(type < 16)//xarn++
+    {
+        type = type - 8;
+        tcg_gen_addi_i32(cpu_xar[type], cpu_xar[type], 1);
+    }
+    else if (type <= 188 && type >= 184) //*,*++,*--,*0++,*0--
+    {
+        gen_get_loc_addr(bit31, type, LOC16);
+    }
+    tcg_gen_br(done);
+    gen_set_label(cond_else);
+    gen_seti_bit(cpu_st0, TC_BIT, TC_MASK, 1);
+    gen_set_label(done);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+
+    tcg_temp_free(bit30);
+    tcg_temp_free(bit31);
+}

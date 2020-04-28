@@ -793,6 +793,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         case 0b0010: //0101 0110 0010 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0000: //0101 0110 0010 0000 NORM ACC,*--
+                                {
+                                    gen_norm_acc_type(ctx, 186);
+                                    break;
+                                }
                                 case 0b0001: //0101 0110 0010 0001 xxxx xxxx LLLL LLLL MOVX TL,loc16
                                 {
                                     length = 4;
@@ -812,6 +817,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         uint32_t loc16 = (insn2 & 0xff);
                                         gen_add_acc_loc16_t(ctx, loc16);
                                     }
+                                    break;
+                                }
+                                case 0b0100: //0101 0110 0010 0100 NORM ACC,*
+                                {
+                                    gen_norm_acc_type(ctx, 184);
                                     break;
                                 }
                                 case 0b0110: //0101 0110 0010 0110 SETC XF
@@ -891,6 +901,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         case 0b0011: //0101 0110 0011 ....
                         {
                             switch (insn & 0xf) {
+                                case 0b0000: //0101 0110 0011 0000 NORM ACC,*0--
+                                {
+                                    gen_norm_acc_type(ctx, 188);
+                                    break;
+                                }
                                 case 0b0010: //0101 0110 0011 0010 NEGTC ACC
                                 {
                                     gen_negtc_acc(ctx);
@@ -1097,6 +1112,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_mincul_p_loc32(ctx, mode);
                                     break;
                                 }
+                                case 0b1010: //0101 0110 0101 1010 NORM ACC,*++
+                                {
+                                    gen_norm_acc_type(ctx, 185);
+                                    break;
+                                }
                                 case 0b1011: //0101 0110 0101 1011 LSR64 ACC:P,T
                                 {
                                     gen_lsr64_acc_p_t(ctx);
@@ -1213,6 +1233,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         uint32_t mode = insn2 & 0xff;
                                         gen_min_ax_loc16(ctx, mode, true);
                                     }
+                                    break;
+                                }
+                                case 0b0111://0101 0110 0111 0111 NORM ACC,*0++
+                                {
+                                    gen_norm_acc_type(ctx, 187);
                                     break;
                                 }
                             }
@@ -2027,6 +2052,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                 }
                             }
+                            break;
+                        }
+                        case 0b0111: //1111 1111 0111 1/0nnn NORM ACC,XARn++/--
+                        {
+                            uint32_t type = insn & 0xf;
+                            gen_norm_acc_type(ctx, type);
                             break;
                         }
                         case 0b1000:
