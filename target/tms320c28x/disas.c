@@ -2384,6 +2384,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     NEG ACC", insn);
                                     break;
                                 }
+                                case 0b0101: //1111 1111 0101 0101 NOT ACC
+                                {
+                                    fprintf_func(stream, "0x%04x;     NOT ACC", insn);
+                                    break;
+                                }
                                 case 0b0110: //1111 1111 0101 0110 ABS ACC
                                 {
                                     fprintf_func(stream, "0x%04x;     ABS ACC", insn);
@@ -2407,6 +2412,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 case 0b1101: //1111 1111 0101 1101 NEG AH
                                 {
                                     fprintf_func(stream, "0x%04x;     NEG AH", insn);
+                                    break;
+                                }
+                                case 0b1110: //1111 1111 0101 1110 NOT AL
+                                {
+                                    fprintf_func(stream, "0x%04x;     NOT AL", insn);
+                                    break;
+                                }
+                                case 0b1111: //1111 1111 0101 1111 NOT AH
+                                {
+                                    fprintf_func(stream, "0x%04x;     NOT AH", insn);
                                     break;
                                 }
                             }

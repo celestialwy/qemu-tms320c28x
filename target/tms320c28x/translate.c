@@ -1994,6 +1994,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_neg_acc(ctx);
                                     break;
                                 }
+                                case 0b0101: //1111 1111 0101 0101 NOT ACC
+                                {
+                                    gen_not_acc(ctx);
+                                    break;
+                                }
                                 case 0b0110: //1111 1111 0101 0110 ABS ACC
                                 {
                                     gen_abs_acc(ctx);
@@ -2017,6 +2022,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 case 0b1101: //1111 1111 0101 1101 NEG AH
                                 {
                                     gen_neg_ax(ctx, true);
+                                    break;
+                                }
+                                case 0b1110: //1111 1111 0101 1110 NOT AL
+                                {
+                                    gen_not_ax(ctx, false);
+                                    break;
+                                }
+                                case 0b1111: //1111 1111 0101 1111 NOT AH
+                                {
+                                    gen_not_ax(ctx, true);
                                     break;
                                 }
                             }

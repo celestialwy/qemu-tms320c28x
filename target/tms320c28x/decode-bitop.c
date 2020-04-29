@@ -894,6 +894,28 @@ static void gen_negtc_acc(DisasContext *ctx)
     tcg_temp_free_i32(tc);
 }
 
+//NOT ACC
+static void gen_not_acc(DisasContext *ctx)
+{
+    tcg_gen_not_i32(cpu_acc, cpu_acc);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+}
+
+//NOT AX
+static void gen_not_ax(DisasContext *ctx, bool is_AH)
+{
+    TCGv ax = tcg_temp_new_i32();
+    gen_ld_reg_half(ax, cpu_acc, is_AH);
+    gen_helper_test_N_Z_16(cpu_env, ax);
+    tcg_gen_not_i32(ax, ax);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, ax);
+    else
+        gen_st_reg_low_half(cpu_acc, ax);
+
+    tcg_temp_free(ax);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {
