@@ -1435,6 +1435,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_eallow(ctx);
                                     break;
                                 }
+                                case 0b100011: //0111 0110 0010 0011 CCCC CCCC CCCC CCCC OR IER,#16bit
+                                {
+                                    uint32_t imm = insn2;
+                                    gen_or_ier_16bit(ctx, imm);
+                                    length = 4;
+                                    break;
+                                }
                                 case 0b100100: //0111 0110 0010 0100 ESTOP1
                                 {
                                     gen_estop1(ctx);
@@ -1451,7 +1458,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     length = 4;
                                     gen_and_ier_16bit(ctx, imm);
                                     break;
-                                }                                
+                                }
+                                case 0b100111: //0111 0110 0010 0111 CCCC CCCC CCCC CCCC OR IFR,#16bit
+                                {
+                                    uint32_t imm = insn2;
+                                    length = 4;
+                                    gen_or_ifr_16bit(ctx, imm);
+                                    break;
+                                }
                                 case 0b101111: //0111 0110 0010 1111 CCCC CCCC CCCC CCCC AND IFR,#16bit
                                 {
                                     uint32_t imm = insn2;

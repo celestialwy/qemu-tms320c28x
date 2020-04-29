@@ -1726,6 +1726,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     EALLOW", insn);
                                     break;
                                 }
+                                case 0b100011: //0111 0110 0010 0011 CCCC CCCC CCCC CCCC OR IER,#16bit
+                                {
+                                    uint32_t imm = insn32 & 0xffff;
+                                    fprintf_func(stream, "0x%08x; OR IER,#0x%04x", insn32, imm);
+                                    length = 4;
+                                    break;
+                                }
                                 case 0b100100: //0111 0110 0010 0100 ESTOP1
                                 {
                                     fprintf_func(stream, "0x%04x;     ESTOP1", insn);
@@ -1742,7 +1749,14 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     length = 4;
                                     fprintf_func(stream, "0x%08x; AND IER,#0x%04x", insn32, imm);
                                     break;
-                                }                                
+                                }
+                                case 0b100111: //0111 0110 0010 0111 CCCC CCCC CCCC CCCC OR IFR,#16bit
+                                {
+                                    uint32_t imm = insn32 & 0xffff;
+                                    length = 4;
+                                    fprintf_func(stream, "0x%08x; OR IFR,#0x%04x", insn32, imm);
+                                    break;
+                                }
                                 case 0b101111: //0111 0110 0010 1111 CCCC CCCC CCCC CCCC AND IFR,#16bit
                                 {
                                     uint32_t imm = insn32 & 0xffff;

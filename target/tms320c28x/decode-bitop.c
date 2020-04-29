@@ -964,6 +964,18 @@ static void gen_or_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH)
     tcg_temp_free(tmp);
 }
 
+//OR IER,#16bit
+static void gen_or_ier_16bit(DisasContext *ctx, uint32_t imm)
+{
+    tcg_gen_ori_i32(cpu_ier, cpu_ier, imm);
+}
+
+//OR IFR,#16bit
+static void gen_or_ifr_16bit(DisasContext *ctx, uint32_t imm)
+{
+    tcg_gen_ori_i32(cpu_ifr, cpu_ifr, imm);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {
