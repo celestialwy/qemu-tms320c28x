@@ -529,13 +529,22 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     SUBB ACC,#0x%x", insn, imm);
                     break;
                 }
+                case 0b1010: //0001 1010 LLLL LLLL CCCC CCCC CCCC CCCC OR loc16,#16bit
+                {
+                    length = 4;
+                    int32_t imm = insn32 & 0xffff;
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%08x; OR %s,#0x%x", insn32, str, imm);
+                    break;
+                }
                 case 0b1011: //0001 1011 LLLL LLLL CCCC CCCC CCCC CCCC CMP loc16,#16bitSigned
                 {
                     length = 4;
                     int32_t imm = insn32 & 0xffff;
                     uint32_t mode = insn & 0xff;
                     get_loc_string(str,mode,LOC16);
-                    fprintf_func(stream, "0x%08x; CMP %s,#0x%x", insn, str, imm);
+                    fprintf_func(stream, "0x%08x; CMP %s,#0x%x", insn32, str, imm);
                     break;
                 }
                 case 0b1110: //0001 1110 .... .... MOVL loc32,ACC
@@ -827,6 +836,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
             break;
         case 0b0101:
             switch ((insn & 0x0f00) >> 8) {
+                case 0b0000://0101 0000 CCCC CCCC ORB AL,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     ORB AL,#0x%x", insn, imm);
+                    break;
+                }
+                case 0b0001://0101 0001 CCCC CCCC ORB AH,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     ORB AH,#0x%x", insn, imm);
+                    break;
+                }
                 case 0b0010:
                 {
                     uint32_t imm = insn & 0xff;
@@ -1991,6 +2012,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     }
                     else { // al
                         fprintf_func(stream, "0x%04x;     MOV %s,AL", insn, str);
+                    }
+                    break;
+                }
+                case 0b100: //1001 100A LLLL LLLL OR loc16,AX
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    if (((insn >> 8) & 1) == 1){ //1001 0011 .... .... ah
+                        fprintf_func(stream, "0x%04x;     OR %s,AH", insn, str);
+                    }
+                    else { // al
+                        fprintf_func(stream, "0x%04x;     OR %s,AL", insn, str);
                     }
                     break;
                 }

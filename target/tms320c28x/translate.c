@@ -370,6 +370,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_subb_acc_8bit(ctx, imm);
                     break;
                 }
+                case 0b1010: //0001 1010 LLLL LLLL CCCC CCCC CCCC CCCC OR loc16,#16bit
+                {
+                    length = 4;
+                    int32_t imm = insn2;
+                    uint32_t mode = insn & 0xff;
+                    gen_or_loc16_16bit(ctx, mode, imm);
+                    break;
+                }
                 case 0b1011: //0001 1011 LLLL LLLL CCCC CCCC CCCC CCCC CMP loc16,#16bitSigned
                 {
                     length = 4;
@@ -624,6 +632,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
             break;
         case 0b0101:
             switch ((insn & 0x0f00) >> 8) {
+                case 0b0000://0101 0000 CCCC CCCC ORB AL,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    gen_orb_ax_8bit(ctx, imm, false);
+                    break;
+                }
+                case 0b0001://0101 0001 CCCC CCCC ORB AH,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    gen_orb_ax_8bit(ctx, imm, true);
+                    break;
+                }
                 case 0b0010:
                 case 0b0011://0101 001A CCCC CCCC CMPB AX,#8bit
                 {
@@ -1661,6 +1681,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     uint32_t mode = insn & 0xff;
                     uint32_t is_AH = ((insn >> 8) & 1);
                     gen_mov_loc16_ax(ctx, mode, is_AH);
+                    break;
+                }
+                case 0b100: //1001 100A LLLL LLLL OR loc16,AX
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t is_AH = ((insn >> 8) & 1);
+                    gen_or_loc16_ax(ctx, mode, is_AH);
                     break;
                 }
                 case 0b101: //1001 101A CCCC CCCC MOVB AX,#8bit
