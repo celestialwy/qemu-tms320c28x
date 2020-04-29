@@ -773,9 +773,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     switch ((insn & 0x00f0) >> 4) {
                         case 0b0000: //0011 1110 0000 SHFT CCCC CCCC CCCC CCCC AND ACC,#16bit<<0...15
                         {
-                            uint32_t imm = insn32 & 0xff;
+                            uint32_t imm = insn32 & 0xffff;
                             uint32_t shift = insn & 0xf;
                             fprintf_func(stream, "0x%08x; AND ACC,#%d<<#%d", insn32, imm, shift);
+                            length = 4;
+                            break;
+                        }
+                        case 0b0001: //0011 1110 0001 SHFT CCCC CCCC CCCC CCCC OR ACC,#16bit<<#0...15
+                        {
+                            uint32_t imm = insn32 & 0xffff;
+                            uint32_t shift = insn & 0xf;
+                            fprintf_func(stream, "0x%08x; OR ACC,#%d<<#%d", insn32, imm, shift);
                             length = 4;
                             break;
                         }
@@ -1248,6 +1256,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         fprintf_func(stream, "0x%08x; SUBRL %s,ACC", insn32, str);
                                         length = 4;
                                     }
+                                    break;
+                                }
+                                case 0b1010: //0101 0110 0100 1010 CCCC CCCC CCCC CCCC OR ACC,#16bit<<#16
+                                {
+                                    uint32_t imm = insn32 & 0xffff;
+                                    fprintf_func(stream, "0x%08x; OR ACC,#%d<<16", insn32, imm);
+                                    length = 4;
                                     break;
                                 }
                                 case 0b1011: //0101 0110 0100 1011 .... DMAC ACC:P,loc32,*XAR7/++
@@ -2081,6 +2096,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     uint32_t mode = insn & 0xff;
                     get_loc_string(str,mode,LOC16);
                     fprintf_func(stream, "0x%04x;     SUB ACC,%s<<0", insn, str);
+                    break;
+                }
+                case 0b1111: //1010 1111 LLLL LLLL OR ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     OR ACC,%s", insn, str);
                     break;
                 }
             }

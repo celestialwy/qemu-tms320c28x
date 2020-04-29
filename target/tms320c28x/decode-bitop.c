@@ -916,6 +916,37 @@ static void gen_not_ax(DisasContext *ctx, bool is_AH)
     tcg_temp_free(ax);
 }
 
+//OR ACC,loc16
+static void gen_or_acc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv tmp = tcg_temp_local_new_i32();
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    gen_ld_loc16(tmp, mode);
+    tcg_gen_or_i32(cpu_acc, cpu_acc, tmp);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+    
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    tcg_temp_free(tmp);
+}
+
+//OR ACC,#16bit<<#0...16
+static void gen_or_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t shift)
+{
+    TCGv tmp = tcg_const_i32(imm);
+    tcg_gen_shli_i32(tmp, tmp, shift);
+    tcg_gen_or_i32(cpu_acc, cpu_acc, tmp);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    tcg_temp_free(tmp);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {

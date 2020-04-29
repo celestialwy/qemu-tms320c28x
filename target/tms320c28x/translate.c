@@ -577,6 +577,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             length = 4;
                             break;
                         }
+                        case 0b0001: //0011 1110 0001 SHFT CCCC CCCC CCCC CCCC OR ACC,#16bit<<#0...15
+                        {
+                            uint32_t imm = insn2;
+                            uint32_t shift = insn & 0xf;
+                            gen_or_acc_16bit_shift(ctx, imm, shift);
+                            length = 4;
+                            break;
+                        }
                         case 0b0101://0011 1110 0101 ....
                         {
                             if (((insn >> 3) & 1) == 1) {//0011 1110 0101 1nnn MOV XARn,PC
@@ -998,6 +1006,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         gen_subrl_loc32_acc(ctx, mode);
                                         length = 4;
                                     }
+                                    break;
+                                }
+                                case 0b1010: //0101 0110 0100 1010 CCCC CCCC CCCC CCCC OR ACC,#16bit<<#16
+                                {
+                                    uint32_t imm = insn2;
+                                    gen_or_acc_16bit_shift(ctx, imm, 16);
+                                    length = 4;
                                     break;
                                 }
                                 case 0b1011: //0101 0110 0100 1011 .... DMAC ACC:P,loc32,*XAR7/++
@@ -1723,6 +1738,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                 {
                     uint32_t mode = insn & 0xff;
                     gen_sub_acc_loc16_shift(ctx, mode, 0);
+                    break;
+                }
+                case 0b1111: //1010 1111 LLLL LLLL OR ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_or_acc_loc16(ctx, mode);
                     break;
                 }
             }
