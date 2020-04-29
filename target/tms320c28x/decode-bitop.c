@@ -947,6 +947,23 @@ static void gen_or_acc_16bit_shift(DisasContext *ctx, uint32_t imm, uint32_t shi
     tcg_temp_free(tmp);
 }
 
+//OR AX,loc16
+static void gen_or_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH)
+{
+    TCGv ax = tcg_temp_new_i32();
+    TCGv tmp = tcg_temp_new_i32();
+    gen_ld_reg_half(ax, cpu_acc, is_AH);
+    gen_ld_loc16(tmp, mode);
+    tcg_gen_or_i32(ax, ax, tmp);
+    gen_helper_test_N_Z_16(cpu_env, ax);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, ax);
+    else
+        gen_st_reg_low_half(cpu_acc, ax);
+    tcg_temp_free(ax);
+    tcg_temp_free(tmp);
+}
+
 // SETC Mode
 static void gen_setc_mode(DisasContext *ctx, uint32_t mode)
 {

@@ -1853,6 +1853,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movb_loc16_ax_msb(ctx, mode, is_AH);
                     break;
                 }
+                case 0b1010: //1100 1010 LLLL LLLL OR AL,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_or_ax_loc16(ctx, mode, false);
+                    break;
+                }
+                case 0b1011: //1100 1011 LLLL LLLL OR AH,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_or_ax_loc16(ctx, mode, true);
+                    break;
+                }
                 case 0b1100:
                 case 0b1101: //1100 110a LLLL LLLL CCCC CCCC CCCC CCCC AND AX,loc16,#16bit
                 {

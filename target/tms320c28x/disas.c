@@ -2232,6 +2232,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOVB %s,AH.MSB", insn, str);
                     break;
                 }
+                case 0b1010: //1100 1010 LLLL LLLL OR AL,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str, mode, LOC16);
+                    fprintf_func(stream, "0x%04x;     OR AL,%s", insn, str);
+                    break;
+                }
+                case 0b1011: //1100 1011 LLLL LLLL OR AH,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str, mode, LOC16);
+                    fprintf_func(stream, "0x%04x;     OR AH,%s", insn, str);
+                    break;
+                }
                 case 0b1100:
                 case 0b1101: //1100 110a LLLL LLLL CCCC CCCC CCCC CCCC AND AX,loc16,#16bit
                 {
