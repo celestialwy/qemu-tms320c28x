@@ -361,8 +361,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 case 0b0110: //0000 0110 .... .... MOVL ACC,loc32
                 {
                     uint32_t mode = insn & 0xff;
-                    get_loc_string(str,mode,LOC32);
-                    fprintf_func(stream, "0x%04x;     MOVL ACC,%s", insn, str);
+                    if (mode == 0xbe)
+                    {
+                        fprintf_func(stream, "0x%04x;     POP ACC", insn);
+                    }
+                    else
+                    {
+                        get_loc_string(str,mode,LOC32);
+                        fprintf_func(stream, "0x%04x;     MOVL ACC,%s", insn, str);
+                    }
                     break;
                 }
                 case 0b0111: //0000 0111 LLLL LLLL ADDL ACC,loc32

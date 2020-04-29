@@ -845,13 +845,14 @@ static void gen_pop_ifr(DisasContext *ctx) {
     gen_ld16u_swap(cpu_ifr, cpu_sp);
 }
 
-
 // POP AR1H:AR0H
 static void gen_pop_ar1h_ar0h(DisasContext *ctx) {
     TCGv tmp = tcg_temp_local_new();
     TCGv tmp2 = tcg_temp_local_new();
+    TCGv sp = tcg_temp_local_new();
     tcg_gen_subi_i32(cpu_sp, cpu_sp, 2);
-    gen_ld32u_swap(tmp, cpu_sp);
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+    gen_ld32u_swap(tmp, sp);
     tcg_gen_shri_i32(tmp2, tmp, 16);//ar1h
     tcg_gen_andi_i32(tmp, tmp, 0xffff);//ar0h
 
@@ -860,6 +861,7 @@ static void gen_pop_ar1h_ar0h(DisasContext *ctx) {
 
     tcg_temp_free(tmp);
     tcg_temp_free(tmp2);
+    tcg_temp_free(sp);
 }
 
 // POP RPC
@@ -884,10 +886,15 @@ static void gen_push_ar1h_ar0h(DisasContext *ctx)
 {
     TCGv tmp = tcg_temp_local_new();
     TCGv tmp2 = tcg_temp_local_new();
+    TCGv sp = tcg_temp_local_new();
     tcg_gen_andi_i32(tmp, cpu_xar[1], 0xffff0000);
     tcg_gen_shri_i32(tmp2, cpu_xar[0], 16);
     tcg_gen_or_i32(tmp, tmp, tmp2);
-    gen_st32u_swap(tmp, cpu_sp);
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+    gen_st32u_swap(tmp, sp);
     tcg_gen_addi_i32(cpu_sp, cpu_sp, 2);
 
+    tcg_temp_free(tmp);
+    tcg_temp_free(tmp2);
+    tcg_temp_free(sp);
 }
