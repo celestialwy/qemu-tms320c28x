@@ -2183,7 +2183,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     uint32_t mode = insn & 0xff;
                     uint32_t pa = insn32 & 0xffff;
                     get_loc_string(str,mode,LOC16);
-                    fprintf_func(stream, "0x%08x; IN %s,*(0x%x)", insn, str, pa);
+                    fprintf_func(stream, "0x%08x; IN %s,*(0x%x)", insn32, str, pa);
                     break;
                 }
                 case 0b0110: //1011 0110 CCCC CCCC MOVB XAR7,#8bit
@@ -2199,6 +2199,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 {
                     uint32_t imm = insn & 0x3ff;
                     fprintf_func(stream, "0x%04x;     MOVZ DP,#%d", insn, imm);
+                    break;
+                }
+                case 0b1100://1011 1100 LLLL LLLL CCCC CCCC CCCC CCCC OUT *(PA),loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t pa = insn32 & 0xffff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%08x; OUT *(0x%x),%s", insn32, pa, str);
+                    length = 4;
                     break;
                 }
                 case 0b1110: //1011 1110 CCCC CCCC MOVB XAR6,#8bit

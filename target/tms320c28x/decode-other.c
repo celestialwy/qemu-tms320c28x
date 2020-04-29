@@ -49,3 +49,10 @@ static void gen_nop_ind_arpn(DisasContext *ctx, uint32_t mode)
 
     tcg_temp_free_i32(tmp);
 }
+
+// OUT *(PA),loc16
+static void gen_out_pa_loc16(DisasContext *ctx, uint32_t mode, uint32_t pa)
+{
+    //todo
+    //p352
+}
