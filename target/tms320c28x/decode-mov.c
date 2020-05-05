@@ -839,10 +839,34 @@ static void gen_movz_dp_10bit(DisasContext *ctx, uint32_t imm)
     tcg_gen_movi_tl(cpu_dp, imm);
 }
 
-// POP IFR
-static void gen_pop_ifr(DisasContext *ctx) {
-    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
-    gen_ld16u_swap(cpu_ifr, cpu_sp);
+// // POP ACC
+// static void gen_pop_acc(DisasContext *ctx)
+// {
+//     TCGv sp = tcg_temp_new();
+//     tcg_gen_subi_i32(cpu_sp, cpu_sp, 2);
+//     tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);//align to 32bit
+//     gen_ld32u_swap(cpu_acc, sp);
+//     tcg_temp_free(sp);
+// }
+
+// POP ARn:ARm
+static void gen_pop_arn_arm(DisasContext *ctx, uint32_t n, uint32_t m)
+{
+    TCGv tmp = tcg_temp_new();
+    TCGv tmp2 = tcg_temp_new();
+    TCGv sp = tcg_temp_new();
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 2);
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+    gen_ld32u_swap(tmp, sp);
+    tcg_gen_shri_i32(tmp2, tmp, 16);//arm
+    tcg_gen_andi_i32(tmp, tmp, 0xffff);//arn
+
+    gen_st_reg_low_half(cpu_xar[m], tmp);
+    gen_st_reg_low_half(cpu_xar[n], tmp2);
+
+    tcg_temp_free(tmp);
+    tcg_temp_free(tmp2);
+    tcg_temp_free(sp);
 }
 
 // POP AR1H:AR0H
@@ -864,21 +888,22 @@ static void gen_pop_ar1h_ar0h(DisasContext *ctx) {
     tcg_temp_free(sp);
 }
 
+// POP IFR
+static void gen_pop_ifr(DisasContext *ctx) {
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
+    gen_ld16u_swap(cpu_ifr, cpu_sp);
+}
+
 // POP RPC
 static void gen_pop_rpc(DisasContext *ctx)
 {
+    TCGv sp = tcg_temp_new();
     tcg_gen_subi_i32(cpu_sp, cpu_sp, 2);
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
 
-    gen_ld32u_swap(cpu_rpc, cpu_sp);
+    gen_ld32u_swap(cpu_rpc, sp);
     tcg_gen_andi_i32(cpu_rpc, cpu_rpc, 0x3fffff);//rpc is 22bit 
-}
-
-
-// PUSH RPC
-static void gen_push_rpc(DisasContext *ctx)
-{
-    gen_st32u_swap(cpu_rpc, cpu_sp);
-    tcg_gen_addi_i32(cpu_sp, cpu_sp, 2);
+    tcg_temp_free(sp);
 }
 
 // PUSH AR1H:AR0H
@@ -896,5 +921,15 @@ static void gen_push_ar1h_ar0h(DisasContext *ctx)
 
     tcg_temp_free(tmp);
     tcg_temp_free(tmp2);
+    tcg_temp_free(sp);
+}
+
+// PUSH RPC
+static void gen_push_rpc(DisasContext *ctx)
+{
+    TCGv sp = tcg_temp_local_new();
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+    gen_st32u_swap(cpu_rpc, sp);
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 2);
     tcg_temp_free(sp);
 }

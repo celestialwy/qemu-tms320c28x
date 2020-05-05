@@ -1707,6 +1707,21 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     LC *XAR7", insn);
                                     break;
                                 }
+                                case 0b000101: //0111 0110 0000 0111 POP AR3:AR2
+                                {
+                                    fprintf_func(stream, "0x%04x;     POP AR3:AR2", insn);
+                                    break;
+                                }
+                                case 0b000110: //0111 0110 0000 0111 POP AR5:AR4
+                                {
+                                    fprintf_func(stream, "0x%04x;     POP AR5:AR4", insn);
+                                    break;
+                                }
+                                case 0b000111: //0111 0110 0000 0111 POP AR1:AR0
+                                {
+                                    fprintf_func(stream, "0x%04x;     POP AR1:AR0", insn);
+                                    break;
+                                }
                                 case 0b010000: //0111 0110 0001 0000 LRETE
                                 {
                                     fprintf_func(stream, "0x%04x;     LRETE", insn);
