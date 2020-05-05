@@ -452,8 +452,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_clrc_mode(ctx, mode);
                     break;
                 }
-                case 0b1010:
+                case 0b1010: //0010 1010 LLLL LLLL POP loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_pop_loc16(ctx, mode);
                     break;
+                }
                 case 0b1011: //0010 1011 LLLL LLLL MOV loc16,#0
                 {
                     uint32_t mode = insn & 0xff;
@@ -1398,9 +1402,19 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         }
                         else { //0111 0110 00.. ....
                             switch(insn & 0x3f) {
+                                case 0b000001: //0111 0110 0000 0001 POP DP:ST1
+                                {
+                                    gen_pop_dp_st1(ctx);
+                                    break;
+                                }
                                 case 0b000010: //0111 0110 0000 0010 IRET
                                 {
                                     gen_iret(ctx);
+                                    break;
+                                }
+                                case 0b000011: //0111 0110 0000 0011 POP DP
+                                {
+                                    gen_pop_dp(ctx);
                                     break;
                                 }
                                 case 0b000100: //0111 0110 0000 0100 LC *XAR7
@@ -1426,6 +1440,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 case 0b010000: //0111 0110 0001 0000 LRETE
                                 {
                                     gen_lrete(ctx);
+                                    break;
+                                }
+                                case 0b010001: //0111 0110 0001 0001 POP P
+                                {
+                                    gen_pop_p(ctx);
+                                    break;
+                                }
+                                case 0b010010: //0111 0110 0001 0010 POP DBGIER
+                                {
+                                    gen_pop_dbgier(ctx);
                                     break;
                                 }
                                 case 0b010100: //0111 0110 0001 0100 LRET

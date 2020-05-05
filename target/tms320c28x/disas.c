@@ -636,8 +636,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     }
                     break;
                 }
-                case 0b1010:
+                case 0b1010: //0010 1010 LLLL LLLL POP loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     POP %s", insn, str);
                     break;
+                }
                 case 0b1011: //0010 1011 LLLL LLLL MOV loc16,#0
                 {
                     uint32_t mode = insn & 0xff;
@@ -1697,9 +1702,19 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         }
                         else { //0111 0110 00.. ....
                             switch(insn & 0x3f) {
+                                case 0b000001: //0111 0110 0000 0001 POP DP:ST1
+                                {
+                                    fprintf_func(stream, "0x%04x;     POP DP:ST1", insn);
+                                    break;
+                                }
                                 case 0b000010: //0111 0110 0000 0010 IRET
                                 {
                                     fprintf_func(stream, "0x%04x;     IRET", insn);
+                                    break;
+                                }
+                                case 0b000011: //0111 0110 0000 0011 POP DP
+                                {
+                                    fprintf_func(stream, "0x%04x;     POP DP", insn);
                                     break;
                                 }
                                 case 0b000100: //0111 0110 0000 0100 LC *XAR7
@@ -1725,6 +1740,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 case 0b010000: //0111 0110 0001 0000 LRETE
                                 {
                                     fprintf_func(stream, "0x%04x;     LRETE", insn);
+                                    break;
+                                }
+                                case 0b010001: //0111 0110 0001 0001 POP P
+                                {
+                                    fprintf_func(stream, "0x%04x;     POP P", insn);
+                                    break;
+                                }
+                                case 0b010010: //0111 0110 0001 0010 POP DBGIER
+                                {
+                                    fprintf_func(stream, "0x%04x;     POP DBGIER", insn);
                                     break;
                                 }
                                 case 0b010100: //0111 0110 0001 0100 LRET

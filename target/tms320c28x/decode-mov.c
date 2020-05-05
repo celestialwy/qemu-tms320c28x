@@ -888,10 +888,58 @@ static void gen_pop_ar1h_ar0h(DisasContext *ctx) {
     tcg_temp_free(sp);
 }
 
+// POP DBGIER
+static void gen_pop_dbgier(DisasContext *ctx) {
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
+    gen_ld16u_swap(cpu_dbgier, cpu_sp);
+}
+
+// POP DP
+static void gen_pop_dp(DisasContext *ctx) {
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
+    gen_ld16u_swap(cpu_dp, cpu_sp);
+}
+
+// POP DP:ST1
+static void gen_pop_dp_st1(DisasContext *ctx) {
+    TCGv tmp = tcg_temp_new();
+    TCGv sp = tcg_temp_new();
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 2);
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+    gen_ld32u_swap(tmp, sp);
+    tcg_gen_shri_i32(cpu_dp, tmp, 16);//dp
+    tcg_gen_andi_i32(cpu_st1, tmp, 0xffff);//st1
+    //todo: in ccs, some bit of st1 cannot be set
+
+    tcg_temp_free(tmp);
+    tcg_temp_free(sp);
+}
+
 // POP IFR
 static void gen_pop_ifr(DisasContext *ctx) {
     tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
     gen_ld16u_swap(cpu_ifr, cpu_sp);
+}
+
+// POP loc16
+static void gen_pop_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv tmp = tcg_temp_new();
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
+    gen_ld16u_swap(tmp, cpu_sp);
+    gen_st_loc16(mode, tmp);
+    gen_test_ax_N_Z(mode);
+    tcg_temp_free(tmp);
+}
+
+// POP P
+static void gen_pop_p(DisasContext *ctx)
+{
+    TCGv sp = tcg_temp_new();
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 2);
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);//align to 32bit
+    gen_ld32u_swap(cpu_p, sp);
+    tcg_temp_free(sp);
 }
 
 // POP RPC
