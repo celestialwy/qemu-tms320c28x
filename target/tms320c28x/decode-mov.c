@@ -954,6 +954,46 @@ static void gen_pop_rpc(DisasContext *ctx)
     tcg_temp_free(sp);
 }
 
+// POP ST0
+static void gen_pop_st0(DisasContext *ctx)
+{
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
+    gen_ld16u_swap(cpu_st0, cpu_sp);
+}
+
+// POP ST1
+static void gen_pop_st1(DisasContext *ctx)
+{
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
+    gen_ld16u_swap(cpu_st1, cpu_sp);
+}
+
+// POP T:ST0
+static void gen_pop_t_st0(DisasContext *ctx) {
+    TCGv tmp = tcg_temp_new();
+    TCGv sp = tcg_temp_new();
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 2);
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+    gen_ld32u_swap(tmp, sp);
+    tcg_gen_andi_i32(cpu_st0, tmp, 0xffff);//st0
+    tcg_gen_shri_i32(tmp, tmp, 16);
+    gen_st_reg_high_half(cpu_xt, tmp);//T
+
+    tcg_temp_free(tmp);
+    tcg_temp_free(sp);
+}
+
+// // POP XARn
+// static void gen_pop_xarn(DisasContext *ctx, uint32_t n)
+// {
+//     TCGv sp = tcg_temp_new();
+//     tcg_gen_subi_i32(cpu_sp, cpu_sp, 2);
+//     tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+
+//     gen_ld32u_swap(cpu_xar[n], sp);
+//     tcg_temp_free(sp);
+// }
+
 // PUSH AR1H:AR0H
 static void gen_push_ar1h_ar0h(DisasContext *ctx)
 {

@@ -1402,6 +1402,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         }
                         else { //0111 0110 00.. ....
                             switch(insn & 0x3f) {
+                                case 0b000000: //0111 0110 0000 0000 POP ST1
+                                {
+                                    gen_pop_st1(ctx);
+                                    break;
+                                }
                                 case 0b000001: //0111 0110 0000 0001 POP DP:ST1
                                 {
                                     gen_pop_dp_st1(ctx);
@@ -1452,9 +1457,19 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_pop_dbgier(ctx);
                                     break;
                                 }
+                                case 0b010011: //0111 0110 0001 0011 POP ST0
+                                {
+                                    gen_pop_st0(ctx);
+                                    break;
+                                }
                                 case 0b010100: //0111 0110 0001 0100 LRET
                                 {
                                     gen_lret(ctx);
+                                    break;
+                                }
+                                case 0b010101: //0111 0110 0001 0101 POP T:ST0
+                                {
+                                    gen_pop_t_st0(ctx);
                                     break;
                                 }
                                 case 0b010111: //0111 0110 0001 0111 NASP
