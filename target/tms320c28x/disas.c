@@ -1953,8 +1953,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 case 0b0111: //1000 0111 LLLL LLLL MOVL XT,loc32
                 {
                     uint32_t mode = insn & 0xff;
-                    get_loc_string(str,mode,LOC32);
-                    fprintf_func(stream, "0x%04x;     MOVL XT,%s", insn, str);
+                    if (mode == 0b10111110) {
+                        fprintf_func(stream, "0x%04x;     POP XT", insn);
+                    }
+                    else {
+                        get_loc_string(str,mode,LOC32);
+                        fprintf_func(stream, "0x%04x;     MOVL XT,%s", insn, str);
+                    }
                     break;
                 }
                 case 0b1000: //1000 1000 LLLL LLLL MOVZ AR6,loc16
