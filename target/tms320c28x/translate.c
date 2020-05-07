@@ -1446,6 +1446,21 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_pop_arn_arm(ctx, 1, 0);
                                     break;
                                 }
+                                case 0b001100: //0111 0110 0000 1100 PUSH AR5:AR4
+                                {
+                                    gen_push_arn_arm(ctx, 5, 4);
+                                    break;
+                                }
+                                case 0b001101: //0111 0110 0000 1101 PUSH AR1:AR0
+                                {
+                                    gen_push_arn_arm(ctx, 1, 0);
+                                    break;
+                                }
+                                case 0b001111: //0111 0110 0000 1111 PUSH AR3:AR2
+                                {
+                                    gen_push_arn_arm(ctx, 3, 2);
+                                    break;
+                                }
                                 case 0b010000: //0111 0110 0001 0000 LRETE
                                 {
                                     gen_lrete(ctx);

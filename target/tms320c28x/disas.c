@@ -557,8 +557,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 case 0b1110: //0001 1110 .... .... MOVL loc32,ACC
                 {
                     uint32_t mode = insn & 0xff;
-                    get_loc_string(str,mode,LOC32);
-                    fprintf_func(stream, "0x%04x;     MOV %s,ACC", insn, str);
+                    if (mode == 0b10111101) {
+                        fprintf_func(stream, "0x%04x;     PUSH ACC", insn);
+                    }
+                    else {
+                        get_loc_string(str,mode,LOC32);
+                        fprintf_func(stream, "0x%04x;     MOV %s,ACC", insn, str);
+                    }
                     break;
                 }
                 case 0b1111: //0001 1111 LLLL LLLL SUBCU ACC,loc16
@@ -1745,6 +1750,21 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 case 0b000111: //0111 0110 0000 0111 POP AR1:AR0
                                 {
                                     fprintf_func(stream, "0x%04x;     POP AR1:AR0", insn);
+                                    break;
+                                }
+                                case 0b001100: //0111 0110 0000 1100 PUSH AR5:AR4
+                                {
+                                    fprintf_func(stream, "0x%04x;     PUSH AR5:AR4", insn);
+                                    break;
+                                }
+                                case 0b001101: //0111 0110 0000 1101 PUSH AR1:AR0
+                                {
+                                    fprintf_func(stream, "0x%04x;     PUSH AR1:AR0", insn);
+                                    break;
+                                }
+                                case 0b001111: //0111 0110 0000 1111 PUSH AR3:AR2
+                                {
+                                    fprintf_func(stream, "0x%04x;     PUSH AR3:AR2", insn);
                                     break;
                                 }
                                 case 0b010000: //0111 0110 0001 0000 LRETE

@@ -1004,6 +1004,24 @@ static void gen_pread_loc16_xar7(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(tmp);
 }
 
+// PUSH ARn:ARm
+static void gen_push_arn_arm(DisasContext *ctx, uint32_t n, uint32_t m)
+{
+    TCGv tmp = tcg_temp_local_new();
+    TCGv tmp2 = tcg_temp_local_new();
+    TCGv sp = tcg_temp_local_new();
+    tcg_gen_andi_i32(tmp, cpu_xar[m], 0xffff);
+    tcg_gen_shli_i32(tmp2, cpu_xar[n], 16);
+    tcg_gen_or_i32(tmp, tmp, tmp2);
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+    gen_st32u_swap(tmp, sp);
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 2);
+
+    tcg_temp_free(tmp);
+    tcg_temp_free(tmp2);
+    tcg_temp_free(sp);
+}
+
 // PUSH AR1H:AR0H
 static void gen_push_ar1h_ar0h(DisasContext *ctx)
 {
