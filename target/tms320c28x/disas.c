@@ -1752,6 +1752,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     POP AR1:AR0", insn);
                                     break;
                                 }
+                                case 0b001001: //0111 0110 0000 1001 PUSH DP:ST1
+                                {
+                                    fprintf_func(stream, "0x%04x;     PUSH DP:ST1", insn);
+                                    break;
+                                }
                                 case 0b001011: //0111 0110 0000 1011 PUSH DP
                                 {
                                     fprintf_func(stream, "0x%04x;     PUSH DP", insn);

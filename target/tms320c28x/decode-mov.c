@@ -1054,6 +1054,24 @@ static void gen_push_dp(DisasContext *ctx)
     tcg_gen_addi_i32(cpu_sp, cpu_sp, 1);
 }
 
+// PUSH DP:ST1
+static void gen_push_dp_st1(DisasContext *ctx)
+{
+    TCGv tmp = tcg_temp_local_new();
+    TCGv tmp2 = tcg_temp_local_new();
+    TCGv sp = tcg_temp_local_new();
+    tcg_gen_andi_i32(tmp, cpu_st1, 0xffff);
+    tcg_gen_shli_i32(tmp2, cpu_dp, 16);
+    tcg_gen_or_i32(tmp, tmp, tmp2);
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+    gen_st32u_swap(tmp, sp);
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 2);
+
+    tcg_temp_free(tmp);
+    tcg_temp_free(tmp2);
+    tcg_temp_free(sp);
+}
+
 // PUSH RPC
 static void gen_push_rpc(DisasContext *ctx)
 {

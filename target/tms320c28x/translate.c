@@ -1446,6 +1446,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_pop_arn_arm(ctx, 1, 0);
                                     break;
                                 }
+                                case 0b001001: //0111 0110 0000 1001 PUSH DP:ST1
+                                {
+                                    gen_push_dp_st1(ctx);
+                                    break;
+                                }
                                 case 0b001011: //0111 0110 0000 1011 PUSH DP
                                 {
                                     gen_push_dp(ctx);
