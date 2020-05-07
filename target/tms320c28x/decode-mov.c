@@ -994,6 +994,16 @@ static void gen_pop_t_st0(DisasContext *ctx) {
 //     tcg_temp_free(sp);
 // }
 
+// PREAD loc16,*XAR7
+static void gen_pread_loc16_xar7(DisasContext *ctx, uint32_t mode)
+{
+    TCGv tmp = tcg_temp_new();
+    gen_ld16u_swap(tmp, cpu_xar[7]);
+    gen_st_loc16(mode, tmp);
+    gen_test_ax_N_Z(mode);
+    tcg_temp_free(tmp);
+}
+
 // PUSH AR1H:AR0H
 static void gen_push_ar1h_ar0h(DisasContext *ctx)
 {

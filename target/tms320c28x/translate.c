@@ -422,14 +422,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_mov_ier_loc16(ctx, mode);
                     break;
                 }
-                case 0b0100:
+                case 0b0100: //0010 0100 LLLL LLLL PREAD loc16,*XAR7
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_pread_loc16_xar7(ctx, mode);
                     break;
+                }
                 case 0b0101: /* 0010 0101 .... .... MOV ACC, loc16<<#16 */
                 {
                     uint32_t mode = insn & 0xff;
                     gen_mov_acc_loc16_shift(ctx, mode, 16);
-                }
                     break;
+                }
                 case 0b0110:
                     break;
                 case 0b0111: //0010 1111 LLLL LLLL MOV PL,loc16
