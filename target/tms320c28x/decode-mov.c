@@ -1040,6 +1040,20 @@ static void gen_push_ar1h_ar0h(DisasContext *ctx)
     tcg_temp_free(sp);
 }
 
+// PUSH DBGIER
+static void gen_push_dbgier(DisasContext *ctx)
+{
+    gen_st16u_swap(cpu_dbgier, cpu_sp);
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 1);
+}
+
+// PUSH DP
+static void gen_push_dp(DisasContext *ctx)
+{
+    gen_st16u_swap(cpu_dp, cpu_sp);
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 1);
+}
+
 // PUSH RPC
 static void gen_push_rpc(DisasContext *ctx)
 {

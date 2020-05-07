@@ -1446,6 +1446,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_pop_arn_arm(ctx, 1, 0);
                                     break;
                                 }
+                                case 0b001011: //0111 0110 0000 1011 PUSH DP
+                                {
+                                    gen_push_dp(ctx);
+                                    break;
+                                }
                                 case 0b001100: //0111 0110 0000 1100 PUSH AR5:AR4
                                 {
                                     gen_push_arn_arm(ctx, 5, 4);
@@ -1454,6 +1459,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 case 0b001101: //0111 0110 0000 1101 PUSH AR1:AR0
                                 {
                                     gen_push_arn_arm(ctx, 1, 0);
+                                    break;
+                                }
+                                case 0b001110: //0111 0110 0000 1110 PUSH DBGIER
+                                {
+                                    gen_push_dbgier(ctx);
                                     break;
                                 }
                                 case 0b001111: //0111 0110 0000 1111 PUSH AR3:AR2
