@@ -1450,6 +1450,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_pop_arn_arm(ctx, 1, 0);
                                     break;
                                 }
+                                case 0b001000: //0111 0110 0000 1000 PUSH ST1
+                                {
+                                    gen_push_st1(ctx);
+                                    break;
+                                }
                                 case 0b001001: //0111 0110 0000 1001 PUSH DP:ST1
                                 {
                                     gen_push_dp_st1(ctx);
@@ -1520,6 +1525,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_nasp(ctx);
                                     break;
                                 }
+                                case 0b011000: //0111 0110 0001 1000 PUSH ST0
+                                {
+                                    gen_push_st0(ctx);
+                                    break;
+                                }
+                                case 0b011001: //0111 0110 0001 1001 PUSH T:ST0
+                                {
+                                    gen_push_t_st0(ctx);
+                                    break;
+                                }
                                 case 0b011010: //0111 0110 0001 1010 EDIS
                                 {
                                     gen_edis(ctx);
@@ -1528,6 +1543,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 case 0b011011: //0111 0110 0001 1011 ASP
                                 {
                                     gen_asp(ctx);
+                                    break;
+                                }
+                                case 0b011101: //0111 0110 0001 1101 PUSH P
+                                {
+                                    gen_push_p(ctx);
                                     break;
                                 }
                                 case 0b011111: //0111 0110 0001 1111 MOVW DP,#16bit

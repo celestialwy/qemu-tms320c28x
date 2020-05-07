@@ -1089,6 +1089,16 @@ static void gen_push_loc16(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(tmp);
 }
 
+// PUSH P
+static void gen_push_p(DisasContext *ctx)
+{
+    TCGv sp = tcg_temp_local_new();
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+    gen_st32u_swap(cpu_p, sp);
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 2);
+    tcg_temp_free(sp);
+}
+
 // PUSH RPC
 static void gen_push_rpc(DisasContext *ctx)
 {
@@ -1098,3 +1108,45 @@ static void gen_push_rpc(DisasContext *ctx)
     tcg_gen_addi_i32(cpu_sp, cpu_sp, 2);
     tcg_temp_free(sp);
 }
+
+// PUSH ST0
+static void gen_push_st0(DisasContext *ctx)
+{
+    gen_st16u_swap(cpu_st0, cpu_sp);
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 1);
+}
+
+// PUSH ST1
+static void gen_push_st1(DisasContext *ctx)
+{
+    gen_st16u_swap(cpu_st1, cpu_sp);
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 1);
+}
+
+// PUSH T:ST0
+static void gen_push_t_st0(DisasContext *ctx)
+{
+    TCGv tmp = tcg_temp_local_new();
+    TCGv tmp2 = tcg_temp_local_new();
+    TCGv sp = tcg_temp_local_new();
+    tcg_gen_andi_i32(tmp, cpu_st0, 0xffff);
+    tcg_gen_andi_i32(tmp2, cpu_xt, 0xffff0000);
+    tcg_gen_or_i32(tmp, tmp, tmp2);
+    tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+    gen_st32u_swap(tmp, sp);
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 2);
+
+    tcg_temp_free(tmp);
+    tcg_temp_free(tmp2);
+    tcg_temp_free(sp);
+}
+
+// // PUSH XARn
+// static void gen_push_xarn(DisasContext *ctx, uint32_t n)
+// {
+//     TCGv sp = tcg_temp_local_new();
+//     tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
+//     gen_st32u_swap(cpu_xar[n], sp);
+//     tcg_gen_addi_i32(cpu_sp, cpu_sp, 2);
+//     tcg_temp_free(sp);
+// }
