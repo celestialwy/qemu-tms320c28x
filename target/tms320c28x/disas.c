@@ -591,8 +591,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOV %s,P", insn, str);
                     break;
                 }
-                case 0b0010:
+                case 0b0010: //0010 0010 LLLL LLLL PUSH loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     PUSH %s", insn, str);
                     break;
+                }
                 case 0b0011: //0010 0011 LLLL LLLL MOV IER,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -1755,6 +1760,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 case 0b001001: //0111 0110 0000 1001 PUSH DP:ST1
                                 {
                                     fprintf_func(stream, "0x%04x;     PUSH DP:ST1", insn);
+                                    break;
+                                }
+                                case 0b001010: //0111 0110 0000 1010 PUSH IFR
+                                {
+                                    fprintf_func(stream, "0x%04x;     PUSH IFR", insn);
                                     break;
                                 }
                                 case 0b001011: //0111 0110 0000 1011 PUSH DP

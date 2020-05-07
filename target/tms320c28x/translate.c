@@ -414,8 +414,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_mov_loc16_t(ctx, mode);
                     break;
                 }
-                case 0b0010:
+                case 0b0010: //0010 0010 LLLL LLLL PUSH loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_push_loc16(ctx, mode);
                     break;
+                }
                 case 0b0011: //0010 0011 LLLL LLLL MOV IER,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -1449,6 +1453,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 case 0b001001: //0111 0110 0000 1001 PUSH DP:ST1
                                 {
                                     gen_push_dp_st1(ctx);
+                                    break;
+                                }
+                                case 0b001010: //0111 0110 0000 1010 PUSH IFR
+                                {
+                                    gen_push_ifr(ctx);
                                     break;
                                 }
                                 case 0b001011: //0111 0110 0000 1011 PUSH DP
