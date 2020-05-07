@@ -1141,12 +1141,12 @@ static void gen_push_t_st0(DisasContext *ctx)
     tcg_temp_free(sp);
 }
 
-// // PUSH XARn
-// static void gen_push_xarn(DisasContext *ctx, uint32_t n)
+// // PUSH XT
+// static void gen_push_xt(DisasContext *ctx)
 // {
 //     TCGv sp = tcg_temp_local_new();
 //     tcg_gen_andi_i32(sp, cpu_sp, 0xfffffffe);
-//     gen_st32u_swap(cpu_xar[n], sp);
+//     gen_st32u_swap(cpu_xt, sp);
 //     tcg_gen_addi_i32(cpu_sp, cpu_sp, 2);
 //     tcg_temp_free(sp);
 // }
