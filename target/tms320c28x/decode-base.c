@@ -4,7 +4,7 @@ static void gen_ld16u_swap(TCGv value, TCGv addr_param)
     tcg_gen_shli_i32(addr, addr_param, 1);// addr*2
     tcg_gen_qemu_ld16u(value, addr, 0);
 
-    TCGv_i32 tmp = tcg_const_i32(0);
+    TCGv_i32 tmp = tcg_const_local_i32(0);
     tcg_gen_shli_tl(tmp, value, 8);
     tcg_gen_andi_i32(tmp, tmp, 0xff00);
     tcg_gen_shri_tl(value, value, 8);

@@ -149,6 +149,7 @@ typedef struct CPUTms320c28xState {
     target_ulong xt;         /* Multiplicand register, todo:t,tl*/
 
     target_ulong rptc;
+    target_ulong shadow[8];
     // target_ulong tmp[8];
     /* Fields up to this point are cleared by a CPU reset */
     struct {} end_reset_fields;

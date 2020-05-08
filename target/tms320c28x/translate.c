@@ -60,6 +60,7 @@ static TCGv cpu_st0; /* Status register 0 */
 static TCGv cpu_st1; /* Status register 1, reset to 0x080b */
 static TCGv cpu_xt;         /* Multiplicand register, todo:t,tl*/
 static TCGv cpu_rptc;
+static TCGv cpu_shadow[8];
 static TCGv cpu_insn_length;
 // static TCGv cpu_tmp[8]; 
 
@@ -68,9 +69,9 @@ void tms320c28x_translate_init(void)
     static const char * const regnames[] = {
         "xar0", "xar1", "xar2", "xar3", "xar4", "xar5", "xar6", "xar7",
     };
-    // static const char * const regnames2[] = {
-    //     "tmp0", "tmp1", "tmp2", "tmp3", "tmp4", "tmp5", "tmp6", "tmp7",
-    // };
+    static const char * const regnames2[] = {
+        "shadow0", "shadow1", "shadow2", "shadow3", "shadow4", "shadow5", "shadow6", "shadow7",
+    };
     int i;
 
     cpu_acc = tcg_global_mem_new(cpu_env,
@@ -99,10 +100,10 @@ void tms320c28x_translate_init(void)
                                 offsetof(CPUTms320c28xState, xt), "xt");
     cpu_rptc = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUTms320c28xState, rptc), "rptc");
-                                                                
+                                    
     for (i = 0; i < 8; i++) {
         cpu_xar[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,xar[i]),regnames[i]);
-        // cpu_tmp[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,tmp[i]),regnames2[i]);
+        cpu_shadow[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,shadow[i]),regnames2[i]);
     }
     cpu_insn_length = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUTms320c28xState, insn_length), "insn_length");
@@ -438,8 +439,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_mov_acc_loc16_shift(ctx, mode, 16);
                     break;
                 }
-                case 0b0110:
+                case 0b0110: //0010 0110 LLLL LLLL PWRITE *XAR7,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_pwrite_xar7_loc16(ctx, mode);
                     break;
+                }
                 case 0b0111: //0010 1111 LLLL LLLL MOV PL,loc16
                 {
                     uint32_t mode = insn & 0xff;

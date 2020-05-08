@@ -997,10 +997,23 @@ static void gen_pop_t_st0(DisasContext *ctx) {
 // PREAD loc16,*XAR7
 static void gen_pread_loc16_xar7(DisasContext *ctx, uint32_t mode)
 {
-    TCGv tmp = tcg_temp_new();
-    gen_ld16u_swap(tmp, cpu_xar[7]);
+    TCGv tmp = tcg_temp_local_new_i32();
+    tcg_gen_mov_i32(cpu_shadow[7], cpu_xar[7]);
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    gen_ld16u_swap(tmp, cpu_shadow[7]);
     gen_st_loc16(mode, tmp);
     gen_test_ax_N_Z(mode);
+    tcg_gen_addi_i32(cpu_shadow[7], cpu_shadow[7], 1);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+
     tcg_temp_free(tmp);
 }
 
@@ -1150,3 +1163,37 @@ static void gen_push_t_st0(DisasContext *ctx)
 //     tcg_gen_addi_i32(cpu_sp, cpu_sp, 2);
 //     tcg_temp_free(sp);
 // }
+
+// PWRITE *XAR7,loc16
+static void gen_pwrite_xar7_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv tmp = tcg_temp_local_new();
+    if (mode == 0b10000111)//*XAR7++
+    {
+        tcg_gen_addi_i32(cpu_shadow[7], cpu_xar[7], 1);
+    }
+    else if (mode == 0b10001111)//*--XAR7
+    {
+        tcg_gen_subi_i32(cpu_shadow[7], cpu_xar[7], 1);
+    }
+    else
+    {
+        tcg_gen_mov_i32(cpu_shadow[7], cpu_xar[7]);
+    }
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    gen_ld_loc16(tmp, mode);
+    gen_st16u_swap(tmp, cpu_shadow[7]);
+
+    tcg_gen_addi_i32(cpu_shadow[7], cpu_shadow[7], 1);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+
+    tcg_temp_free(tmp);
+}

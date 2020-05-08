@@ -619,8 +619,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOV ACC,%s<<#16", insn, str);
                 }
                     break;
-                case 0b0110:
+                case 0b0110: //0010 0110 LLLL LLLL PWRITE *XAR7,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     PWRITE *XAR7,%s", insn, str);
                     break;
+                }
                 case 0b0111: //0010 1111 LLLL LLLL MOV PL,loc16
                 {
                     uint32_t mode = insn & 0xff;
