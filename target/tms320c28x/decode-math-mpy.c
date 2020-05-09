@@ -116,7 +116,7 @@ static void gen_imacl_p_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t m
     }
     else if (mode1 == 0x87)//*XAR7++
     {
-        gen_ld_loc32(v1, mode2);
+        gen_ld_loc32(v1, mode1);
         tcg_gen_mov_i32(v2, v1);
     }
     else
@@ -594,4 +594,69 @@ static void gen_mpyxu_p_t_loc16(DisasContext *ctx, uint32_t mode)
     //free
     tcg_temp_free(a);
     tcg_temp_free(b);
+}
+
+//QMACL P,loc32,*XAR7/++
+static void gen_qmacl_p_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t mode2)
+{
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
+    TCGv v1 = tcg_temp_local_new();
+    TCGv v2 = tcg_temp_local_new();
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    //ACC = P << PM
+    tcg_gen_mov_i32(a, cpu_acc);
+    gen_shift_by_pm(b, cpu_p);
+    tcg_gen_add_i32(cpu_acc, a, b);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_C_V_32(cpu_env, a, b, cpu_acc);
+
+    
+    //0xC7: *XAR7, 0x87: *XAR7++, 0x8F: *--XAR7
+    if (mode1 == 0x8f) //*--XAR7
+    {
+        mode2 = 0xc7;
+        gen_ld_loc32(v2, mode2);//get XAR7
+        gen_ld_loc32(v1, mode1);//get *--XAR7
+    }
+    else if (mode1 == 0xc7)//*XAR7
+    {
+        if (mode2 == 0xc7)//*XAR7
+        {
+            gen_ld_loc32(v1, mode1);
+            tcg_gen_mov_i32(v2, v1);
+        }
+        else //*XAR7++
+        {
+            gen_ld_loc32(v1, mode2);
+            tcg_gen_mov_i32(v2, v1);
+        }
+    }
+    else if (mode1 == 0x87)//*XAR7++
+    {
+        gen_ld_loc32(v1, mode1);
+        tcg_gen_mov_i32(v2, v1);
+    }
+    else
+    {
+        gen_ld_loc32(v2, mode2);
+        gen_ld_loc32(v1, mode1);
+    }
+
+    tcg_gen_muls2_i32(a, b, v1, v2);
+    tcg_gen_mov_i32(cpu_p, b);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+    tcg_temp_free(v1);
+    tcg_temp_free(v2);
 }
