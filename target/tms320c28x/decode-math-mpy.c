@@ -720,3 +720,29 @@ static void gen_qmpyl_acc_xt_loc32(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(b);
     tcg_temp_free(v2);
 }
+
+//QMPYSL P,XT,loc32
+static void gen_qmpysl_p_xt_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
+    TCGv v2 = tcg_temp_local_new();
+
+    //ACC = P << PM
+    tcg_gen_mov_i32(a, cpu_acc);
+    gen_shift_by_pm(b, cpu_p);
+    tcg_gen_sub_i32(cpu_acc, a, b);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_sub_C_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_sub_OVCU_32(cpu_env, a, b, cpu_acc);
+
+    //P = (signed XT * signed [loc32]) >> 32
+    gen_ld_loc32(v2, mode);
+    tcg_gen_muls2_i32(a, b, cpu_xt, v2);
+    tcg_gen_mov_i32(cpu_p, b);
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+    tcg_temp_free(v2);
+}
+
