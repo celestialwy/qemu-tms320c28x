@@ -1026,6 +1026,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b0110: //0101 0110 0100 0110 0000 0000 LLLL LLLL QMPYAL P,XT,loc32
+                                {
+                                    if ((insn2 >> 8) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_qmpyal_p_xt_loc32(ctx, mode);
+                                    }
+                                    break;
+                                }
                                 case 0b1000: //0101 0110 0100 1000 0000 COND LLLL LLLL MOVL loc32,ACC,COND
                                 {
                                     uint32_t mode = insn2 & 0xff;

@@ -614,6 +614,7 @@ static void gen_qmacl_p_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t m
     tcg_gen_add_i32(cpu_acc, a, b);
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
     gen_helper_test_C_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 
     
     //0xC7: *XAR7, 0x87: *XAR7++, 0x8F: *--XAR7
@@ -658,5 +659,30 @@ static void gen_qmacl_p_loc32_xar7(DisasContext *ctx, uint32_t mode1, uint32_t m
     tcg_temp_free(a);
     tcg_temp_free(b);
     tcg_temp_free(v1);
+    tcg_temp_free(v2);
+}
+
+//QMPYAL P,XT,loc32
+static void gen_qmpyal_p_xt_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
+    TCGv v2 = tcg_temp_local_new();
+
+    //ACC = P << PM
+    tcg_gen_mov_i32(a, cpu_acc);
+    gen_shift_by_pm(b, cpu_p);
+    tcg_gen_add_i32(cpu_acc, a, b);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_C_V_32(cpu_env, a, b, cpu_acc);
+    gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+
+    //P = (signed T * signed [loc32]) >> 32
+    gen_ld_loc32(v2, mode);
+    tcg_gen_muls2_i32(a, b, cpu_xt, v2);
+    tcg_gen_mov_i32(cpu_p, b);
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
     tcg_temp_free(v2);
 }
