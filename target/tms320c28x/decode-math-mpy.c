@@ -677,7 +677,24 @@ static void gen_qmpyal_p_xt_loc32(DisasContext *ctx, uint32_t mode)
     gen_helper_test_C_V_32(cpu_env, a, b, cpu_acc);
     gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
 
-    //P = (signed T * signed [loc32]) >> 32
+    //P = (signed XT * signed [loc32]) >> 32
+    gen_ld_loc32(v2, mode);
+    tcg_gen_muls2_i32(a, b, cpu_xt, v2);
+    tcg_gen_mov_i32(cpu_p, b);
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+    tcg_temp_free(v2);
+}
+
+//QMPYL P,XT,loc32
+static void gen_qmpyl_p_xt_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
+    TCGv v2 = tcg_temp_local_new();
+
+    //P = (signed XT * signed [loc32]) >> 32
     gen_ld_loc32(v2, mode);
     tcg_gen_muls2_i32(a, b, cpu_xt, v2);
     tcg_gen_mov_i32(cpu_p, b);

@@ -1554,6 +1554,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                     break;
                                 }
+                                case 0b0111: //0101 0110 0110 0111 0000 0000 LLLL LLLL QMPYL P,XT,loc32
+                                {
+                                    if (((insn32 >> 8) & 0xff) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC32);
+                                        fprintf_func(stream, "0x%08x; QMPYL P,XT,%s", insn32, str);
+                                    }
+                                    break;
+                                }
                             }
                             break;
                         }
