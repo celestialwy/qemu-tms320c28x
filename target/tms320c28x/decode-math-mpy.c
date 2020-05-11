@@ -746,3 +746,35 @@ static void gen_qmpysl_p_xt_loc32(DisasContext *ctx, uint32_t mode)
     tcg_temp_free(v2);
 }
 
+//QMPYUL P,XT,loc32
+static void gen_qmpyul_p_xt_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv a = tcg_temp_local_new();
+    TCGv b = tcg_temp_local_new();
+    TCGv v2 = tcg_temp_local_new();
+    //P = (usigned XT * usigned loc32) >> 32
+    gen_ld_loc32(v2, mode);
+    tcg_gen_mulu2_i32(a, b, cpu_xt, v2);
+    tcg_gen_mov_i32(cpu_p, b);
+
+    tcg_temp_free(a);
+    tcg_temp_free(b);
+    tcg_temp_free(v2);
+}
+
+//QMPYXUL P,XT,loc32
+static void gen_qmpyxul_p_xt_loc32(DisasContext *ctx, uint32_t mode)
+{
+    TCGv_i64 v1 = tcg_temp_local_new_i64();
+    TCGv_i64 v2 = tcg_temp_local_new_i64();
+    //P = (signed XT * usigned loc32) >> 32
+    gen_ld_loc32(cpu_shadow[0], mode);
+    tcg_gen_ext_i32_i64(v1, cpu_xt);
+    tcg_gen_extu_i32_i64(v2, cpu_shadow[0]);
+    tcg_gen_mul_i64(v1, v1, v2);
+    tcg_gen_extr_i64_i32(cpu_shadow[1], cpu_shadow[0], v1);
+    tcg_gen_mov_i32(cpu_p, cpu_shadow[0]);
+
+    tcg_temp_free_i64(v1);
+    tcg_temp_free_i64(v2);
+}

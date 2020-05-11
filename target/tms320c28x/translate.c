@@ -1006,6 +1006,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b0010: //0101 0110 0100 0010 0000 0000 LLLL LLLL QMPYXUL P,XT,loc32
+                                {
+                                    if ((insn2 >> 8) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_qmpyxul_p_xt_loc32(ctx, mode);
+                                    }
+                                    break;
+                                }
                                 case 0b0011: //0101 0110 0100 0011 0000 0000 LLLL LLLL IMPYSL P,XT,loc32
                                 {
                                     if ((insn2 >> 8) == 0)
@@ -1043,6 +1053,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         length = 4;
                                         uint32_t mode = insn2 & 0xff;
                                         gen_qmpyal_p_xt_loc32(ctx, mode);
+                                    }
+                                    break;
+                                }
+                                case 0b0111: //0101 0110 0100 0111 0000 0000 LLLL LLLL QMPYUL P,XT,loc32
+                                {
+                                    if ((insn2 >> 8) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_qmpyul_p_xt_loc32(ctx, mode);
                                     }
                                     break;
                                 }
