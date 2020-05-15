@@ -2781,6 +2781,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     LSL ACC,T", insn);
                                     break;
                                 }
+                                case 0b0010: //1111 1111 0101 0011 ROR ACC
+                                {
+                                    fprintf_func(stream, "0x%04x;     ROR ACC", insn);
+                                    break;
+                                }
+                                case 0b0011: //1111 1111 0101 0011 ROL ACC
+                                {
+                                    fprintf_func(stream, "0x%04x;     ROL ACC", insn);
+                                    break;
+                                }
                                 case 0b0100: //1111 1111 0101 0100 NEG ACC
                                 {
                                     fprintf_func(stream, "0x%04x;     NEG ACC", insn);

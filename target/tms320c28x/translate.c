@@ -2264,6 +2264,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_lsl_acc_t(ctx);
                                     break;
                                 }
+                                case 0b0010: //1111 1111 0101 0010 ROR ACC
+                                {
+                                    gen_ror_acc(ctx);
+                                    break;
+                                }
+                                case 0b0011: //1111 1111 0101 0011 ROL ACC
+                                {
+                                    gen_rol_acc(ctx);
+                                    break;
+                                }
                                 case 0b0100: //1111 1111 0101 0100 NEG ACC
                                 {
                                     gen_neg_acc(ctx);
