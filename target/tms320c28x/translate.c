@@ -978,6 +978,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_lsll_acc_t(ctx);
                                     break;
                                 }
+                                case 0b1110: //0101 0110 0011 1110 SAT64 ACC:P
+                                {
+                                    gen_sat64_acc_p(ctx);
+                                    break;
+                                }
                                 case 0b1111: //0101 0110 0011 1111 CLRC M0M1MAP
                                 {
                                     gen_clrc_m0m1map(ctx);
@@ -2287,6 +2292,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 case 0b0110: //1111 1111 0101 0110 ABS ACC
                                 {
                                     gen_abs_acc(ctx);
+                                    break;
+                                }
+                                case 0b0111: //1111 1111 0101 0111 SAT ACC
+                                {
+                                    gen_sat_acc(ctx);
                                     break;
                                 }
                                 case 0b1001: //1111 1111 0101 1001 CMPL ACC,P<<PM

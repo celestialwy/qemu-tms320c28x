@@ -347,7 +347,7 @@ static void gen_test_ax_N_Z(uint32_t mode)
     if (mode == 0b10101001) { //loc16 == @AL
         TCGv al = tcg_temp_local_new();
         tcg_gen_andi_i32(al, cpu_acc, 0xffff);
-        gen_helper_test_N_Z_16(cpu_env, cpu_acc);
+        gen_helper_test_N_Z_16(cpu_env, al);
         tcg_temp_free(al);
     }
 }

@@ -1242,6 +1242,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     LSLL ACC,T", insn);
                                     break;
                                 }
+                                case 0b1110: //0101 0110 0011 1110 SAT64 ACC:P
+                                {
+                                    fprintf_func(stream, "0x%04x;     SAT64 ACC:P", insn);
+                                    break;
+                                }
                                 case 0b1111: //0101 0110 0011 1111 CLRC M0M1MAP
                                 {
                                     fprintf_func(stream, "0x%04x;     CLRC M0M1MAP", insn);
@@ -2804,6 +2809,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 case 0b0110: //1111 1111 0101 0110 ABS ACC
                                 {
                                     fprintf_func(stream, "0x%04x;     ABS ACC", insn);
+                                    break;
+                                }
+                                case 0b0111: //1111 1111 0101 0111 SAT ACC
+                                {
+                                    fprintf_func(stream, "0x%04x;     SAT ACC", insn);
                                     break;
                                 }
                                 case 0b1001: //1111 1111 0101 1001 CMPL ACC,P<<PM

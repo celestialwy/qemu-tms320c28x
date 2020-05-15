@@ -340,3 +340,65 @@ static void gen_norm_acc_type(DisasContext *ctx, uint32_t type)
     tcg_temp_free(bit30);
     tcg_temp_free(bit31);
 }
+
+//SAT ACC
+static void gen_sat_acc(DisasContext *ctx)
+{
+    TCGLabel *done = gen_new_label();
+    TCGLabel *ovc_gt_0 = gen_new_label();
+    TCGLabel *ovc_lt_0 = gen_new_label();
+
+    TCGv ovc = cpu_shadow[0];
+    gen_get_bit(ovc, cpu_st0, OVC_BIT, OVC_MASK);
+    tcg_gen_brcondi_i32(TCG_COND_GT, ovc, 0b011111, ovc_lt_0);
+    tcg_gen_brcondi_i32(TCG_COND_GT, ovc, 0, ovc_gt_0);
+    //ovc == 0
+    gen_seti_bit(cpu_st0, V_BIT, V_MASK, 0);
+    tcg_gen_br(done);
+    gen_set_label(ovc_gt_0);
+    //ovc > 0
+    tcg_gen_movi_i32(cpu_acc, 0x7fffffff);
+    gen_seti_bit(cpu_st0, V_BIT, V_MASK, 1);
+    tcg_gen_br(done);
+    gen_set_label(ovc_lt_0);
+    //ovc < 0
+    tcg_gen_movi_i32(cpu_acc, 0x80000000);
+    gen_seti_bit(cpu_st0, V_BIT, V_MASK, 1);
+    gen_set_label(done);
+    gen_seti_bit(cpu_st0, OVC_BIT, OVC_MASK, 0);
+    gen_seti_bit(cpu_st0, C_BIT, C_MASK, 0);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+}
+
+//SAT64 ACC:P
+static void gen_sat64_acc_p(DisasContext *ctx)
+{
+    TCGLabel *done = gen_new_label();
+    TCGLabel *ovc_gt_0 = gen_new_label();
+    TCGLabel *ovc_lt_0 = gen_new_label();
+
+    TCGv ovc = cpu_shadow[0];
+    gen_get_bit(ovc, cpu_st0, OVC_BIT, OVC_MASK);
+    tcg_gen_brcondi_i32(TCG_COND_GT, ovc, 0b011111, ovc_lt_0);
+    tcg_gen_brcondi_i32(TCG_COND_GT, ovc, 0, ovc_gt_0);
+    //ovc == 0
+    gen_seti_bit(cpu_st0, V_BIT, V_MASK, 0);
+    tcg_gen_br(done);
+    gen_set_label(ovc_gt_0);
+    //ovc > 0
+    tcg_gen_movi_i32(cpu_acc, 0x7fffffff);
+    tcg_gen_movi_i32(cpu_p, 0xffffffff);
+    gen_seti_bit(cpu_st0, V_BIT, V_MASK, 1);
+    tcg_gen_br(done);
+    gen_set_label(ovc_lt_0);
+    //ovc < 0
+    tcg_gen_movi_i32(cpu_acc, 0x80000000);
+    tcg_gen_movi_i32(cpu_p, 0);
+    gen_seti_bit(cpu_st0, V_BIT, V_MASK, 1);
+    gen_set_label(done);
+    gen_seti_bit(cpu_st0, OVC_BIT, OVC_MASK, 0);
+    gen_seti_bit(cpu_st0, C_BIT, C_MASK, 0);
+    gen_helper_test_N_Z_64(cpu_env, cpu_acc, cpu_p);
+
+}
