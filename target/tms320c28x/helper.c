@@ -298,9 +298,10 @@ void HELPER(test2_C_V_OVC_OVM_32)(CPUTms320c28xState *env, uint32_t a, uint32_t 
     else if (bit1 == 0 && bit2 == 0 && bit3 == 1) {//pos overflow
         is_overflow = 1;
     }
-    else {    if (b == 0) {
-        CPU_SET_STATUS(st0, C, 1);
-    }
+    else {    
+        if (b == 0) {
+            CPU_SET_STATUS(st0, C, 1);
+        }
         uint32_t bit1 = (a+b) >> 31;
         uint32_t bit2 = c >> 31;
         uint32_t bit3 = (result) >> 31;

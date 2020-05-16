@@ -32,8 +32,28 @@ static void gen_dec_loc16(DisasContext *ctx, uint32_t mode)
     tcg_temp_free_i32(result);
 }
 
+// SBBU ACC,loc16
+static void gen_sbbu_acc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv c = cpu_shadow[0];
+    TCGv loc16 = cpu_shadow[1];
+    TCGv acc = cpu_shadow[2];
+
+    tcg_gen_mov_i32(acc, cpu_acc);
+    gen_ld_loc16(loc16, mode);
+    gen_get_bit(c, cpu_st0, C_BIT, C_MASK);
+    tcg_gen_not_i32(c, c);
+    tcg_gen_andi_i32(c, c, 1);
+
+    tcg_gen_sub_i32(cpu_acc, acc, loc16);
+    tcg_gen_sub_i32(cpu_acc, cpu_acc, c);
+
+    gen_helper_test2_sub_C_V_OVC_OVM_32(cpu_env, acc, loc16, c, cpu_acc);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+}
+
 // SUBB ACC,loc16<<#0...16
-static void gen_sub_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t shift_imm)
+static void gen_subb_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t shift_imm)
 {
     TCGv a = tcg_temp_local_new();
     TCGv b = tcg_temp_local_new();

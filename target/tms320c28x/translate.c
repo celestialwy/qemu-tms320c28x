@@ -228,7 +228,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                 case 0b0100: //0000 0100 LLLL LLLL SUB ACC,loc16<<#16
                 {
                     uint32_t mode = insn & 0xff;
-                    gen_sub_acc_loc16_shift(ctx, mode, 16);
+                    gen_subb_acc_loc16_shift(ctx, mode, 16);
                     break;
                 }
                 case 0b0101: //0000 0101 LLLL LLLL ADD ACC,loc16<<#16
@@ -385,6 +385,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     int32_t imm = insn2;
                     uint32_t mode = insn & 0xff;
                     gen_cmp_loc16_16bit(ctx, mode, imm);
+                    break;
+                }
+                case 0b1101: //0001 1101 LLLL LLLL SBBU ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_sbbu_acc_loc16(ctx, mode);
                     break;
                 }
                 case 0b1110: //0001 1110 LLLL LLLL MOVL loc32,ACC
@@ -687,7 +693,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         length = 4;
                                         uint32_t mode = insn2 & 0xff;
                                         uint32_t shift = insn2 >> 8;
-                                        gen_sub_acc_loc16_shift(ctx, mode, shift);
+                                        gen_subb_acc_loc16_shift(ctx, mode, shift);
                                     }
                                     break;
                                 }
@@ -1976,7 +1982,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                 case 0b1110: //1010 1110 LLLL LLLL SUB ACC,loc16<<#0
                 {
                     uint32_t mode = insn & 0xff;
-                    gen_sub_acc_loc16_shift(ctx, mode, 0);
+                    gen_subb_acc_loc16_shift(ctx, mode, 0);
                     break;
                 }
                 case 0b1111: //1010 1111 LLLL LLLL OR ACC,loc16
