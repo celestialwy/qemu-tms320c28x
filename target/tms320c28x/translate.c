@@ -2249,6 +2249,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_adrk_8bit(ctx, imm);
                     break;
                 }
+                case 0b1101: //1111 1101 CCCC CCCC SBRK #8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    gen_sbrk_8bit(ctx, imm);
+                    break;
+                }
                 case 0b1110: //1111 1110 .... ....
                 {
                     uint32_t imm = insn & 0x7f;

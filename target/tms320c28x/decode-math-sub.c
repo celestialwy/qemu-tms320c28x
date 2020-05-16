@@ -52,6 +52,15 @@ static void gen_sbbu_acc_loc16(DisasContext *ctx, uint32_t mode)
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 }
 
+// SBRK #8bit
+static void gen_sbrk_8bit(DisasContext *ctx, uint32_t imm)
+{
+    TCGv tmp = cpu_shadow[0];
+    gen_helper_ld_xar_arp(tmp, cpu_env);
+    tcg_gen_subi_i32(tmp, tmp, imm);
+    gen_helper_st_xar_arp(cpu_env, tmp);
+}
+
 // SUBB ACC,loc16<<#0...16
 static void gen_subb_acc_loc16_shift(DisasContext *ctx, uint32_t mode, uint32_t shift_imm)
 {

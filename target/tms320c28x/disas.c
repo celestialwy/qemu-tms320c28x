@@ -2767,6 +2767,12 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     ADRK #%d", insn, imm);
                     break;
                 }
+                case 0b1101: //1111 1101 CCCC CCCC SBRK #8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     SBRK #%d", insn, imm);
+                    break;
+                }
                 case 0b1110: //1111 1110 .... ....
                 {
                     uint32_t imm = insn & 0x7f;
