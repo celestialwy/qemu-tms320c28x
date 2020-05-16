@@ -2692,6 +2692,30 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     SUBR %s,AH", insn, str);
                     break;
                 }
+                case 0b1100://1110 1100 CCCC CCCC SBF 8bitoffset,EQ
+                {
+                    int8_t offset = (insn & 0xff);
+                    fprintf_func(stream, "0x%04x;     SBF %d,EQ", insn, offset);
+                    break;
+                }
+                case 0b1101://1110 1101 CCCC CCCC SBF 8bitoffset,NEQ
+                {
+                    int8_t offset = (insn & 0xff);
+                    fprintf_func(stream, "0x%04x;     SBF %d,NEQ", insn, offset);
+                    break;
+                }
+                case 0b1110://1110 1110 CCCC CCCC SBF 8bitoffset,TC
+                {
+                    int8_t offset = (insn & 0xff);
+                    fprintf_func(stream, "0x%04x;     SBF %d,TC", insn, offset);
+                    break;
+                }
+                case 0b1111://1110 1111 CCCC CCCC SBF 8bitoffset,NTC
+                {
+                    int8_t offset = (insn & 0xff);
+                    fprintf_func(stream, "0x%04x;     SBF %d,NTC", insn, offset);
+                    break;
+                }
             }
             break;
         }

@@ -332,3 +332,71 @@ static void gen_sb_8bitOffset_cond(DisasContext *ctx, int16_t offset, uint32_t c
     tcg_temp_free(cond_tcg);
     tcg_temp_free(test);
 }
+
+//SBF 8bitoffset,EQ
+static void gen_sbf_8bitOffset_eq(DisasContext *ctx, int16_t offset)
+{
+    gen_reset_rptc(ctx);
+
+    TCGLabel *label = gen_new_label();
+    TCGv z = cpu_shadow[0];
+    gen_get_bit(z, cpu_st0, Z_BIT, Z_MASK);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, z, 1, label);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 1);
+    gen_set_label(label);
+    gen_goto_tb(ctx, 0, ((uint32_t)ctx->base.pc_next >> 1) + offset);
+
+    ctx->base.is_jmp = DISAS_JUMP;
+}
+
+//SBF 8bitoffset,NEQ
+static void gen_sbf_8bitOffset_neq(DisasContext *ctx, int16_t offset)
+{
+    gen_reset_rptc(ctx);
+
+    TCGLabel *label = gen_new_label();
+    TCGv z = cpu_shadow[0];
+    gen_get_bit(z, cpu_st0, Z_BIT, Z_MASK);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, z, 0, label);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 1);
+    gen_set_label(label);
+    gen_goto_tb(ctx, 0, ((uint32_t)ctx->base.pc_next >> 1) + offset);
+
+    ctx->base.is_jmp = DISAS_JUMP;
+}
+
+//SBF 8bitoffset,TC
+static void gen_sbf_8bitOffset_tc(DisasContext *ctx, int16_t offset)
+{
+    gen_reset_rptc(ctx);
+
+    TCGLabel *label = gen_new_label();
+    TCGv tc = cpu_shadow[0];
+    gen_get_bit(tc, cpu_st0, TC_BIT, TC_MASK);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, tc, 1, label);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 1);
+    gen_set_label(label);
+    gen_goto_tb(ctx, 0, ((uint32_t)ctx->base.pc_next >> 1) + offset);
+
+    ctx->base.is_jmp = DISAS_JUMP;
+}
+
+//SBF 8bitoffset,NTC
+static void gen_sbf_8bitOffset_ntc(DisasContext *ctx, int16_t offset)
+{
+    gen_reset_rptc(ctx);
+
+    TCGLabel *label = gen_new_label();
+    TCGv tc = cpu_shadow[0];
+    gen_get_bit(tc, cpu_st0, TC_BIT, TC_MASK);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, tc, 0, label);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 1);
+    gen_set_label(label);
+    gen_goto_tb(ctx, 0, ((uint32_t)ctx->base.pc_next >> 1) + offset);
+
+    ctx->base.is_jmp = DISAS_JUMP;
+}

@@ -2175,6 +2175,30 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_subr_loc16_ax(ctx, mode, true);
                     break;
                 }
+                case 0b1100://1110 1100 CCCC CCCC SBF 8bitoffset,EQ
+                {
+                    int8_t offset = (insn & 0xff);
+                    gen_sbf_8bitOffset_eq(ctx, offset);
+                    break;
+                }
+                case 0b1101://1110 1101 CCCC CCCC SBF 8bitoffset,NEQ
+                {
+                    int8_t offset = (insn & 0xff);
+                    gen_sbf_8bitOffset_neq(ctx, offset);
+                    break;
+                }
+                case 0b1110://1110 1110 CCCC CCCC SBF 8bitoffset,TC
+                {
+                    int8_t offset = (insn & 0xff);
+                    gen_sbf_8bitOffset_tc(ctx, offset);
+                    break;
+                }
+                case 0b1111://1110 1111 CCCC CCCC SBF 8bitoffset,NTC
+                {
+                    int8_t offset = (insn & 0xff);
+                    gen_sbf_8bitOffset_ntc(ctx, offset);
+                    break;
+                }
             }
             break;
         }
