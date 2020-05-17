@@ -428,3 +428,35 @@ static void gen_tbit_loc16_t(DisasContext *ctx, uint32_t mode)
     tcg_gen_andi_i32(tc, tc, 1);
     gen_set_bit(cpu_st0, TC_BIT, TC_MASK, tc);
 }
+
+//TCLR loc16,#bit
+static void gen_tclr_loc16_bit(DisasContext *ctx, uint32_t mode, uint32_t bit)
+{
+    TCGv tc = cpu_shadow[0];
+    TCGv loc16 = cpu_shadow[1];
+
+    if (is_reg_addressing_mode(mode, LOC16))
+    {
+        gen_ld_loc16(loc16, mode);
+        tcg_gen_shri_i32(tc, loc16, bit);
+        tcg_gen_andi_i32(tc, tc, 1);
+        gen_set_bit(cpu_st0, TC_BIT, TC_MASK, tc);
+
+        tcg_gen_andi_i32(loc16, loc16, ~(1<<bit));
+        gen_st_loc16(mode, loc16);
+        gen_test_ax_N_Z(mode);
+    }
+    else 
+    {
+        TCGv addr = cpu_shadow[2];
+        gen_get_loc_addr(addr, mode, LOC16);
+        gen_ld16u_swap(loc16, addr);
+
+        tcg_gen_shri_i32(tc, loc16, bit);
+        tcg_gen_andi_i32(tc, tc, 1);
+        gen_set_bit(cpu_st0, TC_BIT, TC_MASK, tc);
+
+        tcg_gen_andi_i32(loc16, loc16, ~(1<<bit));
+        gen_st16u_swap(loc16, addr);
+    }
+}
