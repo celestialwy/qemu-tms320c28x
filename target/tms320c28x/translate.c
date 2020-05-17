@@ -651,8 +651,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                 }
             }
             break;
-        case 0b0100:
+        case 0b0100: //0100 BBBB LLLL LLLL TBIT loc16,#bit
+        {
+            uint32_t mode = insn & 0xff;
+            uint32_t bit = (insn >> 8) & 0xf;
+            gen_tbit_loc16_bit(ctx, mode, bit);
             break;
+        }
         case 0b0101:
             switch ((insn & 0x0f00) >> 8) {
                 case 0b0000://0101 0000 CCCC CCCC ORB AL,#8bit

@@ -876,8 +876,14 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 }
             }
             break;
-        case 0b0100:
+        case 0b0100: //0100 BBBB LLLL LLLL TBIT loc16,#bit
+        {
+            uint32_t mode = insn & 0xff;
+            uint32_t bit = (insn >> 8) & 0xf;
+            get_loc_string(str, mode, LOC16);
+            fprintf_func(stream, "0x%04x;     TBIT %s,#%d", insn, str, bit);
             break;
+        }
         case 0b0101:
             switch ((insn & 0x0f00) >> 8) {
                 case 0b0000://0101 0000 CCCC CCCC ORB AL,#8bit

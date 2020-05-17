@@ -402,3 +402,13 @@ static void gen_sat64_acc_p(DisasContext *ctx)
     gen_helper_test_N_Z_64(cpu_env, cpu_acc, cpu_p);
 
 }
+
+//TBIT loc16,#bit
+static void gen_tbit_loc16_bit(DisasContext *ctx, uint32_t mode, uint32_t bit)
+{
+    TCGv tc = cpu_shadow[0];
+    gen_ld_loc16(tc, mode);
+    tcg_gen_shri_i32(tc, tc, bit);
+    tcg_gen_andi_i32(tc, tc, 1);
+    gen_set_bit(cpu_st0, TC_BIT, TC_MASK, tc);
+}
