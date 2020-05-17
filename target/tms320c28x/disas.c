@@ -2910,6 +2910,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     SAT ACC", insn);
                                     break;
                                 }
+                                case 0b1000: //1111 1111 0101 1000 TEST ACC
+                                {
+                                    fprintf_func(stream, "0x%04x;     TEST ACC", insn);
+                                    break;
+                                }
                                 case 0b1001: //1111 1111 0101 1001 CMPL ACC,P<<PM
                                 {
                                     fprintf_func(stream, "0x%04x;     CMPL ACC,P<<PM", insn);

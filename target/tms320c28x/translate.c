@@ -2387,6 +2387,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_sat_acc(ctx);
                                     break;
                                 }
+                                case 0b1000: //1111 1111 0101 1000 TEST ACC
+                                {
+                                    gen_test_acc(ctx);
+                                    break;
+                                }
                                 case 0b1001: //1111 1111 0101 1001 CMPL ACC,P<<PM
                                 {
                                     gen_cmpl_acc_p_pm(ctx);

@@ -460,3 +460,9 @@ static void gen_tclr_loc16_bit(DisasContext *ctx, uint32_t mode, uint32_t bit)
         gen_st16u_swap(loc16, addr);
     }
 }
+
+//TEST ACC
+static void gen_test_acc(DisasContext *ctx)
+{
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+}
