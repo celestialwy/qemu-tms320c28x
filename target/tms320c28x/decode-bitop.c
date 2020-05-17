@@ -1118,6 +1118,38 @@ static void gen_setc_xf(DisasContext *ctx)
     gen_seti_bit(cpu_st1, XF_BIT, XF_MASK, 1);
 }
 
+// SFR ACC,#1...16
+static void gen_sfr_acc_shift(DisasContext *ctx, uint32_t shift)
+{
+    TCGv sxm = cpu_shadow[0];
+    TCGv last_bit_out = cpu_shadow[1];
+    TCGLabel *sxm_1 = gen_new_label();
+    TCGLabel *done = gen_new_label();
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+    
+    
+    gen_get_bit(sxm, cpu_st0, SXM_BIT, SXM_MASK);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, sxm , 1, sxm_1);
+    //sxm != 1
+    tcg_gen_shri_i32(cpu_acc, cpu_acc, shift);
+    tcg_gen_br(done);
+    gen_set_label(sxm_1);
+    //sxm = 1
+    tcg_gen_sari_i32(cpu_acc, cpu_acc, shift);
+    gen_set_label(done);
+    tcg_gen_shri_i32(last_bit_out, cpu_acc, shift - 1);
+    tcg_gen_andi_i32(last_bit_out, last_bit_out, 1);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, last_bit_out);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+}
+
 // SPM shift
 static void gen_spm_shift(DisasContext *ctx, uint32_t shift)
 {

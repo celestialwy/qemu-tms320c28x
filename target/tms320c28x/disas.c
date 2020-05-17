@@ -2813,7 +2813,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         case 0b0011: //1111 1111 0011 SHFT LSL ACC,#1...16
                         {
                             uint32_t shift = (insn & 0xf) + 1;
-                            fprintf_func(stream, "0x%08x; LSL ACC,#%d", insn32, shift);
+                            fprintf_func(stream, "0x%08x; LSL ACC,#%d", insn, shift);
+                            break;
+                        }
+                        case 0b0100: //1111 1111 0100 SHFT SFR ACC,#1...16
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            fprintf_func(stream, "0x%08x; SFR ACC,#%d", insn, shift);
                             break;
                         }
                         case 0b0101: //1111 1111 0101 ....

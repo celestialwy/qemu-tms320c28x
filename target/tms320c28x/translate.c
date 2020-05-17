@@ -2298,6 +2298,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             gen_lsl_acc_imm(ctx, shift);
                             break;
                         }
+                        case 0b0100: //1111 1111 0100 SHFT SFR ACC,#1...16
+                        {
+                            uint32_t shift = (insn & 0xf) + 1;
+                            gen_sfr_acc_shift(ctx, shift);
+                            break;
+                        }
                         case 0b0101: //1111 1111 0101 ....
                             switch (insn & 0xf) {
                                 case 0b0000: //1111 1111 0101 0000 LSL ACC,T
