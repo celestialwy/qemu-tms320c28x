@@ -790,6 +790,17 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b1101: //0101 0110 0000 1101 0000 BBBB LLLL LLLL TSET loc16,#bit
+                                {
+                                    if (((insn2 >> 12) & 0xf) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        uint32_t bit = (insn2 >> 8) & 0xf;
+                                        gen_tset_loc16_bit(ctx, mode, bit);
+                                    }
+                                    break;
+                                }
                             }
                             break;
                         }

@@ -1039,6 +1039,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                     break;
                                 }
+                                case 0b1101: //0101 0110 0000 1101 0000 BBBB LLLL LLLL TSET loc16,#bit
+                                {
+                                    if (((insn32 >> 12) & 0xf) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn32 & 0xff;
+                                        uint32_t bit = (insn32 >> 8) & 0xf;
+                                        get_loc_string(str, mode, LOC16);
+                                        fprintf_func(stream, "0x%08x; TSET %s,#%d", insn32, str, bit);
+                                    }
+                                    break;
+                                }
                             }
                             break;
                         }
