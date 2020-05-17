@@ -2311,6 +2311,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_lsl_acc_t(ctx);
                                     break;
                                 }
+                                case 0b0001: //1111 1111 0101 0001 SFR ACC,T
+                                {
+                                    gen_sfr_acc_t(ctx);
+                                    break;
+                                }
                                 case 0b0010: //1111 1111 0101 0010 ROR ACC
                                 {
                                     gen_ror_acc(ctx);

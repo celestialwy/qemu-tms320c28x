@@ -1131,6 +1131,9 @@ static void gen_sfr_acc_shift(DisasContext *ctx, uint32_t shift)
     
     
     gen_get_bit(sxm, cpu_st0, SXM_BIT, SXM_MASK);
+    tcg_gen_shri_i32(last_bit_out, cpu_acc, shift - 1);
+    tcg_gen_andi_i32(last_bit_out, last_bit_out, 1);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, last_bit_out);
     tcg_gen_brcondi_i32(TCG_COND_EQ, sxm , 1, sxm_1);
     //sxm != 1
     tcg_gen_shri_i32(cpu_acc, cpu_acc, shift);
@@ -1139,15 +1142,53 @@ static void gen_sfr_acc_shift(DisasContext *ctx, uint32_t shift)
     //sxm = 1
     tcg_gen_sari_i32(cpu_acc, cpu_acc, shift);
     gen_set_label(done);
-    tcg_gen_shri_i32(last_bit_out, cpu_acc, shift - 1);
-    tcg_gen_andi_i32(last_bit_out, last_bit_out, 1);
-    gen_set_bit(cpu_st0, C_BIT, C_MASK, last_bit_out);
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 
     tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
     tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
     tcg_gen_br(begin);
     gen_set_label(end);
+}
+
+// SFR ACC,T
+static void gen_sfr_acc_t(DisasContext *ctx)
+{
+    TCGv sxm = cpu_shadow[0];
+    TCGv last_bit_out = cpu_shadow[1];
+    TCGv shift = cpu_shadow[2];
+    TCGLabel *sxm_1 = gen_new_label();
+    TCGLabel *shift_not_zero = gen_new_label();
+    TCGLabel *done = gen_new_label();
+    // TCGLabel *begin = gen_new_label();
+    // TCGLabel *end = gen_new_label();
+    // gen_set_label(begin);
+    
+    gen_get_bit(sxm, cpu_st0, SXM_BIT, SXM_MASK);
+    gen_ld_reg_half(shift, cpu_xt, true);
+    tcg_gen_andi_i32(shift, shift, 0xf);
+    tcg_gen_brcondi_i32(TCG_COND_NE, shift, 0, shift_not_zero);
+    gen_seti_bit(cpu_st0, C_BIT, C_MASK, 0);
+    tcg_gen_br(done);
+    gen_set_label(shift_not_zero);
+    tcg_gen_subi_i32(shift, shift, 1);
+    tcg_gen_shr_i32(last_bit_out, cpu_acc, shift);
+    tcg_gen_andi_i32(last_bit_out, last_bit_out, 1);
+    gen_set_bit(cpu_st0, C_BIT, C_MASK, last_bit_out);
+    tcg_gen_addi_i32(shift, shift, 1);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, sxm , 1, sxm_1);
+    //sxm != 1
+    tcg_gen_shr_i32(cpu_acc, cpu_acc, shift);
+    tcg_gen_br(done);
+    gen_set_label(sxm_1);
+    //sxm = 1
+    tcg_gen_sar_i32(cpu_acc, cpu_acc, shift);
+    gen_set_label(done);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    // tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    // tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    // tcg_gen_br(begin);
+    // gen_set_label(end);
 }
 
 // SPM shift

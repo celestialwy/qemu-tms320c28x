@@ -2829,6 +2829,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     LSL ACC,T", insn);
                                     break;
                                 }
+                                case 0b0001: //1111 1111 0101 0001 SFR ACC,T
+                                {
+                                    fprintf_func(stream, "0x%04x;     SFR ACC,T", insn);
+                                    break;
+                                }
                                 case 0b0010: //1111 1111 0101 0011 ROR ACC
                                 {
                                     fprintf_func(stream, "0x%04x;     ROR ACC", insn);
