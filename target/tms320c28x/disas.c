@@ -1031,6 +1031,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     ASRL ACC:P,T", insn);
                                     break;
                                 }
+                                case 0b0101: //0101 0110 0001 0101 0000 0000 LLLL LLLL SQRA loc16
+                                {
+                                    if (((insn32 >> 8) & 0xff) == 0) {
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC32);
+                                        fprintf_func(stream, "0x%08x; SQRA %s", insn32,str);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b0110: //0101 0110 0001 0110 CLRC AMODE
                                 {
                                     fprintf_func(stream, "0x%04x;     CLRC AMODE", insn);
@@ -1041,7 +1051,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     if (((insn32 >> 8) & 0xff) == 0) {
                                         uint32_t mode = insn32 & 0xff;
                                         get_loc_string(str, mode, LOC32);
-                                        fprintf_func(stream, "0x%08x; SUBCUL ACC,%s", insn,str);
+                                        fprintf_func(stream, "0x%08x; SUBCUL ACC,%s", insn32,str);
                                         length = 4;
                                     }
                                     break;

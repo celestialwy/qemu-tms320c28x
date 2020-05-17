@@ -784,6 +784,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_asrl_acc_t(ctx);
                                     break;
                                 }
+                                case 0b0101: //0101 0110 0001 0101 0000 0000 LLLL LLLL SQRA loc16
+                                {
+                                    if ((insn2 >> 8) == 0) {
+                                        uint32_t mode = insn2 & 0xff;
+                                        length = 4;
+                                        gen_sqra_loc16(ctx, mode);
+                                    }
+                                    break;
+                                }
                                 case 0b0110: //0101 0110 0001 0110 CLRC AMODE
                                 {
                                     gen_clrc_amode(ctx);
