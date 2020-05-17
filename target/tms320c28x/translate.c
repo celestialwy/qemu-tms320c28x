@@ -784,6 +784,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_asrl_acc_t(ctx);
                                     break;
                                 }
+                                case 0b0001: //0101 0110 0001 0001 xxxx xxxx LLLL LLLL SQRS loc16
+                                {
+                                    uint32_t mode = insn2 & 0xff;
+                                    length = 4;
+                                    gen_sqrs_loc16(ctx, mode);
+                                    break;
+                                }
                                 case 0b0101: //0101 0110 0001 0101 0000 0000 LLLL LLLL SQRA loc16
                                 {
                                     if ((insn2 >> 8) == 0) {

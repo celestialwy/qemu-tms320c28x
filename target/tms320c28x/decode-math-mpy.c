@@ -807,3 +807,32 @@ static void gen_sqra_loc16(DisasContext *ctx, uint32_t mode)
     tcg_gen_br(begin);
     gen_set_label(end);
 }
+
+//SQRS loc16
+static void gen_sqrs_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv tmp = cpu_shadow[0];
+    TCGv tmp2 = cpu_shadow[1];
+    TCGv loc16 = cpu_shadow[2];
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    gen_ld_loc16(loc16, mode);
+
+    tcg_gen_mov_i32(tmp, cpu_acc);
+    gen_shift_by_pm(tmp2, cpu_p);
+    tcg_gen_sub_i32(cpu_acc, tmp, tmp2);
+    gen_helper_test_sub_C_V_32(cpu_env, tmp, tmp2, cpu_acc);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+    gen_helper_test_sub_OVC_OVM_32(cpu_env, tmp, tmp2, cpu_acc);
+
+    gen_st_reg_high_half(cpu_xt, loc16);
+    tcg_gen_mul_i32(cpu_p, loc16, loc16);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+}

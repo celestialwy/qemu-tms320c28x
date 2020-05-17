@@ -1031,11 +1031,19 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     ASRL ACC:P,T", insn);
                                     break;
                                 }
+                                case 0b0001: //0101 0110 0001 0001 xxxx xxxx LLLL LLLL SQRS loc16
+                                {
+                                    uint32_t mode = insn32 & 0xff;
+                                    length = 4;
+                                    get_loc_string(str, mode, LOC16);
+                                    fprintf_func(stream, "0x%08x; SQRS %s", insn32,str);
+                                    break;
+                                }
                                 case 0b0101: //0101 0110 0001 0101 0000 0000 LLLL LLLL SQRA loc16
                                 {
                                     if (((insn32 >> 8) & 0xff) == 0) {
                                         uint32_t mode = insn32 & 0xff;
-                                        get_loc_string(str, mode, LOC32);
+                                        get_loc_string(str, mode, LOC16);
                                         fprintf_func(stream, "0x%08x; SQRA %s", insn32,str);
                                         length = 4;
                                     }
