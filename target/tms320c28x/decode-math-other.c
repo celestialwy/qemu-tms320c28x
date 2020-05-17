@@ -412,3 +412,19 @@ static void gen_tbit_loc16_bit(DisasContext *ctx, uint32_t mode, uint32_t bit)
     tcg_gen_andi_i32(tc, tc, 1);
     gen_set_bit(cpu_st0, TC_BIT, TC_MASK, tc);
 }
+
+//TBIT loc16,T
+static void gen_tbit_loc16_t(DisasContext *ctx, uint32_t mode)
+{
+    TCGv tc = cpu_shadow[0];
+    TCGv bit = cpu_shadow[1];
+
+    gen_ld_reg_half(bit, cpu_xt, true);
+    tcg_gen_andi_i32(bit, bit, 0xf);
+    tcg_gen_subfi_i32(bit, 15, bit);
+
+    gen_ld_loc16(tc, mode);
+    tcg_gen_shr_i32(tc, tc, bit);
+    tcg_gen_andi_i32(tc, tc, 1);
+    gen_set_bit(cpu_st0, TC_BIT, TC_MASK, tc);
+}

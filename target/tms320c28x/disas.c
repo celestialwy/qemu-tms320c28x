@@ -1148,6 +1148,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     NORM ACC,*", insn);
                                     break;
                                 }
+                                case 0b0101: //0101 0110 0010 0101 0000 0000 LLLL LLLL TBIT loc16,T
+                                {
+                                    if (((insn32 >> 8) & 0xff) == 0) {
+                                        length = 4;
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC16);
+                                        fprintf_func(stream, "0x%08x; TBIT %s,T", insn32, str);
+                                    }
+                                    break;
+                                }
                                 case 0b0110: //0101 0110 0010 0110 SETC XF
                                 {
                                     fprintf_func(stream, "0x%04x;     SETC XF", insn);

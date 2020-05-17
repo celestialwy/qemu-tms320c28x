@@ -896,6 +896,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_norm_acc_type(ctx, 184);
                                     break;
                                 }
+                                case 0b0101: //0101 0110 0010 0101 0000 0000 LLLL LLLL TBIT loc16,T
+                                {
+                                    if ((insn2 >> 8) == 0) {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_tbit_loc16_t(ctx, mode);
+                                    }
+                                    break;
+                                }
                                 case 0b0110: //0101 0110 0010 0110 SETC XF
                                 {
                                     gen_setc_xf(ctx);
