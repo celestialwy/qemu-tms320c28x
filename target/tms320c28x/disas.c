@@ -303,7 +303,8 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 }
                             }
                             else {// 0000 0000 001C CCCC, TRAP #VectorNumber
-
+                                uint32_t n = insn & 0b11111;
+                                fprintf_func(stream, "0x%04x;     TRAP %s", insn, INTERRUPT_NAME[n]);
                             }
                             break;
                         case 0b01: /*0000 0000 01.. .... LB 22bit */

@@ -1,5 +1,7 @@
 
 static void gen_intr(DisasContext *ctx, uint32_t int_n) {
+    gen_reset_rptc(ctx);
+
     if (int_n > 0 && int_n < 15) { // n == 1... 14
         gen_exception(ctx, int_n + 100);
         // TCGv tmp = tcg_const_i32(int_n);
@@ -65,4 +67,18 @@ static void gen_iret(DisasContext *ctx)
     tcg_temp_free(tmp);
     tcg_temp_free(tmp2);
     ctx->base.is_jmp = DISAS_JUMP;
+}
+
+static void gen_trap(DisasContext *ctx, uint32_t int_n)
+{
+    gen_reset_rptc(ctx);
+
+    if (int_n <= 31) { //
+        gen_exception(ctx, int_n);
+        ctx->base.is_jmp = DISAS_JUMP;
+    }
+    else
+    {
+        //exception
+    }
 }

@@ -180,7 +180,8 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 }
                             }
                             else {// 0000 0000 001C CCCC, TRAP #VectorNumber
-
+                                uint32_t n = insn & 0b11111;
+                                gen_trap(ctx, n);
                             }
                             break;
                         case 0b01: /*0000 0000 01.. .... LB 22bit */
