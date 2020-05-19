@@ -56,3 +56,10 @@ static void gen_out_pa_loc16(DisasContext *ctx, uint32_t mode, uint32_t pa)
     //todo
     //p352
 }
+
+// UOUT *(PA),loc16
+static void gen_uout_pa_loc16(DisasContext *ctx, uint32_t mode, uint32_t pa)
+{
+    //todo
+    //p443
+}

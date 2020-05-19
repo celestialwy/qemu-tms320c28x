@@ -2048,6 +2048,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
             break;
         case 0b1011:
             switch ((insn & 0xf00) >> 8) {
+                case 0b0000: //1011 0000 LLLL LLLL CCCC CCCC CCCC CCCC UOUT *(PA),loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    uint32_t addr  = insn2 & 0xffff;
+                    gen_uout_pa_loc16(ctx, mode, addr);
+                    break;
+                }
                 case 0b0001: //1011 0001 LLLL LLLL MOV loc16,ACC<<1
                 {
                     uint32_t mode = insn & 0xff;
