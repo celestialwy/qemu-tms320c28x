@@ -1485,6 +1485,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             length = 4;
                             break;
                         }
+                        case 0b1101: //0101 0110 1101 COND CCCC CCCC CCCC CCCC XB pma,COND
+                        {
+                            int16_t addr = insn2 & 0xffff;
+                            uint32_t cond = insn & 0xf;
+                            gen_xb_pma_cond(ctx, addr, cond);
+                            length = 4;
+                            break;
+                        }
                     }
                     break;
                 case 0b0111://0101 0111 LLLL LLLL MOVH loc16,P

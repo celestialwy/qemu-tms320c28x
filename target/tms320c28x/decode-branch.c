@@ -424,3 +424,24 @@ static void gen_xb_pma_arpn(DisasContext *ctx, uint32_t pma, uint32_t n)
 
     ctx->base.is_jmp = DISAS_JUMP;
 }
+
+// XB pma,COND
+static void gen_xb_pma_cond(DisasContext *ctx, uint32_t pma, uint32_t cond)
+{
+    gen_reset_rptc(ctx);
+
+    TCGv cond_tcg = tcg_const_i32(cond);
+    TCGv test = tcg_temp_new();
+
+    TCGLabel *label = gen_new_label();
+
+    ctx->base.is_jmp = DISAS_JUMP;
+    gen_helper_test_cond(test, cpu_env, cond_tcg);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, test, 0, label);
+    gen_goto_tb(ctx, 0, 0x3f0000 | pma);
+    gen_set_label(label);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+
+    tcg_temp_free(cond_tcg);
+    tcg_temp_free(test);
+}
