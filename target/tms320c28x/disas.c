@@ -865,6 +865,21 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             }
                             break;
                         }
+                        case 0b0111: //0011 1110 0111 ....
+                        {
+                            if (((insn >> 3) & 1) == 0) //0011 1110 0111 0nnn CCCC CCCC CCCC CCCC XB pma,*,ARPn
+                            {
+                                uint32_t n = insn & 0b111;
+                                uint32_t addr = insn32 & 0xffff;
+                                fprintf_func(stream, "0x%08x; LCR 0x%x,*,ARP%d", insn, addr, n);
+                                length = 4;
+                            }
+                            else
+                            {
+
+                            }
+                            break;
+                        }
                     }
                     break;
                 }
@@ -1068,6 +1083,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     length = 4;
                                     get_loc_string(str, mode, LOC16);
                                     fprintf_func(stream, "0x%08x; SQRS %s", insn32,str);
+                                    break;
+                                }
+                                case 0b0100: //0101 0110 0001 0100 XB *AL
+                                {
+                                    fprintf_func(stream, "0x%04x;     XB *AL", insn);
                                     break;
                                 }
                                 case 0b0101: //0101 0110 0001 0101 0000 0000 LLLL LLLL SQRA loc16
@@ -2518,6 +2538,7 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     uint32_t addr  = insn32 & 0xffff;
                     get_loc_string(str,mode,LOC16);
                     fprintf_func(stream, "0x%08x; UOUT *(0x%x),%s", insn32, addr, str);
+                    length = 4;
                     break;
                 }
                 case 0b0001: //1011 0001 LLLL LLLL MOV loc16,ACC<<1

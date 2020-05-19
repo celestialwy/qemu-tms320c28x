@@ -641,6 +641,21 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             }
                             break;
                         }
+                        case 0b0111: //0011 1110 0111 ....
+                        {
+                            if (((insn >> 3) & 1) == 0) //0011 1110 0111 0nnn CCCC CCCC CCCC CCCC XB pma,*,ARPn
+                            {
+                                uint32_t n = insn & 0b111;
+                                uint32_t addr = insn2 & 0xffff;
+                                gen_xb_pma_arpn(ctx, addr, n);
+                                length = 4;
+                            }
+                            else
+                            {
+
+                            }
+                            break;
+                        }
                     }
                     break;
                 }
@@ -817,6 +832,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     uint32_t mode = insn2 & 0xff;
                                     length = 4;
                                     gen_sqrs_loc16(ctx, mode);
+                                    break;
+                                }
+                                case 0b0100: //0101 0110 0001 0100 XB *AL
+                                {
+                                    gen_xb_al(ctx);
                                     break;
                                 }
                                 case 0b0101: //0101 0110 0001 0101 0000 0000 LLLL LLLL SQRA loc16
@@ -2053,6 +2073,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     uint32_t mode = insn & 0xff;
                     uint32_t addr  = insn2 & 0xffff;
                     gen_uout_pa_loc16(ctx, mode, addr);
+                    length = 4;
                     break;
                 }
                 case 0b0001: //1011 0001 LLLL LLLL MOV loc16,ACC<<1

@@ -400,3 +400,27 @@ static void gen_sbf_8bitOffset_ntc(DisasContext *ctx, int16_t offset)
 
     ctx->base.is_jmp = DISAS_JUMP;
 }
+
+//XB *AL
+static void gen_xb_al(DisasContext *ctx)
+{
+    gen_reset_rptc(ctx);
+
+    TCGv al = cpu_shadow[0];
+    gen_ld_reg_half(al, cpu_acc, false);
+    tcg_gen_ori_i32(cpu_pc, al, 0x3f0000);
+
+    ctx->base.is_jmp = DISAS_JUMP;
+}
+
+//XB pma,*,ARPn
+static void gen_xb_pma_arpn(DisasContext *ctx, uint32_t pma, uint32_t n)
+{
+    gen_reset_rptc(ctx);
+
+
+    tcg_gen_movi_i32(cpu_pc, 0x3f0000 | pma);
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+
+    ctx->base.is_jmp = DISAS_JUMP;
+}
