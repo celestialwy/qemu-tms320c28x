@@ -617,14 +617,47 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             length = 4;
                             break;
                         }
+                        case 0b0011: //0011 1110 0011 ....
+                        {
+                            uint32_t addr = insn2 & 0xffff;
+                            uint32_t n = insn & 0b111;
+                            if (((insn >> 3) & 1) == 0) //0011 1110 0011 0nnn CCCC CCCC CCCC CCCC XBANZ pma,*,ARPn
+                            {
+                                gen_xbanz_pma_star_arpn(ctx, addr, n);
+                            }
+                            else // XBANZ pma,*++,ARPn
+                            {
+                                gen_xbanz_pma_star_plus_arpn(ctx, addr, n);
+                            }
+                            length = 4;
+                            break;
+                        }
+                        case 0b0100: //0011 1110 0100 ....
+                        {
+                            uint32_t addr = insn2 & 0xffff;
+                            uint32_t n = insn & 0b111;
+                            if (((insn >> 3) & 1) == 0) //0011 1110 0100 0nnn CCCC CCCC CCCC CCCC XBANZ pma,*--,ARPn
+                            {
+                                gen_xbanz_pma_star_minus_arpn(ctx, addr, n);
+                            }
+                            else // XBANZ pma,*0++,ARPn
+                            {
+                                gen_xbanz_pma_star0_plus_arpn(ctx, addr, n);
+                            }
+                            length = 4;
+                            break;
+                        }
                         case 0b0101://0011 1110 0101 ....
                         {
                             if (((insn >> 3) & 1) == 1) {//0011 1110 0101 1nnn MOV XARn,PC
                                 uint32_t n = insn & 0b111;
                                 gen_mov_xarn_pc(ctx, n);
                             }
-                            else {
-
+                            else {//0011 1110 0101 0nnn CCCC CCCC CCCC CCCC XBANZ pma,*0--,ARPn
+                                length = 4;
+                                uint32_t addr = insn2 & 0xffff;
+                                uint32_t n = insn & 0b111;
+                                gen_xbanz_pma_star0_minus_arpn(ctx, addr, n);
                             }
                             break;
                         }
@@ -805,6 +838,27 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b1010: //0101 0110 0000 1010 CCCC CCCC CCCC CCCC XBANZ pma,*++
+                                {
+                                    length = 4;
+                                    uint32_t addr = insn2 & 0xffff;
+                                    gen_xbanz_pma_star_plus(ctx, addr);
+                                    break;
+                                }
+                                case 0b1011: //0101 0110 0000 1010 CCCC CCCC CCCC CCCC XBANZ pma,*--
+                                {
+                                    length = 4;
+                                    uint32_t addr = insn2 & 0xffff;
+                                    gen_xbanz_pma_star_minus(ctx, addr);
+                                    break;
+                                }
+                                case 0b1100: //0101 0110 0000 1100 CCCC CCCC CCCC CCCC XBANZ pma,*
+                                {
+                                    length = 4;
+                                    uint32_t addr = insn2 & 0xffff;
+                                    gen_xbanz_pma_star(ctx, addr);
+                                    break;
+                                }
                                 case 0b1101: //0101 0110 0000 1101 0000 BBBB LLLL LLLL TSET loc16,#bit
                                 {
                                     if (((insn2 >> 12) & 0xf) == 0)
@@ -814,6 +868,20 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         uint32_t bit = (insn2 >> 8) & 0xf;
                                         gen_tset_loc16_bit(ctx, mode, bit);
                                     }
+                                    break;
+                                }
+                                case 0b1110: //0101 0110 0000 1110 CCCC CCCC CCCC CCCC XBANZ pma,*0++
+                                {
+                                    length = 4;
+                                    uint32_t addr = insn2 & 0xffff;
+                                    gen_xbanz_pma_star0_plus(ctx, addr);
+                                    break;
+                                }
+                                case 0b1111: //0101 0110 0000 1111 CCCC CCCC CCCC CCCC XBANZ pma,*0--
+                                {
+                                    length = 4;
+                                    uint32_t addr = insn2 & 0xffff;
+                                    gen_xbanz_pma_star0_minus(ctx, addr);
                                     break;
                                 }
                             }

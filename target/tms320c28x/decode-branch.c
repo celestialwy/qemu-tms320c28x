@@ -445,3 +445,232 @@ static void gen_xb_pma_cond(DisasContext *ctx, uint32_t pma, uint32_t cond)
     tcg_temp_free(cond_tcg);
     tcg_temp_free(test);
 }
+
+// XBANZ pma,*
+static void gen_xbanz_pma_star(DisasContext *ctx, uint32_t pma)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv ar_arp = cpu_shadow[0];
+    TCGLabel *label = gen_new_label();
+
+    gen_helper_ld_xar_arp(ar_arp, cpu_env);
+    tcg_gen_andi_i32(ar_arp, ar_arp, 0xffff);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, ar_arp, 0, label);
+    gen_goto_tb(ctx, 0, 0x3f0000 | pma);
+    gen_set_label(label);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+
+}
+
+// XBANZ pma,*++
+static void gen_xbanz_pma_star_plus(DisasContext *ctx, uint32_t pma)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv ar_arp = cpu_shadow[0];
+    TCGLabel *label = gen_new_label();
+
+    gen_helper_ld_xar_arp(ar_arp, cpu_env);
+    tcg_gen_andi_i32(ar_arp, ar_arp, 0xffff);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, ar_arp, 0, label);
+    tcg_gen_addi_i32(ar_arp, ar_arp, 1);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_goto_tb(ctx, 0, 0x3f0000 | pma);
+    gen_set_label(label);
+    tcg_gen_addi_i32(ar_arp, ar_arp, 1);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+
+}
+
+// XBANZ pma,*--
+static void gen_xbanz_pma_star_minus(DisasContext *ctx, uint32_t pma)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv ar_arp = cpu_shadow[0];
+    TCGLabel *label = gen_new_label();
+
+    gen_helper_ld_xar_arp(ar_arp, cpu_env);
+    tcg_gen_andi_i32(ar_arp, ar_arp, 0xffff);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, ar_arp, 0, label);
+    tcg_gen_subi_i32(ar_arp, ar_arp, 1);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_goto_tb(ctx, 0, 0x3f0000 | pma);
+    gen_set_label(label);
+    tcg_gen_subi_i32(ar_arp, ar_arp, 1);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+
+}
+
+// XBANZ pma,*0++
+static void gen_xbanz_pma_star0_plus(DisasContext *ctx, uint32_t pma)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv ar_arp = cpu_shadow[0];
+    TCGv ar0 = cpu_shadow[1];
+    TCGLabel *label = gen_new_label();
+
+    gen_ld_reg_half(ar0, cpu_xar[0], false);
+    gen_helper_ld_xar_arp(ar_arp, cpu_env);
+    tcg_gen_andi_i32(ar_arp, ar_arp, 0xffff);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, ar_arp, 0, label);
+    tcg_gen_add_i32(ar_arp, ar_arp, ar0);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_goto_tb(ctx, 0, 0x3f0000 | pma);
+    gen_set_label(label);
+    tcg_gen_add_i32(ar_arp, ar_arp, ar0);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+
+}
+
+// XBANZ pma,*0--
+static void gen_xbanz_pma_star0_minus(DisasContext *ctx, uint32_t pma)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv ar_arp = cpu_shadow[0];
+    TCGv ar0 = cpu_shadow[1];
+    TCGLabel *label = gen_new_label();
+
+    gen_ld_reg_half(ar0, cpu_xar[0], false);
+    gen_helper_ld_xar_arp(ar_arp, cpu_env);
+    tcg_gen_andi_i32(ar_arp, ar_arp, 0xffff);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, ar_arp, 0, label);
+    tcg_gen_sub_i32(ar_arp, ar_arp, ar0);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_goto_tb(ctx, 0, 0x3f0000 | pma);
+    gen_set_label(label);
+    tcg_gen_sub_i32(ar_arp, ar_arp, ar0);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+
+}
+
+//XBANZ pma,*,ARPn
+static void gen_xbanz_pma_star_arpn(DisasContext *ctx, uint32_t pma, uint32_t n)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv ar_arp = cpu_shadow[0];
+    TCGLabel *label = gen_new_label();
+
+    gen_helper_ld_xar_arp(ar_arp, cpu_env);
+    tcg_gen_andi_i32(ar_arp, ar_arp, 0xffff);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, ar_arp, 0, label);
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+    gen_goto_tb(ctx, 0, 0x3f0000 | pma);
+    gen_set_label(label);
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+}
+
+// XBANZ pma,*++,ARPn
+static void gen_xbanz_pma_star_plus_arpn(DisasContext *ctx, uint32_t pma, uint32_t n)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv ar_arp = cpu_shadow[0];
+    TCGLabel *label = gen_new_label();
+
+    gen_helper_ld_xar_arp(ar_arp, cpu_env);
+    tcg_gen_andi_i32(ar_arp, ar_arp, 0xffff);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, ar_arp, 0, label);
+    tcg_gen_addi_i32(ar_arp, ar_arp, 1);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+    gen_goto_tb(ctx, 0, 0x3f0000 | pma);
+    gen_set_label(label);
+    tcg_gen_addi_i32(ar_arp, ar_arp, 1);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+
+}
+
+// XBANZ pma,*--,ARPn
+static void gen_xbanz_pma_star_minus_arpn(DisasContext *ctx, uint32_t pma, uint32_t n)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv ar_arp = cpu_shadow[0];
+    TCGLabel *label = gen_new_label();
+
+    gen_helper_ld_xar_arp(ar_arp, cpu_env);
+    tcg_gen_andi_i32(ar_arp, ar_arp, 0xffff);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, ar_arp, 0, label);
+    tcg_gen_subi_i32(ar_arp, ar_arp, 1);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+    gen_goto_tb(ctx, 0, 0x3f0000 | pma);
+    gen_set_label(label);
+    tcg_gen_subi_i32(ar_arp, ar_arp, 1);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+
+}
+
+// XBANZ pma,*0++,ARPn
+static void gen_xbanz_pma_star0_plus_arpn(DisasContext *ctx, uint32_t pma, uint32_t n)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv ar_arp = cpu_shadow[0];
+    TCGv ar0 = cpu_shadow[1];
+    TCGLabel *label = gen_new_label();
+
+    gen_ld_reg_half(ar0, cpu_xar[0], false);
+    gen_helper_ld_xar_arp(ar_arp, cpu_env);
+    tcg_gen_andi_i32(ar_arp, ar_arp, 0xffff);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, ar_arp, 0, label);
+    tcg_gen_add_i32(ar_arp, ar_arp, ar0);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+    gen_goto_tb(ctx, 0, 0x3f0000 | pma);
+    gen_set_label(label);
+    tcg_gen_add_i32(ar_arp, ar_arp, ar0);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+
+}
+
+// XBANZ pma,*0--,ARPn
+static void gen_xbanz_pma_star0_minus_arpn(DisasContext *ctx, uint32_t pma, uint32_t n)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv ar_arp = cpu_shadow[0];
+    TCGv ar0 = cpu_shadow[1];
+    TCGLabel *label = gen_new_label();
+
+    gen_ld_reg_half(ar0, cpu_xar[0], false);
+    gen_helper_ld_xar_arp(ar_arp, cpu_env);
+    tcg_gen_andi_i32(ar_arp, ar_arp, 0xffff);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, ar_arp, 0, label);
+    tcg_gen_sub_i32(ar_arp, ar_arp, ar0);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+    gen_goto_tb(ctx, 0, 0x3f0000 | pma);
+    gen_set_label(label);
+    tcg_gen_sub_i32(ar_arp, ar_arp, ar0);
+    gen_helper_st_xar_arp(cpu_env, ar_arp);
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 2);
+
+}

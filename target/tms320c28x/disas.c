@@ -841,14 +841,47 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             length = 4;
                             break;
                         }
+                        case 0b0011: //0011 1110 0011 ....
+                        {
+                            uint32_t addr = insn32 & 0xffff;
+                            uint32_t n = insn & 0b111;
+                            if (((insn >> 3) & 1) == 0) //0011 1110 0011 0nnn CCCC CCCC CCCC CCCC XBANZ pma,*,ARPn
+                            {
+                                fprintf_func(stream, "0x%08x; XBANZ 0x%x,*,ARP%d", insn32, addr,n);
+                            }
+                            else // XBANZ pma,*++,ARPn
+                            {
+                                fprintf_func(stream, "0x%08x; XBANZ 0x%x,*++,ARP%d", insn32, addr,n);
+                            }
+                            length = 4;
+                            break;
+                        }
+                        case 0b0100: //0011 1110 0100 ....
+                        {
+                            uint32_t addr = insn32 & 0xffff;
+                            uint32_t n = insn & 0b111;
+                            if (((insn >> 3) & 1) == 0) //0011 1110 0100 0nnn CCCC CCCC CCCC CCCC XBANZ pma,*--,ARPn
+                            {
+                                fprintf_func(stream, "0x%08x; XBANZ 0x%x,*--,ARP%d", insn32, addr,n);
+                            }
+                            else // XBANZ pma,*0++,ARPn
+                            {
+                                fprintf_func(stream, "0x%08x; XBANZ 0x%x,*0++,ARP%d", insn32, addr,n);
+                            }
+                            length = 4;
+                            break;
+                        }
                         case 0b0101://0011 1110 0101 ....
                         {
                             if (((insn >> 3) & 1) == 1) {//0011 1110 0101 1nnn MOV XARn,PC
                                 uint32_t n = insn & 0b111;
                                 fprintf_func(stream, "0x%04x;     MOV XAR%d,PC", insn, n);
                             }
-                            else {
-
+                            else {//0011 1110 0101 0nnn CCCC CCCC CCCC CCCC XBANZ pma,*0--,ARPn
+                                length = 4;
+                                uint32_t addr = insn32 & 0xffff;
+                                uint32_t n = insn & 0b111;
+                                fprintf_func(stream, "0x%08x; XBANZ 0x%x,*0--,ARP%d", insn32, addr,n);
                             }
                             break;
                         }
@@ -1054,6 +1087,27 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                     break;
                                 }
+                                case 0b1010: //0101 0110 0000 1010 CCCC CCCC CCCC CCCC XBANZ pma,*++
+                                {
+                                    length = 4;
+                                    uint32_t addr = insn32 & 0xffff;
+                                    fprintf_func(stream, "0x%08x; XBANZ 0x%x,*++", insn32, addr);
+                                    break;
+                                }
+                                case 0b1011: //0101 0110 0000 1010 CCCC CCCC CCCC CCCC XBANZ pma,*--
+                                {
+                                    length = 4;
+                                    uint32_t addr = insn32 & 0xffff;
+                                    fprintf_func(stream, "0x%08x; XBANZ 0x%x,*--", insn32, addr);
+                                    break;
+                                }
+                                case 0b1100: //0101 0110 0000 1100 CCCC CCCC CCCC CCCC XBANZ pma,*
+                                {
+                                    length = 4;
+                                    uint32_t addr = insn32 & 0xffff;
+                                    fprintf_func(stream, "0x%08x; XBANZ 0x%x,*", insn32, addr);
+                                    break;
+                                }
                                 case 0b1101: //0101 0110 0000 1101 0000 BBBB LLLL LLLL TSET loc16,#bit
                                 {
                                     if (((insn32 >> 12) & 0xf) == 0)
@@ -1064,6 +1118,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         get_loc_string(str, mode, LOC16);
                                         fprintf_func(stream, "0x%08x; TSET %s,#%d", insn32, str, bit);
                                     }
+                                    break;
+                                }
+                                case 0b1110: //0101 0110 0000 1110 CCCC CCCC CCCC CCCC XBANZ pma,*0++
+                                {
+                                    length = 4;
+                                    uint32_t addr = insn32 & 0xffff;
+                                    fprintf_func(stream, "0x%08x; XBANZ 0x%x,*0++", insn32, addr);
+                                    break;
+                                }
+                                case 0b1111: //0101 0110 0000 1111 CCCC CCCC CCCC CCCC XBANZ pma,*0--
+                                {
+                                    length = 4;
+                                    uint32_t addr = insn32 & 0xffff;
+                                    fprintf_func(stream, "0x%08x; XBANZ 0x%x,*0--", insn32, addr);
                                     break;
                                 }
                             }
