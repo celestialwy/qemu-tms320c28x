@@ -1108,6 +1108,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_csb_acc(ctx);
                                     break;
                                 }
+                                case 0b0100: //0101 0110 0011 0100 XCALL *AL
+                                {
+                                    gen_xcall_al(ctx);
+                                    break;
+                                }
                                 case 0b0110: //0101 0110 0011 0110 CLRC Objmode
                                 {
                                     gen_clrc_objmode(ctx);
