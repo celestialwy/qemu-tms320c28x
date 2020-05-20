@@ -617,6 +617,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             length = 4;
                             break;
                         }
+                        case 0b0010: //0011 1110 0010 SHFT CCCC CCCC CCCC CCCC XOR ACC,#16bit<<#0...15
+                        {
+                            length = 4;
+                            uint32_t shift = insn & 0xf;
+                            uint32_t imm  = insn2 & 0xffff;
+                            gen_xor_acc_imm_shift(ctx, imm, shift);
+                            break;
+                        }
                         case 0b0011: //0011 1110 0011 ....
                         {
                             uint32_t addr = insn2 & 0xffff;
@@ -1282,6 +1290,13 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         length = 4;
                                         gen_imacl_p_loc32_xar7(ctx, mode1, mode2);
                                     }
+                                    break;
+                                }
+                                case 0b1110: //0101 0110 0100 1110 CCCC CCCC CCCC CCCC XOR ACC,#16bit<<#16
+                                {
+                                    length = 4;
+                                    uint32_t imm = insn2 & 0xffff;
+                                    gen_xor_acc_imm_shift(ctx, imm, 16);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0100 1111 .... QMACL P,loc32,*XAR7/++

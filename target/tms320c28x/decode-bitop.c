@@ -1215,3 +1215,10 @@ static void gen_xor_acc_loc16(DisasContext *ctx, uint32_t mode)
     tcg_gen_br(begin);
     gen_set_label(end);
 }
+
+//XOR ACC,#16bit<<#0...16
+static void gen_xor_acc_imm_shift(DisasContext *ctx, uint32_t imm, uint32_t shift)
+{
+    tcg_gen_xori_i32(cpu_acc, cpu_acc, imm << shift);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+}

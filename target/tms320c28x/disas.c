@@ -841,6 +841,14 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             length = 4;
                             break;
                         }
+                        case 0b0010: //0011 1110 0010 SHFT CCCC CCCC CCCC CCCC XOR ACC,#16bit<<#0...15
+                        {
+                            length = 4;
+                            uint32_t shift = insn & 0xf;
+                            uint32_t imm  = insn32 & 0xffff;
+                            fprintf_func(stream, "0x%08x; XOR ACC,#%d<<#%d", insn32, imm, shift);
+                            break;
+                        }
                         case 0b0011: //0011 1110 0011 ....
                         {
                             uint32_t addr = insn32 & 0xffff;
@@ -1577,6 +1585,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         length = 4;
                                         fprintf_func(stream, "0x%08x; IMACL P,%s,*XAR7++", insn32, str);
                                     }
+                                    break;
+                                }
+                                case 0b1110: //0101 0110 0100 1110 CCCC CCCC CCCC CCCC XOR ACC,#16bit<<#16
+                                {
+                                    length = 4;
+                                    uint32_t imm = insn32 & 0xffff;
+                                    fprintf_func(stream, "0x%08x; XOR ACC,#%d<<#16", insn32, imm);
                                     break;
                                 }
                                 case 0b1111: //0101 0110 0100 1111 .... QMACL P,loc32,*XAR7/++
