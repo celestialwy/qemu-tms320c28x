@@ -1196,3 +1196,22 @@ static void gen_spm_shift(DisasContext *ctx, uint32_t shift)
 {
     gen_seti_bit(cpu_st0, PM_BIT, PM_MASK, shift);
 }
+
+//XOR ACC,loc16
+static void gen_xor_acc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv loc16 = cpu_shadow[0];
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    gen_ld_loc16(loc16, mode);
+    tcg_gen_xor_i32(cpu_acc, cpu_acc, loc16);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+}

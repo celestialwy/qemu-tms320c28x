@@ -2694,6 +2694,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOVB XAR7,#%d", insn, imm);
                     break;
                 }
+                case 0b0111: //1011 0111 LLLL LLLL XOR ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     XOR ACC,%s", insn, str);
+                    break;
+                }
                 case 0b1000:
                 case 0b1001:
                 case 0b1010:

@@ -2216,6 +2216,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movb_xarn_8bit(ctx, imm, 7);
                     break;
                 }
+                case 0b0111: //1011 0111 LLLL LLLL XOR ACC,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_xor_acc_loc16(ctx, mode);
+                    break;
+                }
                 case 0b1000:
                 case 0b1001:
                 case 0b1010:
