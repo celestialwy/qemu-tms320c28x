@@ -1240,3 +1240,29 @@ static void gen_xor_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH)
         gen_st_reg_low_half(cpu_acc, ax);
 }
 
+//XOR loc16,ax
+static void gen_xor_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
+{
+    TCGv loc16 = cpu_shadow[0];
+    TCGv ax = cpu_shadow[1];
+
+    if (is_reg_addressing_mode(mode, LOC16))
+    {
+        gen_ld_loc16(loc16, mode);
+        gen_ld_reg_half(ax, cpu_acc, is_AH);
+        tcg_gen_xor_i32(loc16, ax, loc16);
+        gen_helper_test_N_Z_16(cpu_env, loc16);
+        gen_st_loc16(mode, loc16);
+    }
+    else
+    {
+        TCGv addr = cpu_shadow[2];
+        gen_get_loc_addr(addr, mode, LOC16);
+        gen_ld16u_swap(loc16, addr);
+        gen_ld_reg_half(ax, cpu_acc, is_AH);
+        tcg_gen_xor_i32(loc16, ax, loc16);
+        gen_helper_test_N_Z_16(cpu_env, loc16);
+        gen_st16u_swap(loc16, addr);
+    }
+    
+}
