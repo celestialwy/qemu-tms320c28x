@@ -690,7 +690,28 @@ static void gen_xcall_al(DisasContext *ctx)
     gen_st16u_swap(temp, cpu_sp);
     //sp = sp + 1
     tcg_gen_addi_i32(cpu_sp, cpu_sp, 1);
-    //pc = 3F:AL
+    //pc = 0x3F:AL
     gen_ld_reg_half(al, cpu_acc, false);
     tcg_gen_ori_i32(cpu_pc, al, 0x3f0000);
+}
+
+//XCALL pma,*,ARPn
+static void gen_xcall_pma_arpn(DisasContext *ctx, uint32_t pma, uint32_t n)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv temp = cpu_shadow[0];
+    //temp(21:0) = pc + 1
+    tcg_gen_movi_i32(temp, (((uint32_t)ctx->base.pc_next >> 1) + 1) & 0x3fffff);
+    //[sp]  = temp(15:0)
+    tcg_gen_andi_i32(temp, temp, 0xffff);
+    gen_st16u_swap(temp, cpu_sp);
+    //sp = sp + 1
+    tcg_gen_addi_i32(cpu_sp, cpu_sp, 1);
+    //pc = 0x3F:pma
+    tcg_gen_movi_i32(cpu_pc, 0x3f0000 | pma);
+    //ARP = n
+    gen_seti_bit(cpu_st1, ARP_BIT, ARP_MASK, n);
+
 }

@@ -668,9 +668,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                 uint32_t n = insn & 0b111;
                                 gen_lcr_xarn(ctx, n);
                             }
-                            else
+                            else //0011 1110 0110 1nnn CCCC CCCC CCCC CCCC XCALL pma,*,ARPn
                             {
-
+                                length = 4;
+                                uint32_t addr = insn2 & 0xffff;
+                                uint32_t n = insn & 0b111;
+                                gen_xcall_pma_arpn(ctx, addr, n);
                             }
                             break;
                         }

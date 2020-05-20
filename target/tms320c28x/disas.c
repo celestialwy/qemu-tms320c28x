@@ -892,9 +892,12 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                 uint32_t n = insn & 0b111;
                                 fprintf_func(stream, "0x%04x;     LCR *XAR%d", insn, n);
                             }
-                            else
+                            else //0011 1110 0110 1nnn CCCC CCCC CCCC CCCC XCALL pma,*,ARPn
                             {
-
+                                length = 4;
+                                uint32_t addr = insn32 & 0xffff;
+                                uint32_t n = insn & 0b111;
+                                fprintf_func(stream, "0x%08x; XCALL 0x%x,*,ARP%d", insn32, addr,n);
                             }
                             break;
                         }
