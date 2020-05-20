@@ -1222,3 +1222,21 @@ static void gen_xor_acc_imm_shift(DisasContext *ctx, uint32_t imm, uint32_t shif
     tcg_gen_xori_i32(cpu_acc, cpu_acc, imm << shift);
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 }
+
+//XOR AX,loc16
+static void gen_xor_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH)
+{
+    TCGv loc16 = cpu_shadow[0];
+    TCGv ax = cpu_shadow[1];
+
+    gen_ld_loc16(loc16, mode);
+    gen_ld_reg_half(ax, cpu_acc, is_AH);
+    tcg_gen_xor_i32(ax, ax, loc16);
+    gen_helper_test_N_Z_16(cpu_env, ax);
+
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, ax);
+    else
+        gen_st_reg_low_half(cpu_acc, ax);
+}
+

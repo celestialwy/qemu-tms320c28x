@@ -1638,6 +1638,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
         }
         case 0b0111:
             switch((insn & 0x0f00) >> 8) {
+                case 0b0000: //0111 0000 LLLL LLLL XOR AL,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_xor_ax_loc16(ctx, mode, false);
+                    break;
+                }
+                case 0b0001: //0111 0001 LLLL LLLL XOR AH,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    gen_xor_ax_loc16(ctx, mode, true);
+                    break;
+                }
                 case 0b0010: //0111 0010 LLLL LLLL ADD loc16,AL
                 {
                     uint32_t mode = insn & 0xff;

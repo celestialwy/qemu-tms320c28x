@@ -1966,6 +1966,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
         }
         case 0b0111:
             switch((insn & 0x0f00) >> 8) {
+                case 0b0000: //0111 0000 LLLL LLLL XOR AL,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     XOR AL,%s", insn, str);
+                    break;
+                }
+                case 0b0001: //0111 0001 LLLL LLLL XOR AH,loc16
+                {
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%04x;     XOR AH,%s", insn, str);
+                    break;
+                }
                 case 0b0010: //0111 0010 LLLL LLLL ADD loc16,AL
                 {
                     uint32_t mode = insn & 0xff;
