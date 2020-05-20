@@ -2110,6 +2110,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movl_p_loc32(ctx, mode);
                     break;
                 }
+                case 0b0100: //1010 0100 LLLL LLLL CCCC CCCC CCCC CCCC XMACD P,loc16,*(pma)
+                {
+                    length = 4;
+                    uint32_t mode = insn & 0xff;
+                    uint32_t addr = insn2 & 0xffff;
+                    gen_xmacd_p_loc16_pma(ctx, mode, addr);
+                    break;
+                }
                 case 0b0101: //1010 0101 LLLL LLLL DMOV loc16
                 {
                     uint32_t mode = insn & 0xff;

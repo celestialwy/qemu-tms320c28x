@@ -876,6 +876,59 @@ static void gen_xmac_p_loc16_pma(DisasContext *ctx, uint32_t mode, uint32_t pma)
     tcg_temp_free(v1);
     tcg_temp_free(v2);
     tcg_temp_free(addr_tcg);
+}
 
+//XMACD P,loc16,*(pma)
+static void gen_xmacd_p_loc16_pma(DisasContext *ctx, uint32_t mode, uint32_t pma)
+{
+    if (is_reg_addressing_mode(mode, LOC16))
+    {
+        gen_exception(ctx, EXCP_INTERRUPT_ILLEGAL);
+    }
+    else 
+    {
+        TCGLabel *begin = gen_new_label();
+        TCGLabel *end = gen_new_label();
+        TCGv v1 = tcg_temp_local_new();
+        TCGv v2 = tcg_temp_local_new();
+        TCGv addr_tcg = tcg_const_local_i32(pma | 0x3f0000);
+        TCGv addr_loc16 = tcg_temp_local_new();;
+        TCGv a = tcg_temp_local_new();
+        TCGv b = tcg_temp_local_new();
 
+        gen_set_label(begin);
+
+        gen_shift_by_pm(b, cpu_p);//b = P<<PM
+        tcg_gen_mov_i32(a, cpu_acc);//a = ACC
+        tcg_gen_add_i32(cpu_acc, a, b); //ACC = ACC + P<<PM
+
+        gen_get_loc_addr(addr_loc16, mode, LOC16);
+        gen_ld16u_swap(v1, addr_loc16);
+        tcg_gen_ext16s_tl(v1, v1);//sigend extend
+        gen_ld16u_swap(v2, addr_tcg);
+        tcg_gen_ext16s_tl(v2, v2);//signed extend
+        tcg_gen_mul_i32(cpu_p, v1, v2);//P = signed T * signed Prog[0x3f:pma]
+        gen_st_reg_high_half(cpu_xt, v1);//T = [loc16], store v1 to T
+        //[loc16+1] = T;
+        tcg_gen_addi_i32(addr_loc16, addr_loc16, 1);
+        gen_st16u_swap(v1, addr_loc16);
+
+        tcg_gen_addi_i32(addr_tcg, addr_tcg, 1);//inc pma by 1, for each repetition
+        gen_helper_test_V_32(cpu_env, a, b, cpu_acc);
+
+        tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+        tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+        tcg_gen_br(begin);
+
+        gen_set_label(end);
+        gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+        gen_helper_test_C_32(cpu_env, a, b, cpu_acc);
+        gen_helper_test_OVC_OVM_32(cpu_env, a, b, cpu_acc);
+        tcg_temp_free(a);
+        tcg_temp_free(b);    
+        tcg_temp_free(v1);
+        tcg_temp_free(v2);
+        tcg_temp_free(addr_tcg);
+        tcg_temp_free(addr_loc16);
+    }
 }
