@@ -1884,10 +1884,19 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         }
                         case 0b1101: //0101 0110 1101 COND CCCC CCCC CCCC CCCC XB pma,COND
                         {
-                            int16_t addr = insn32 & 0xffff;
+                            uint32_t addr = insn32 & 0xffff;
                             uint32_t cond = insn & 0xf;
                             get_cond_string(str, cond);
                             fprintf_func(stream, "0x%08x; XB 0x%x,%s", insn32, addr, str);
+                            length = 4;
+                            break;
+                        }
+                        case 0b1110: //0101 0110 1110 COND CCCC CCCC CCCC CCCC XCALL pma,COND
+                        {
+                            uint32_t addr = insn32 & 0xffff;
+                            uint32_t cond = insn & 0xf;
+                            get_cond_string(str, cond);
+                            fprintf_func(stream, "0x%08x; XCALL 0x%x,%s", insn32, addr, str);
                             length = 4;
                             break;
                         }
