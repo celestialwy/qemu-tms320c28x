@@ -2664,6 +2664,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     }
                     break;
                 }
+                case 0b1100: //1010 1100 MMMM MMMM LLLL LLLL LLLL LLLL XPREAD loc16,*(pma)
+                {
+                    length = 4;
+                    uint32_t mode = insn & 0xff;
+                    uint32_t addr = insn32 & 0xffff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%08x; XPREAD %s,*(#0x%x)", insn32, str, addr);
+                    break;
+                }
                 case 0b1110: //1010 1110 LLLL LLLL SUB ACC,loc16<<#0
                 {
                     uint32_t mode = insn & 0xff;

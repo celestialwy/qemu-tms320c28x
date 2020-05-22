@@ -1197,3 +1197,16 @@ static void gen_pwrite_xar7_loc16(DisasContext *ctx, uint32_t mode)
 
     tcg_temp_free(tmp);
 }
+
+// XPREAD loc16,*(pma)
+static void gen_xpwread_loc16_pma(DisasContext *ctx, uint32_t mode, uint32_t pma)
+{
+    TCGv addr = cpu_shadow[0];
+    TCGv value = cpu_shadow[1];
+    tcg_gen_movi_i32(value, 0x3f0000 | pma);
+    gen_ld16u_swap(value, addr);
+    gen_st_loc16(mode, value);
+    gen_test_ax_N_Z(mode);
+}
+
+
