@@ -555,6 +555,15 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%08x; CMP %s,#0x%x", insn32, str, imm);
                     break;
                 }
+                case 0b1100: //0001 1100 LLLL LLLL CCCC CCCC CCCC CCCC XOR loc16,#16bit
+                {
+                    length = 4;
+                    int32_t imm = insn32 & 0xffff;
+                    uint32_t mode = insn & 0xff;
+                    get_loc_string(str,mode,LOC16);
+                    fprintf_func(stream, "0x%08x; XOR %s,#0x%x", insn32, str, imm);
+                    break;
+                }
                 case 0b1101: //0001 1101 LLLL LLLL SBBU ACC,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -2957,6 +2966,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
         }
         case 0b1111:
             switch ((insn & 0x0f00) >> 8) {
+                case 0b0000: //1111 0000 CCCC CCCC XORB AL,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     XORB AL,#0x%x", insn, imm);
+                    break;
+                }
+                case 0b0001: //1111 0001 CCCC CCCC XORB AH,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    fprintf_func(stream, "0x%04x;     XORB AH,#0x%x", insn, imm);
+                    break;
+                }
                 case 0b0010: //1111 0010 LLLL LLLL XOR loc16,AL
                 {
                     uint32_t mode = insn & 0xff;

@@ -1266,3 +1266,40 @@ static void gen_xor_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
     }
     
 }
+
+//XOR loc16,#16bit
+static void gen_xor_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm)
+{
+    TCGv loc16 = cpu_shadow[0];
+
+    if (is_reg_addressing_mode(mode, LOC16))
+    {
+        gen_ld_loc16(loc16, mode);
+        tcg_gen_xori_i32(loc16, loc16, imm);
+        gen_helper_test_N_Z_16(cpu_env, loc16);
+        gen_st_loc16(mode, loc16);
+    }
+    else
+    {
+        TCGv addr = cpu_shadow[2];
+        gen_get_loc_addr(addr, mode, LOC16);
+        gen_ld16u_swap(loc16, addr);
+        tcg_gen_xori_i32(loc16, loc16, imm);
+        gen_helper_test_N_Z_16(cpu_env, loc16);
+        gen_st16u_swap(loc16, addr);
+    }
+    
+}
+
+//XORB AX,#8bit
+static void gen_xorb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
+{
+    TCGv ax = cpu_shadow[0];
+    gen_ld_reg_half(ax, cpu_acc, is_AH);
+    tcg_gen_xori_i32(ax, ax, imm);
+    gen_helper_test_N_Z_16(cpu_env, ax);
+    if (is_AH)
+        gen_st_reg_high_half(cpu_acc, ax);
+    else
+        gen_st_reg_low_half(cpu_acc, ax);
+}

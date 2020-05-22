@@ -388,6 +388,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_cmp_loc16_16bit(ctx, mode, imm);
                     break;
                 }
+                case 0b1100: //0001 1100 LLLL LLLL CCCC CCCC CCCC CCCC XOR loc16,#16bit
+                {
+                    length = 4;
+                    int32_t imm = insn2;
+                    uint32_t mode = insn & 0xff;
+                    gen_xor_loc16_16bit(ctx, mode, imm);
+                    break;
+                }
                 case 0b1101: //0001 1101 LLLL LLLL SBBU ACC,loc16
                 {
                     uint32_t mode = insn & 0xff;
@@ -2426,6 +2434,18 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
         }
         case 0b1111:
             switch ((insn & 0x0f00) >> 8) {
+                case 0b0000: //1111 0000 CCCC CCCC XORB AL,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    gen_xorb_ax_8bit(ctx, imm, false);
+                    break;
+                }
+                case 0b0001: //1111 0001 CCCC CCCC XORB AH,#8bit
+                {
+                    uint32_t imm = insn & 0xff;
+                    gen_xorb_ax_8bit(ctx, imm, true);
+                    break;
+                }
                 case 0b0010: //1111 0010 LLLL LLLL XOR loc16,AL
                 {
                     uint32_t mode = insn & 0xff;
