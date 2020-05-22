@@ -1421,6 +1421,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     LSLL ACC,T", insn);
                                     break;
                                 }
+                                case 0b1100: //0101 0110 0011 1100 0000 0000 LLLL LLLL XPREAD loc16,*AL
+                                {
+                                    if (((insn32 >> 8) & 0xff) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC16);
+                                        fprintf_func(stream, "0x%08x; XPREAD %s,*AL", insn32, str);
+                                    }
+                                    break;
+                                }
                                 case 0b1110: //0101 0110 0011 1110 SAT64 ACC:P
                                 {
                                     fprintf_func(stream, "0x%04x;     SAT64 ACC:P", insn);
