@@ -1132,6 +1132,11 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_negtc_acc(ctx);
                                     break;
                                 }
+                                case 0b0011: //0101 0110 0011 0011 ZAPA
+                                {
+                                    gen_zapa(ctx);
+                                    break;
+                                }
                                 case 0b0101: //0101 0110 0011 0101 CSB ACC
                                 {
                                     gen_csb_acc(ctx);

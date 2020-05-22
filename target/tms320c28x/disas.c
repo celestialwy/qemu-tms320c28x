@@ -1400,6 +1400,11 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%04x;     NEGTC ACC", insn);
                                     break;
                                 }
+                                case 0b0011: //0101 0110 0011 0011 ZAPA
+                                {
+                                    fprintf_func(stream, "0x%04x;     ZAPA", insn);
+                                    break;
+                                }
                                 case 0b0101: //0101 0110 0011 0101 CSB ACC
                                 {
                                     fprintf_func(stream, "0x%04x;     CSB ACC", insn);

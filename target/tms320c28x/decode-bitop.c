@@ -1316,3 +1316,13 @@ static void gen_zalr_acc_loc16(DisasContext *ctx, uint32_t mode)
     gen_st_reg_high_half(cpu_acc, ah);
     gen_helper_test_N_Z_32(cpu_env, cpu_acc);
 }
+
+//ZAPA
+static void gen_zapa(DisasContext *ctx)
+{
+    gen_seti_bit(cpu_st0, OVC_BIT, OVC_MASK, 0);
+    tcg_gen_movi_i32(cpu_acc, 0);
+    tcg_gen_movi_i32(cpu_p, 0);
+    gen_seti_bit(cpu_st0, N_BIT, N_MASK, 0);
+    gen_seti_bit(cpu_st0, Z_BIT, Z_MASK, 1);
+}
