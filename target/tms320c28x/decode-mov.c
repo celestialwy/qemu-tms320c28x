@@ -1244,4 +1244,26 @@ static void gen_xpwread_loc16_al(DisasContext *ctx, uint32_t mode)
     gen_set_label(end);
 }
 
+//XPWRITE *AL,loc16
+static void gen_xpwrite_al_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv addr = cpu_shadow[0];
+    TCGv loc16 = cpu_shadow[1];
+    TCGv al = cpu_shadow[2];
+    gen_ld_reg_half(al, cpu_acc, false);
+    tcg_gen_xori_i32(addr, al, 0x3f0000);
+
+    TCGLabel *begin = gen_new_label();
+    TCGLabel *end = gen_new_label();
+    gen_set_label(begin);
+
+    gen_ld_loc16(loc16, mode);
+    gen_st16u_swap(loc16, addr);
+    tcg_gen_addi_i32(addr, addr, 1);
+
+    tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
+    tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
+    tcg_gen_br(begin);
+    gen_set_label(end);
+}
 

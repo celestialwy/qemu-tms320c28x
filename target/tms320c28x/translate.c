@@ -1159,6 +1159,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b1101: //0101 0110 0011 1101 0000 0000 LLLL LLLL XPWRITE *AL,loc16
+                                {
+                                    if (((insn2 >> 8) & 0xff) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_xpwrite_al_loc16(ctx, mode);
+                                    }
+                                    break;
+                                }
                                 case 0b1110: //0101 0110 0011 1110 SAT64 ACC:P
                                 {
                                     gen_sat64_acc_p(ctx);
