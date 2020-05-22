@@ -420,6 +420,13 @@ static void gen_goto_tb(DisasContext *dc, int n, target_ulong dest)
     tcg_gen_exit_tb(dc->base.tb, n);
 }
 
+static void gen_goto_tb2(DisasContext *dc, int n, TCGv dest)
+{
+    tcg_gen_goto_tb(n);
+    tcg_gen_mov_tl(cpu_pc, dest);
+    tcg_gen_exit_tb(dc->base.tb, n);
+}
+
 static void gen_shift_by_pm(TCGv retval, TCGv oprand)
 {
     TCGLabel *leftshift = gen_new_label();

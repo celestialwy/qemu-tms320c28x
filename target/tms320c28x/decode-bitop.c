@@ -1303,3 +1303,16 @@ static void gen_xorb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
     else
         gen_st_reg_low_half(cpu_acc, ax);
 }
+
+//ZALR ACC,loc16
+static void gen_zalr_acc_loc16(DisasContext *ctx, uint32_t mode)
+{
+    TCGv ah = cpu_shadow[0];
+    TCGv al = cpu_shadow[1];
+
+    tcg_gen_movi_i32(al, 0x8000);
+    gen_ld_loc16(ah, mode);
+    gen_st_reg_low_half(cpu_acc, al);
+    gen_st_reg_high_half(cpu_acc, ah);
+    gen_helper_test_N_Z_32(cpu_env, cpu_acc);
+}

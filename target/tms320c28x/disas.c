@@ -1173,6 +1173,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%08x; SQRS %s", insn32,str);
                                     break;
                                 }
+                                case 0b0011: //0101 0110 0001 0011 0000 0000 LLLL LLLL ZALR ACC,loc16
+                                {
+                                    if (((insn32 >> 8) & 0xff) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn32 & 0xff;
+                                        get_loc_string(str, mode, LOC16);
+                                        fprintf_func(stream, "0x%08x; ZALR ACC,%s", insn32,str);
+                                    }
+                                    break;
+                                }
                                 case 0b0100: //0101 0110 0001 0100 XB *AL
                                 {
                                     fprintf_func(stream, "0x%04x;     XB *AL", insn);
@@ -1944,6 +1955,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             get_cond_string(str, cond);
                             fprintf_func(stream, "0x%08x; XCALL 0x%x,%s", insn32, addr, str);
                             length = 4;
+                            break;
+                        }
+                        case 0b1111: //0101 0110 1111 COND XRETC COND
+                        {
+                            uint32_t cond = insn & 0xf;
+                            if (cond == 0xff)
+                            {
+                                fprintf_func(stream, "0x%04x;     XRET", insn);
+                            }
+                            else
+                            {
+                                get_cond_string(str, cond);
+                                fprintf_func(stream, "0x%04x;     XRETC %s", insn, str);
+                            }
                             break;
                         }
                     }

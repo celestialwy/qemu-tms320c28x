@@ -921,6 +921,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_sqrs_loc16(ctx, mode);
                                     break;
                                 }
+                                case 0b0011: //0101 0110 0001 0011 0000 0000 LLLL LLLL ZALR ACC,loc16
+                                {
+                                    if (((insn2 >> 8) & 0xff) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mode = insn2 & 0xff;
+                                        gen_zalr_acc_loc16(ctx, mode);
+                                    }
+                                    break;
+                                }
                                 case 0b0100: //0101 0110 0001 0100 XB *AL
                                 {
                                     gen_xb_al(ctx);
@@ -1618,6 +1628,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             uint32_t cond = insn & 0xf;
                             gen_xcall_pma_cond(ctx, addr, cond);
                             length = 4;
+                            break;
+                        }
+                        case 0b1111: //0101 0110 1111 COND XRETC COND
+                        {
+                            uint32_t cond = insn & 0xf;
+                            gen_xretc_cond(ctx, cond);
                             break;
                         }
                     }

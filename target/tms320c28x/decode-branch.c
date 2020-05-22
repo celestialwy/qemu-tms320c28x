@@ -745,3 +745,29 @@ static void gen_xcall_pma_cond(DisasContext *ctx, uint32_t pma, uint32_t cond)
 
     tcg_temp_free(cond_tcg);
 }
+
+//XRETC COND
+static void gen_xretc_cond(DisasContext *ctx, uint32_t cond)
+{
+    gen_reset_rptc(ctx);
+    ctx->base.is_jmp = DISAS_JUMP;
+
+    TCGv cond_tcg = tcg_const_i32(cond);
+    TCGv test = cpu_shadow[0];
+    TCGv addr = cpu_shadow[1];
+    TCGLabel *cond_false = gen_new_label();
+
+    gen_helper_test_cond(test, cpu_env, cond_tcg);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, test, 0, cond_false);
+    //SP = SP - 1
+    tcg_gen_subi_i32(cpu_sp, cpu_sp, 1);
+    //PC = 0x3f:[SP]
+    gen_ld16u_swap(addr, cpu_sp);
+    tcg_gen_xori_i32(addr, addr, 0x3f0000);
+    gen_goto_tb2(ctx, 0, addr);
+    gen_set_label(cond_false);
+    //PC = PC + 1
+    gen_goto_tb(ctx, 1, ((uint32_t)ctx->base.pc_next >> 1) + 1);
+
+    tcg_temp_free(cond_tcg);
+}
