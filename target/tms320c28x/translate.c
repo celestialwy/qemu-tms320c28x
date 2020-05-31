@@ -2819,8 +2819,8 @@ static bool tms320c28x_tr_breakpoint_check(DisasContextBase *dcbase, CPUState *c
 {
     DisasContext *dc = container_of(dcbase, DisasContext, base);
 
-    tcg_gen_movi_tl(cpu_pc, dc->base.pc_next);
-    // gen_exception(dc, EXCP_DEBUG);
+    tcg_gen_movi_tl(cpu_pc, dc->base.pc_next >> 1);
+    gen_exception(dc, EXCP_DEBUG);
     dc->base.is_jmp = DISAS_JUMP;
     /* The address covered by the breakpoint must be included in
        [tb->pc, tb->pc + tb->size) in order to for it to be
@@ -2848,19 +2848,19 @@ static void tms320c28x_tr_translate_insn(DisasContextBase *dcbase, CPUState *cs)
 static void tms320c28x_tr_tb_stop(DisasContextBase *dcbase, CPUState *cs)
 {
     DisasContext *dc = container_of(dcbase, DisasContext, base);
-    // target_ulong jmp_dest;
+    target_ulong jmp_dest;
 
     /* If we have already exited the TB, nothing following has effect.  */
     if (dc->base.is_jmp == DISAS_NORETURN) {
         return;
     }
 
-    if (dc->base.singlestep_enabled) {
-        gen_exception(dc, EXCP_DEBUG);
-        return;
-    }
+    // if (dc->base.singlestep_enabled) {
+    //     gen_exception(dc, EXCP_DEBUG);
+    //     return;
+    // }
 
-    // jmp_dest = dc->base.pc_next >> 1;
+    jmp_dest = dc->base.pc_next >> 1;
 
     switch (dc->base.is_jmp) {
     case DISAS_REPEAT:
@@ -2868,19 +2868,19 @@ static void tms320c28x_tr_tb_stop(DisasContextBase *dcbase, CPUState *cs)
         tcg_gen_lookup_and_goto_ptr();
         break;
 
-    // case DISAS_TOO_MANY:
-    //     if (unlikely(dc->base.singlestep_enabled)) {
-    //         tcg_gen_movi_tl(cpu_pc, jmp_dest);
-    //         // gen_exception(dc, EXCP_DEBUG);
-    //     } else if ((dc->base.pc_first ^ jmp_dest) & TARGET_PAGE_MASK) {
-    //         tcg_gen_movi_tl(cpu_pc, jmp_dest);
-    //         tcg_gen_lookup_and_goto_ptr();
-    //     } else {
-    //         tcg_gen_goto_tb(0);
-    //         tcg_gen_movi_tl(cpu_pc, jmp_dest);
-    //         tcg_gen_exit_tb(dc->base.tb, 0);
-    //     }
-    //     break;
+    case DISAS_TOO_MANY:
+        if (unlikely(dc->base.singlestep_enabled)) {
+            tcg_gen_movi_tl(cpu_pc, jmp_dest);
+            gen_exception(dc, EXCP_DEBUG);
+        } else if ((dc->base.pc_first ^ jmp_dest) & TARGET_PAGE_MASK) {
+            tcg_gen_movi_tl(cpu_pc, jmp_dest);
+            tcg_gen_lookup_and_goto_ptr();
+        } else {
+            tcg_gen_goto_tb(0);
+            tcg_gen_movi_tl(cpu_pc, jmp_dest);
+            tcg_gen_exit_tb(dc->base.tb, 0);
+        }
+        break;
 
     case DISAS_EXIT:
         tcg_gen_exit_tb(NULL, 0);
