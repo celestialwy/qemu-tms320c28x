@@ -124,6 +124,48 @@ enum ST1_MASK{
     ARP_MASK = 0b111 << 13,
 };
 
+/* stf */
+enum STF_BIT{
+    LVF_BIT = 0,
+    LUF_BIT = 1,
+    NF_BIT = 2,
+    ZF_BIT = 3,
+    NI_BIT = 4,
+    ZI_BIT = 5,
+    TF_BIT = 6,
+    RND32_BIT = 9,
+    SHDWS_BIT = 31,
+};
+
+enum STF_MASK{
+    LVF_MASK = 1 << 0,
+    LUF_MASK = 1 << 1,
+    NF_MASK = 1 << 2,
+    ZF_MASK = 1 << 3,
+    NI_MASK = 1 << 4,
+    ZI_MASK = 1 << 5,
+    TF_MASK = 1 << 6,
+    RND32_MASK = 1 << 9,
+    SHDWS_MASK = 1 << 31,
+};
+
+/* RB */
+enum RB_BIT {
+    RC_BIT = 0,
+    RE_BIT = 16,
+    RSIZE_BIT = 23,
+    RA_BIT = 30,
+    RAS_BIT = 31,
+};
+
+enum RB_MASK {
+    RC_MASK = 0xffff << 0, //16bit
+    RE_MASK = 0b1111111 << 16, //7bit
+    RSIZE_MASK = 0b1111111 << 23, //7bit
+    RA_MASK = 1 << 30,
+    RAS_MASK = 1 << 31,
+};
+
 /* loc */
 enum {
     LOC16 = 1,
@@ -147,6 +189,10 @@ typedef struct CPUTms320c28xState {
     target_ulong st1; /* Status register 1, reset to 0x080b */
 
     target_ulong xt;         /* Multiplicand register, todo:t,tl*/
+
+    target_ulong rh[8]; /* Floating-point result register */
+    target_ulong stf; /* Floating-point status register */
+    target_ulong rb; /* repeat block */
 
     target_ulong rptc;
     target_ulong shadow[8];
@@ -231,6 +277,16 @@ static inline uint32_t cpu_get_st1(const CPUTms320c28xState *env, uint32_t bit, 
     return (env->st1 & mask) >> bit;
 }
 
+static inline uint32_t cpu_get_stf(const CPUTms320c28xState *env, uint32_t bit, uint32_t mask)
+{
+    return (env->stf & mask) >> bit;
+}
+
+static inline uint32_t cpu_get_rb(const CPUTms320c28xState *env, uint32_t bit, uint32_t mask)
+{
+    return (env->rb & mask) >> bit;
+}
+
 static inline void cpu_set_st0(CPUTms320c28xState *env,uint32_t value, uint32_t bit, uint32_t mask)
 {
     value = (value << bit) & mask;
@@ -241,6 +297,18 @@ static inline void cpu_set_st1(CPUTms320c28xState *env,uint32_t value, uint32_t 
 {
     value = (value << bit) & mask;
     env->st1 = (env->st1 & ~mask) | value;
+}
+
+static inline void cpu_set_stf(CPUTms320c28xState *env,uint32_t value, uint32_t bit, uint32_t mask)
+{
+    value = (value << bit) & mask;
+    env->stf = (env->stf & ~mask) | value;
+}
+
+static inline void cpu_set_rb(CPUTms320c28xState *env,uint32_t value, uint32_t bit, uint32_t mask)
+{
+    value = (value << bit) & mask;
+    env->rb = (env->rb & ~mask) | value;
 }
 
 // 获取cpu状态，在查找tb时会比较pc,cs_base,flags
