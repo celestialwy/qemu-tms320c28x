@@ -193,6 +193,7 @@ typedef struct CPUTms320c28xState {
     target_ulong rh[8]; /* Floating-point result register */
     target_ulong stf; /* Floating-point status register */
     target_ulong rb; /* repeat block */
+    float_status fp_status;
 
     target_ulong rptc;
     target_ulong shadow[8];

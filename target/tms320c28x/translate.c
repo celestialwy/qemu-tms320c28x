@@ -59,6 +59,9 @@ static TCGv cpu_sp; /* Stack pointer, reset to 0x0400 */
 static TCGv cpu_st0; /* Status register 0 */
 static TCGv cpu_st1; /* Status register 1, reset to 0x080b */
 static TCGv cpu_xt;         /* Multiplicand register, todo:t,tl*/
+static TCGv cpu_rb;
+static TCGv cpu_stf;
+static TCGv cpu_rh[8];
 static TCGv cpu_rptc;
 static TCGv cpu_shadow[8];
 static TCGv cpu_insn_length;
@@ -71,6 +74,9 @@ void tms320c28x_translate_init(void)
     };
     static const char * const regnames2[] = {
         "shadow0", "shadow1", "shadow2", "shadow3", "shadow4", "shadow5", "shadow6", "shadow7",
+    };
+    static const char * const regnames3[] = {
+        "r0h", "r1h", "r2h", "r3h", "r4h", "r5h", "r6h", "r7h",
     };
     int i;
 
@@ -100,10 +106,14 @@ void tms320c28x_translate_init(void)
                                 offsetof(CPUTms320c28xState, xt), "xt");
     cpu_rptc = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUTms320c28xState, rptc), "rptc");
-                                    
+    cpu_rb = tcg_global_mem_new(cpu_env,
+                                offsetof(CPUTms320c28xState, rb), "rb");
+    cpu_stf = tcg_global_mem_new(cpu_env,
+                                offsetof(CPUTms320c28xState, stf), "stf");
     for (i = 0; i < 8; i++) {
         cpu_xar[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,xar[i]),regnames[i]);
         cpu_shadow[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,shadow[i]),regnames2[i]);
+        cpu_rh[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,rh[i]),regnames3[i]);
     }
     cpu_insn_length = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUTms320c28xState, insn_length), "insn_length");
@@ -121,6 +131,7 @@ void tms320c28x_translate_init(void)
 #include "decode-branch.c"
 #include "decode-interrupt.c"
 #include "decode-other.c"
+#include "decode-float.c"
 
 static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_t insn2) 
 {
@@ -2323,6 +2334,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     length = 4;
                     break;
                 }
+                case 0b1101://1011 1101 loc32 iiii iiii iiii iiii MOV32 RaH, ACC
+                {
+                    if ((insn & 0xff) == 0xa9) //acc
+                    {
+                        uint32_t n = ((insn2 & 0xffff) - 0xf12) / 4;
+                        length = 4;
+                        gen_mov32_rah_acc(ctx, n);
+                    }
+                    break;
+                }
                 case 0b1110: //1011 1110 CCCC CCCC MOVB XAR6,#8bit
                 {
                     uint32_t imm = insn & 0xff;
@@ -2442,6 +2463,38 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
         case 0b1110:
         {
             switch((insn & 0x0f00) >> 8) {
+                case 0b0110: //1110 0110 .... .... 
+                {
+                    switch ((insn & 0x00c0) >> 6) {
+                        case 0b00:
+                        {
+                            break;
+                        }
+                        case 0b01://1110 0110 01.. ....
+                        {
+                            break;
+                        }
+                        case 0b10://1110 0110 10.. ....
+                        {
+                            switch (insn & 0x003f) {
+                                case 0b010101: //1110 0110 1001 0101 0000 0000 00bb baaa ABSF32 RaH,RbH
+                                {
+                                    uint32_t b = (insn2 >> 3) & 0b111;
+                                    uint32_t a = insn2 & 0b111;
+                                    gen_absf32_rah_rbh(ctx, a, b);
+                                    length = 4;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                        case 0b11:
+                        {
+                            break;
+                        }
+                    }
+                    break;
+                }
                 case 0b1010://1110 1010 LLLL LLLL SUBR loc16,AL
                 {
                     uint32_t mode = insn & 0xff;
@@ -2938,6 +2991,14 @@ void tms320c28x_cpu_dump_state(CPUState *cs, FILE *f, int flags)
     qemu_fprintf(f, "DP =%04x SP =%04x IFR=%04x IER=%04x\n", env->dp, env->sp, env->ifr, env->ier);
     qemu_fprintf(f, "DBGIER=%04x\n", env->dbgier);
     qemu_fprintf(f, "RPTC=%x\n",env->rptc);
+    for (i = 0; i < 4; ++i) {
+        qemu_fprintf(f, "R%01dH=%08x R%01dH=%08x\n", i, env->rh[i], i+1, env->rh[i+1]);
+    }
+    qemu_fprintf(f, "STF=%x\n",env->stf);
+    qemu_fprintf(f, "SHDWS=%x RND32=%x TF=%x ZI=%x NI=%x\n", CPU_GET_STATUS(stf, SHDWS), CPU_GET_STATUS(stf, RND32), CPU_GET_STATUS(stf, TF), CPU_GET_STATUS(stf, ZI), CPU_GET_STATUS(stf, NI));
+    qemu_fprintf(f, "ZF=%x NF=%x LUF=%x LVF=%x\n", CPU_GET_STATUS(stf, ZF), CPU_GET_STATUS(stf, NF), CPU_GET_STATUS(stf, LUF), CPU_GET_STATUS(stf, LVF));
+    qemu_fprintf(f, "RB=%x\n",env->rb);
+    qemu_fprintf(f, "RAS=%x RA=%x RSIZE=0x%x RE=0x%x RC=0x%x\n", CPU_GET_STATUS(rb, RAS), CPU_GET_STATUS(rb, RA), CPU_GET_STATUS(rb, RSIZE), CPU_GET_STATUS(rb, RE), CPU_GET_STATUS(rb, RC));
 }
 
 void restore_state_to_opc(CPUTms320c28xState *env, TranslationBlock *tb,

@@ -2818,6 +2818,16 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     length = 4;
                     break;
                 }
+                case 0b1101://1011 1101 loc32 iiii iiii iiii iiii MOV32 RaH, ACC
+                {
+                    if ((insn & 0xff) == 0xa9) //acc
+                    {
+                        length = 4;
+                        uint32_t n = ((insn32 & 0xffff) - 0xf12) / 4;
+                        fprintf_func(stream, "0x%08x; MOV32 R%dH,ACC", insn32, n);
+                    }
+                    break;
+                }
                 case 0b1110: //1011 1110 CCCC CCCC MOVB XAR6,#8bit
                 {
                     uint32_t imm = insn & 0xff;
@@ -2984,6 +2994,38 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
         case 0b1110:
         {
             switch((insn & 0x0f00) >> 8) {
+                case 0b0110: //1110 0110 .... .... 
+                {
+                    switch ((insn & 0x00c0) >> 6) {
+                        case 0b00:
+                        {
+                            break;
+                        }
+                        case 0b01://1110 0110 01.. ....
+                        {
+                            break;
+                        }
+                        case 0b10://1110 0110 10.. ....
+                        {
+                            switch (insn & 0x003f) {
+                                case 0b010101: //1110 0110 1001 0101 0000 0000 00bb baaa ABSF32 RaH,RbH
+                                {
+                                    uint32_t b = (insn32 >> 3) & 0b111;
+                                    uint32_t a = insn32 & 0b111;
+                                    length = 4;
+                                    fprintf_func(stream, "0x%08x; ABSF32 R%dH,R%dH", insn32, a, b);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                        case 0b11:
+                        {
+                            break;
+                        }
+                    }
+                    break;
+                }
                 case 0b1010://1110 1010 LLLL LLLL SUBR loc16,AL
                 {
                     uint32_t mode = insn & 0xff;

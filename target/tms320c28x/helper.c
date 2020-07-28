@@ -416,6 +416,15 @@ void HELPER(print_env)(CPUTms320c28xState *env) {
     qemu_log_mask(CPU_LOG_INT, "DP =%04x SP =%04x IFR=%04x IER=%04x\n", env->dp, env->sp, env->ifr, env->ier);
     qemu_log_mask(CPU_LOG_INT, "DBGIER=%04x\n", env->dbgier);
     qemu_log_mask(CPU_LOG_INT, "RPTC=%x\n",env->rptc);
+    for (i = 0; i < 4; ++i) {
+        qemu_log_mask(CPU_LOG_INT, "R%01dH=%08x R%01dH=%08x\n", i, env->rh[i], i+1, env->rh[i+1]);
+    }
+    qemu_log_mask(CPU_LOG_INT, "STF=%x\n",env->stf);
+    qemu_log_mask(CPU_LOG_INT, "SHDWS=%x RND32=%x TF=%x ZI=%x NI=%x\n", CPU_GET_STATUS(stf, SHDWS), CPU_GET_STATUS(stf, RND32), CPU_GET_STATUS(stf, TF), CPU_GET_STATUS(stf, ZI), CPU_GET_STATUS(stf, NI));
+    qemu_log_mask(CPU_LOG_INT, "ZF=%x NF=%x LUF=%x LVF=%x\n", CPU_GET_STATUS(stf, ZF), CPU_GET_STATUS(stf, NF), CPU_GET_STATUS(stf, LUF), CPU_GET_STATUS(stf, LVF));
+    qemu_log_mask(CPU_LOG_INT, "RB=%x\n",env->rb);
+    qemu_log_mask(CPU_LOG_INT, "RAS=%x RA=%x RSIZE=0x%x RE=0x%x RC=0x%x\n", CPU_GET_STATUS(rb, RAS), CPU_GET_STATUS(rb, RA), CPU_GET_STATUS(rb, RSIZE), CPU_GET_STATUS(rb, RE), CPU_GET_STATUS(rb, RC));
+
 }
 
 void HELPER(abs_acc)(CPUTms320c28xState *env)

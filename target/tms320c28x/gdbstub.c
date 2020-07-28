@@ -25,7 +25,8 @@ int tms320c28x_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
 
     if (n < 8) {
         return gdb_get_reg32(mem_buf, env->xar[n]);
-    } else {
+    }
+    else if (n < 20) {
         switch (n) {
         case 8:    /* ACC */
             return gdb_get_reg32(mem_buf, env->acc);
@@ -55,6 +56,21 @@ int tms320c28x_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
             break;
         }
     }
+    else {
+        if (n < 28) {
+            return gdb_get_reg32(mem_buf, env->rh[n - 20]);
+        }
+        else {
+            switch(n) {
+                case 20:
+                    return gdb_get_reg32(mem_buf, env->stf);
+                case 21:
+                    return gdb_get_reg32(mem_buf, env->rb);
+                default:
+                    break;
+            }
+        }
+    }
     return 0;
 }
 
@@ -74,7 +90,8 @@ int tms320c28x_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
     tmp = ldl_p(mem_buf);
     if (n < 8) {
         env->xar[n] = tmp;
-    } else {
+    }
+    else if (n < 20) {
         switch (n) {
         case 8:    /* ACC */
             env->acc = tmp;
@@ -112,9 +129,25 @@ int tms320c28x_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
         case 19:    /* XT */
             env->xt = tmp;
             break;
-
         default:
             break;
+        }
+    }
+    else {
+        if (n < 28) {
+            env->rh[n - 20] = tmp;
+        }
+        else {
+            switch(n) {
+                case 20:
+                    env->stf = tmp;
+                    break;
+                case 21:
+                    env->rb = tmp;
+                    break;
+                default:
+                    break;
+            }
         }
     }
     return ret_value;
