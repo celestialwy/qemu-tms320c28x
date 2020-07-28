@@ -228,6 +228,67 @@ static void get_status_bit_string(char *str, uint32_t mode) {
     str[i-1] = 0;
 }
 
+static bool get_fpu_reg_name(char *str, uint32_t addr)
+{
+    switch (addr)
+    {
+        case 0xf00:
+        {
+            sprintf(str, "RB");
+            return true;
+        }
+        case 0xf02:
+        {
+            sprintf(str, "STF");
+            return true;
+        }
+        case 0xf12:
+        {
+            sprintf(str, "R0H");
+            return true;
+        }
+        case 0xf16:
+        {
+            sprintf(str, "R1H");
+            return true;
+        }
+        case 0xf1A:
+        {
+            sprintf(str, "R2H");
+            return true;
+        }
+        case 0xf1E:
+        {
+            sprintf(str, "R3H");
+            return true;
+        }
+        case 0xf22:
+        {
+            sprintf(str, "R4H");
+            return true;
+        }
+        case 0xf26:
+        {
+            sprintf(str, "R5H");
+            return true;
+        }
+        case 0xf2a:
+        {
+            sprintf(str, "R6H");
+            return true;
+        }
+        case 0xf2e:
+        {
+            sprintf(str, "R7H");
+            return true;
+        }
+        default:
+        {
+            return false;
+        }
+    }
+}
+
 int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
 {
     fprintf_function fprintf_func = info->fprintf_func;
@@ -2820,11 +2881,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                 }
                 case 0b1101://1011 1101 loc32 iiii iiii iiii iiii MOV32 RaH, ACC
                 {
-                    if ((insn & 0xff) == 0xa9) //acc
+                    length = 4;
+                    uint32_t loc32 = insn & 0xff;
+                    uint32_t addr = insn32 & 0xffff;
+                    get_loc_string(str,loc32,LOC32);
+                    if (get_fpu_reg_name(str2, addr))
                     {
-                        length = 4;
-                        uint32_t n = ((insn32 & 0xffff) - 0xf12) / 4;
-                        fprintf_func(stream, "0x%08x; MOV32 R%dH,ACC", insn32, n);
+                        fprintf_func(stream, "0x%08x; MOV32 %s,%s", insn32, str2, str);
+                    }
+                    else
+                    {
+                        fprintf_func(stream, "0x%08x; MOV32 *(0x%x),%s", insn32, addr, str);
                     }
                     break;
                 }

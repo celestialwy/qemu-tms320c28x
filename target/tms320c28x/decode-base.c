@@ -480,3 +480,70 @@ static void gen_shift_by_pm2(TCGv retval, TCGv oprand_low, TCGv oprand_high)
     tcg_temp_free(pm);
     tcg_temp_free(tmp);
 }
+
+//if addr-->stf, mask the value, reserve bit of stf can't be 1 
+static void gen_mask_st32_stf(uint32_t addr, TCGv value)
+{
+    if (addr == 0xf02) //stf
+    {
+        tcg_gen_andi_i32(value, value, 0x8000027f);
+    }
+}
+
+static void gen_sync_fpu_reg(uint32_t addr, TCGv val_to_sync)
+{
+    switch (addr)
+    {
+        case 0xf00:
+        {
+            tcg_gen_mov_i32(cpu_rb, val_to_sync);
+            break;
+        }
+        case 0xf02:
+        {
+            tcg_gen_mov_i32(cpu_stf, val_to_sync);
+            break;
+        }
+        case 0xf12:
+        {
+            tcg_gen_mov_i32(cpu_rh[0], val_to_sync);
+            break;
+        }
+        case 0xf16:
+        {
+            tcg_gen_mov_i32(cpu_rh[1], val_to_sync);
+            break;
+        }
+        case 0xf1A:
+        {
+            tcg_gen_mov_i32(cpu_rh[2], val_to_sync);
+            break;
+        }
+        case 0xf1E:
+        {
+            tcg_gen_mov_i32(cpu_rh[3], val_to_sync);
+            break;
+        }
+        case 0xf22:
+        {
+            tcg_gen_mov_i32(cpu_rh[4], val_to_sync);
+            break;
+        }
+        case 0xf26:
+        {
+            tcg_gen_mov_i32(cpu_rh[5], val_to_sync);
+            break;
+        }
+        case 0xf2a:
+        {
+            tcg_gen_mov_i32(cpu_rh[6], val_to_sync);
+            break;
+        }
+        case 0xf2e:
+        {
+            tcg_gen_mov_i32(cpu_rh[7], val_to_sync);
+            break;
+        }
+    }
+
+}

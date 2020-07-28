@@ -2334,14 +2334,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     length = 4;
                     break;
                 }
-                case 0b1101://1011 1101 loc32 iiii iiii iiii iiii MOV32 RaH, ACC
+                case 0b1101://1011 1101 loc32 iiii iiii iiii iiii MOV32 *(0:16bitAddr), loc32/ MOV32 RaH, ACC
                 {
-                    if ((insn & 0xff) == 0xa9) //acc
-                    {
-                        uint32_t n = ((insn2 & 0xffff) - 0xf12) / 4;
-                        length = 4;
-                        gen_mov32_rah_acc(ctx, n);
-                    }
+                    length = 4;
+                    uint32_t loc32 = insn & 0xff;
+                    uint32_t addr = insn2 & 0xffff;
+                    gen_mov32_addr16_loc32(ctx, addr, loc32);
                     break;
                 }
                 case 0b1110: //1011 1110 CCCC CCCC MOVB XAR6,#8bit
