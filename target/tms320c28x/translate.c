@@ -2475,6 +2475,16 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                         case 0b0000:
                         {
                             switch (insn & 0xf) {
+                                case 0b0000: //1110 0010 0000 0000 0000 0000 mem32 MOV32 mem32,STF
+                                {
+                                    if ((insn2 >> 8) & 0xff)
+                                    {
+                                        length = 4;
+                                        uint32_t mem32 = insn2 & 0xff;
+                                        gen_mov32_mem32_stf(ctx, mem32);
+                                        break;
+                                    }
+                                }
                                 case 0b0011: //1110 0010 0000 0011 0000 0aaa mem32 MOV32 mem32,RaH
                                 {
                                     length = 4;

@@ -47,3 +47,9 @@ static void gen_mov32_mem32_rah(DisasContext *ctx, uint32_t mem32, uint32_t a)
 {
     gen_st_loc32(mem32, cpu_rh[a]);
 }
+
+// MOV32 mem32, STF
+static void gen_mov32_mem32_stf(DisasContext *ctx, uint32_t mem32)
+{
+    gen_st_loc32(mem32, cpu_stf);
+}
