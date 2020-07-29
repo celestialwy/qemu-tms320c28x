@@ -41,3 +41,9 @@ static void gen_mov32_loc32_addr16(DisasContext *ctx, uint32_t addr, uint32_t lo
     gen_st_loc32(loc32, tmp);
     gen_test_acc_N_Z(loc32);
 }
+
+// MOV32 mem32, RaH
+static void gen_mov32_mem32_rah(DisasContext *ctx, uint32_t mem32, uint32_t a)
+{
+    gen_st_loc32(mem32, cpu_rh[a]);
+}
