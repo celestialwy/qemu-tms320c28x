@@ -7,6 +7,9 @@ static void gen_absf32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 // MOV16 mem16, RaH
 static void gen_mov16_mem16_rah(DisasContext *ctx, uint32_t mem16, uint32_t a)
 {
+    // TCGv tmp = cpu_shadow[0];
+    // tcg_gen_andi_i32(tmp, cpu_rh[a], 0xffff);
+    // get low 16bit in helper func
     gen_st_loc16(mem16, cpu_rh[a]);
 }
 
@@ -25,4 +28,16 @@ static void gen_mov32_addr16_loc32(DisasContext *ctx, uint32_t addr, uint32_t mo
     gen_st32u_swap(tmp, addr_param);
     //sync mem with fpu register
     gen_sync_fpu_reg(addr, tmp);
+}
+
+// MOV32 loc32, *(0:16bitAddr)
+// MOV32 ACC, RaH
+static void gen_mov32_loc32_addr16(DisasContext *ctx, uint32_t addr, uint32_t loc32)
+{
+    TCGv tmp = cpu_shadow[0];
+    TCGv addr_param = cpu_shadow[0];
+    tcg_gen_movi_i32(addr_param, addr);
+    gen_ld32u_swap(tmp, addr_param);
+    gen_st_loc32(loc32, tmp);
+    gen_test_acc_N_Z(loc32);
 }

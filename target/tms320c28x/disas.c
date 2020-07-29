@@ -2901,6 +2901,22 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     fprintf_func(stream, "0x%04x;     MOVB XAR6,#%d", insn, imm);
                     break;
                 }
+                case 0b1111: //1011 1111 loc32 iiii iiii iiii iiii MOV32 loc32,*(0:16bitAddr)/ MOV32 ACC,RaH
+                {
+                    length = 4;
+                    uint32_t loc32 = insn & 0xff;
+                    uint32_t addr = insn32 & 0xffff;
+                    get_loc_string(str,loc32,LOC32);
+                    if (get_fpu_reg_name(str2, addr))
+                    {
+                        fprintf_func(stream, "0x%08x; MOV32 %s,%s", insn32, str, str2);
+                    }
+                    else
+                    {
+                        fprintf_func(stream, "0x%08x; MOV32 %s,*(0x%x)", insn32, str, addr);
+                    }
+                    break;
+                }
             }
             break;
         case 0b1100:

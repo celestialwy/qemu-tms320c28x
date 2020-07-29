@@ -2348,6 +2348,14 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movb_xarn_8bit(ctx, imm, 6);
                     break;
                 }
+                case 0b1111: //1011 1111 loc32 iiii iiii iiii iiii MOV32 loc32,*(0:16bitAddr)/ MOV32 ACC,RaH
+                {
+                    length = 4;
+                    uint32_t loc32 = insn & 0xff;
+                    uint32_t addr = insn2 & 0xffff;
+                    gen_mov32_loc32_addr16(ctx, addr, loc32);
+                    break;
+                }
             }
             break;
         case 0b1100:
