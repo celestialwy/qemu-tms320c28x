@@ -31,6 +31,7 @@ DEF_HELPER_3(st_loc16_byte_addressing, void, env, i32, i32) //value = low 8bit
 DEF_HELPER_3(st_loc32, void, env, i32, i32)
 
 DEF_HELPER_2(test_cond,i32,env,i32) //affect V bit
+DEF_HELPER_2(test_condf,i32,env,i32) //not affect stf
 
 // test bit
 DEF_HELPER_2(test_N_Z_16, void, env, i32)

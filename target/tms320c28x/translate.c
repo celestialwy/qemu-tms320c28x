@@ -2348,7 +2348,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movb_xarn_8bit(ctx, imm, 6);
                     break;
                 }
-                case 0b1111: //1011 1111 loc32 iiii iiii iiii iiii MOV32 loc32,*(0:16bitAddr)/ MOV32 ACC,RaH
+                case 0b1111: //1011 1111 loc32 iiii iiii iiii iiii MOV32 loc32,*(0:16bitAddr)/ MOV32 ACC,RaH /MOV32 P,RaH
                 {
                     length = 4;
                     uint32_t loc32 = insn & 0xff;
@@ -2508,6 +2508,15 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     break;
                                 }
                             }
+                            break;
+                        }
+                        case 0b1010: //1110 0010 1010 CNDF 0000 0aaa mem32 MOV32 RaH, mem32 {, CNDF} 
+                        {
+                            length = 4;
+                            uint32_t condf = insn & 0xf;
+                            uint32_t a = (insn2 >> 8) & 0b111;
+                            uint32_t mem32 = insn2 & 0xff;
+                            gen_mov32_rah_mem32_cndf(ctx, a, mem32, condf);
                             break;
                         }
                     }
@@ -3042,7 +3051,7 @@ void tms320c28x_cpu_dump_state(CPUState *cs, FILE *f, int flags)
     qemu_fprintf(f, "DBGIER=%04x\n", env->dbgier);
     qemu_fprintf(f, "RPTC=%x\n",env->rptc);
     for (i = 0; i < 4; ++i) {
-        qemu_fprintf(f, "R%01dH=%08x R%01dH=%08x\n", i, env->rh[i], i+1, env->rh[i+1]);
+        qemu_fprintf(f, "R%01dH=%08x R%01dH=%08x\n", i*2, env->rh[i*2], i*2+1, env->rh[i*2+1]);
     }
     qemu_fprintf(f, "STF=%x\n",env->stf);
     qemu_fprintf(f, "SHDWS=%x RND32=%x TF=%x ZI=%x NI=%x\n", CPU_GET_STATUS(stf, SHDWS), CPU_GET_STATUS(stf, RND32), CPU_GET_STATUS(stf, TF), CPU_GET_STATUS(stf, ZI), CPU_GET_STATUS(stf, NI));

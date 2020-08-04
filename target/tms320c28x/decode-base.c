@@ -547,3 +547,24 @@ static void gen_sync_fpu_reg(uint32_t addr, TCGv val_to_sync)
     }
 
 }
+
+static void gen_sync_fpu_mem(uint32_t n)
+{
+    TCGv addr = tcg_temp_local_new();
+    if (n == -1) //stf
+    {
+        tcg_gen_movi_i32(addr, 0xf02);
+        gen_st32u_swap(cpu_stf, addr);
+    }
+    else if (n == -2) //rb
+    {
+        tcg_gen_movi_i32(addr, 0xf00);
+        gen_st32u_swap(cpu_rb, addr);
+    }
+    else if (n < 8)
+    {
+        tcg_gen_movi_i32(addr, 0xf12 + n * 4);
+        gen_st32u_swap(cpu_rb, addr);
+    }
+    tcg_temp_free(addr);
+}

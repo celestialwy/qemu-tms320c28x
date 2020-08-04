@@ -84,6 +84,44 @@ uint32_t HELPER(test_cond)(CPUTms320c28xState *env, uint32_t cond)
     }
 }
 
+uint32_t HELPER(test_condf)(CPUTms320c28xState *env, uint32_t condf)
+{
+    condf = condf & 0xf;
+    uint32_t zf = cpu_get_stf(env, ZF_BIT, ZF_MASK);
+    uint32_t nf = cpu_get_stf(env, NF_BIT, NF_MASK);
+    uint32_t tf = cpu_get_stf(env, TF_BIT, TF_MASK);
+    uint32_t luf = cpu_get_stf(env, LUF_BIT, LUF_MASK);
+    uint32_t lvf = cpu_get_stf(env, LVF_BIT, LVF_MASK);
+    switch(condf) {
+        case 0: //NEQ ZF == 0
+            return zf == 0;
+        case 1: //EQ
+            return zf == 1;
+        case 2: //GT ZF == 0 AND NF == 0
+            return (zf == 0) && (nf == 0);
+        case 3: //GEQ
+            return nf == 0;
+        case 4: //LT
+            return nf == 1;
+        case 5: //LEQ
+            return (zf == 1) && (nf == 1);
+        case 10: //TF
+            return tf == 1;
+        case 11: //NTF
+            return tf == 0;
+        case 12: //LU
+            return luf == 1;
+        case 13: //LV
+            return lvf == 1;
+        case 14: //UNC
+            return true;
+        case 15: //UNCF
+            return true;
+        default://can not reach
+            return false;
+    }
+}
+
 void HELPER(test_N_Z_16)(CPUTms320c28xState *env, uint32_t value) {
     value = value & 0xffff;
     if ((value >> 15) == 1) {
@@ -417,7 +455,7 @@ void HELPER(print_env)(CPUTms320c28xState *env) {
     qemu_log_mask(CPU_LOG_INT, "DBGIER=%04x\n", env->dbgier);
     qemu_log_mask(CPU_LOG_INT, "RPTC=%x\n",env->rptc);
     for (i = 0; i < 4; ++i) {
-        qemu_log_mask(CPU_LOG_INT, "R%01dH=%08x R%01dH=%08x\n", i, env->rh[i], i+1, env->rh[i+1]);
+        qemu_log_mask(CPU_LOG_INT, "R%01dH=%08x R%01dH=%08x\n", i*2, env->rh[i*2], i*2+1, env->rh[i*2+1]);
     }
     qemu_log_mask(CPU_LOG_INT, "STF=%x\n",env->stf);
     qemu_log_mask(CPU_LOG_INT, "SHDWS=%x RND32=%x TF=%x ZI=%x NI=%x\n", CPU_GET_STATUS(stf, SHDWS), CPU_GET_STATUS(stf, RND32), CPU_GET_STATUS(stf, TF), CPU_GET_STATUS(stf, ZI), CPU_GET_STATUS(stf, NI));

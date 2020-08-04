@@ -289,6 +289,50 @@ static bool get_fpu_reg_name(char *str, uint32_t addr)
     }
 }
 
+static void get_condf_string(char *str, uint32_t cond) {
+    cond = cond & 0xf;
+    switch(cond) {
+        case 0: //NEQ
+            sprintf(str, "NEQ");
+            break;
+        case 1: //EQ
+            sprintf(str, "EQ");
+            break;
+        case 2: //GT
+            sprintf(str, "GT");
+            break;
+        case 3: //GEQ
+            sprintf(str, "GEQ");
+            break;
+        case 4: //LT
+            sprintf(str, "LT");
+            break;
+        case 5: //LEQ
+            sprintf(str, "LEQ");
+            break;
+        case 10: //TF
+            sprintf(str, "TF");
+            break;
+        case 11: //NTF
+            sprintf(str, "NTF");
+            break;
+        case 12: //LU
+            sprintf(str, "LU");
+            break;
+        case 13: //LV
+            sprintf(str, "LV");
+            break;
+        case 14: //UNC
+            sprintf(str, "UNC");
+            break;
+        case 15: //UNCF
+            sprintf(str, "UNCF");
+            break;
+        default://can not reach
+            break;
+    }
+}
+
 int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
 {
     fprintf_function fprintf_func = info->fprintf_func;
@@ -3119,6 +3163,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     break;
                                 }
                             }
+                            break;
+                        }
+                        case 0b1010: //1110 0010 1010 CNDF 0000 0aaa mem32 MOV32 RaH, mem32 {, CNDF} 
+                        {
+                            length = 4;
+                            uint32_t condf = insn & 0xf;
+                            uint32_t a = (insn32 >> 8) & 0b111;
+                            uint32_t mem32 = insn32 & 0xff;
+                            //todo
+                            get_loc_string(str, mem32, LOC32);
+                            get_condf_string(str2, condf);
+                            fprintf_func(stream, "0x%08x; MOV32 R%dH,%s,%s", insn32, a, str, str2);
                             break;
                         }
                     }
