@@ -1045,8 +1045,8 @@ static void gen_orb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
 //ROL ACC
 static void gen_rol_acc(DisasContext *ctx)
 {
-    TCGv tmp = cpu_shadow[0];
-    TCGv tmp2 = cpu_shadow[1];
+    TCGv tmp = cpu_tmp[0];
+    TCGv tmp2 = cpu_tmp[1];
 
     TCGLabel *begin = gen_new_label();
     TCGLabel *end = gen_new_label();
@@ -1069,8 +1069,8 @@ static void gen_rol_acc(DisasContext *ctx)
 //ROR ACC
 static void gen_ror_acc(DisasContext *ctx)
 {
-    TCGv tmp = cpu_shadow[0];
-    TCGv tmp2 = cpu_shadow[1];
+    TCGv tmp = cpu_tmp[0];
+    TCGv tmp2 = cpu_tmp[1];
 
     TCGLabel *begin = gen_new_label();
     TCGLabel *end = gen_new_label();
@@ -1121,8 +1121,8 @@ static void gen_setc_xf(DisasContext *ctx)
 // SFR ACC,#1...16
 static void gen_sfr_acc_shift(DisasContext *ctx, uint32_t shift)
 {
-    TCGv sxm = cpu_shadow[0];
-    TCGv last_bit_out = cpu_shadow[1];
+    TCGv sxm = cpu_tmp[0];
+    TCGv last_bit_out = cpu_tmp[1];
     TCGLabel *sxm_1 = gen_new_label();
     TCGLabel *done = gen_new_label();
     TCGLabel *begin = gen_new_label();
@@ -1153,9 +1153,9 @@ static void gen_sfr_acc_shift(DisasContext *ctx, uint32_t shift)
 // SFR ACC,T
 static void gen_sfr_acc_t(DisasContext *ctx)
 {
-    TCGv sxm = cpu_shadow[0];
-    TCGv last_bit_out = cpu_shadow[1];
-    TCGv shift = cpu_shadow[2];
+    TCGv sxm = cpu_tmp[0];
+    TCGv last_bit_out = cpu_tmp[1];
+    TCGv shift = cpu_tmp[2];
     TCGLabel *sxm_1 = gen_new_label();
     TCGLabel *shift_not_zero = gen_new_label();
     TCGLabel *done = gen_new_label();
@@ -1200,7 +1200,7 @@ static void gen_spm_shift(DisasContext *ctx, uint32_t shift)
 //XOR ACC,loc16
 static void gen_xor_acc_loc16(DisasContext *ctx, uint32_t mode)
 {
-    TCGv loc16 = cpu_shadow[0];
+    TCGv loc16 = cpu_tmp[0];
 
     TCGLabel *begin = gen_new_label();
     TCGLabel *end = gen_new_label();
@@ -1226,8 +1226,8 @@ static void gen_xor_acc_imm_shift(DisasContext *ctx, uint32_t imm, uint32_t shif
 //XOR AX,loc16
 static void gen_xor_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH)
 {
-    TCGv loc16 = cpu_shadow[0];
-    TCGv ax = cpu_shadow[1];
+    TCGv loc16 = cpu_tmp[0];
+    TCGv ax = cpu_tmp[1];
 
     gen_ld_loc16(loc16, mode);
     gen_ld_reg_half(ax, cpu_acc, is_AH);
@@ -1243,8 +1243,8 @@ static void gen_xor_ax_loc16(DisasContext *ctx, uint32_t mode, bool is_AH)
 //XOR loc16,ax
 static void gen_xor_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
 {
-    TCGv loc16 = cpu_shadow[0];
-    TCGv ax = cpu_shadow[1];
+    TCGv loc16 = cpu_tmp[0];
+    TCGv ax = cpu_tmp[1];
 
     if (is_reg_addressing_mode(mode, LOC16))
     {
@@ -1256,7 +1256,7 @@ static void gen_xor_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
     }
     else
     {
-        TCGv addr = cpu_shadow[2];
+        TCGv addr = cpu_tmp[2];
         gen_get_loc_addr(addr, mode, LOC16);
         gen_ld16u_swap(loc16, addr);
         gen_ld_reg_half(ax, cpu_acc, is_AH);
@@ -1270,7 +1270,7 @@ static void gen_xor_loc16_ax(DisasContext *ctx, uint32_t mode, bool is_AH)
 //XOR loc16,#16bit
 static void gen_xor_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm)
 {
-    TCGv loc16 = cpu_shadow[0];
+    TCGv loc16 = cpu_tmp[0];
 
     if (is_reg_addressing_mode(mode, LOC16))
     {
@@ -1281,7 +1281,7 @@ static void gen_xor_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm)
     }
     else
     {
-        TCGv addr = cpu_shadow[2];
+        TCGv addr = cpu_tmp[2];
         gen_get_loc_addr(addr, mode, LOC16);
         gen_ld16u_swap(loc16, addr);
         tcg_gen_xori_i32(loc16, loc16, imm);
@@ -1294,7 +1294,7 @@ static void gen_xor_loc16_16bit(DisasContext *ctx, uint32_t mode, uint32_t imm)
 //XORB AX,#8bit
 static void gen_xorb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
 {
-    TCGv ax = cpu_shadow[0];
+    TCGv ax = cpu_tmp[0];
     gen_ld_reg_half(ax, cpu_acc, is_AH);
     tcg_gen_xori_i32(ax, ax, imm);
     gen_helper_test_N_Z_16(cpu_env, ax);
@@ -1307,8 +1307,8 @@ static void gen_xorb_ax_8bit(DisasContext *ctx, uint32_t imm, bool is_AH)
 //ZALR ACC,loc16
 static void gen_zalr_acc_loc16(DisasContext *ctx, uint32_t mode)
 {
-    TCGv ah = cpu_shadow[0];
-    TCGv al = cpu_shadow[1];
+    TCGv ah = cpu_tmp[0];
+    TCGv al = cpu_tmp[1];
 
     tcg_gen_movi_i32(al, 0x8000);
     gen_ld_loc16(ah, mode);

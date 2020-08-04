@@ -339,7 +339,7 @@ static void gen_sbf_8bitOffset_eq(DisasContext *ctx, int16_t offset)
     gen_reset_rptc(ctx);
 
     TCGLabel *label = gen_new_label();
-    TCGv z = cpu_shadow[0];
+    TCGv z = cpu_tmp[0];
     gen_get_bit(z, cpu_st0, Z_BIT, Z_MASK);
 
     tcg_gen_brcondi_i32(TCG_COND_EQ, z, 1, label);
@@ -356,7 +356,7 @@ static void gen_sbf_8bitOffset_neq(DisasContext *ctx, int16_t offset)
     gen_reset_rptc(ctx);
 
     TCGLabel *label = gen_new_label();
-    TCGv z = cpu_shadow[0];
+    TCGv z = cpu_tmp[0];
     gen_get_bit(z, cpu_st0, Z_BIT, Z_MASK);
 
     tcg_gen_brcondi_i32(TCG_COND_EQ, z, 0, label);
@@ -373,7 +373,7 @@ static void gen_sbf_8bitOffset_tc(DisasContext *ctx, int16_t offset)
     gen_reset_rptc(ctx);
 
     TCGLabel *label = gen_new_label();
-    TCGv tc = cpu_shadow[0];
+    TCGv tc = cpu_tmp[0];
     gen_get_bit(tc, cpu_st0, TC_BIT, TC_MASK);
 
     tcg_gen_brcondi_i32(TCG_COND_EQ, tc, 1, label);
@@ -390,7 +390,7 @@ static void gen_sbf_8bitOffset_ntc(DisasContext *ctx, int16_t offset)
     gen_reset_rptc(ctx);
 
     TCGLabel *label = gen_new_label();
-    TCGv tc = cpu_shadow[0];
+    TCGv tc = cpu_tmp[0];
     gen_get_bit(tc, cpu_st0, TC_BIT, TC_MASK);
 
     tcg_gen_brcondi_i32(TCG_COND_EQ, tc, 0, label);
@@ -406,7 +406,7 @@ static void gen_xb_al(DisasContext *ctx)
 {
     gen_reset_rptc(ctx);
 
-    TCGv al = cpu_shadow[0];
+    TCGv al = cpu_tmp[0];
     gen_ld_reg_half(al, cpu_acc, false);
     tcg_gen_ori_i32(cpu_pc, al, 0x3f0000);
 
@@ -452,7 +452,7 @@ static void gen_xbanz_pma_star(DisasContext *ctx, uint32_t pma)
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv ar_arp = cpu_shadow[0];
+    TCGv ar_arp = cpu_tmp[0];
     TCGLabel *label = gen_new_label();
 
     gen_helper_ld_xar_arp(ar_arp, cpu_env);
@@ -470,7 +470,7 @@ static void gen_xbanz_pma_star_plus(DisasContext *ctx, uint32_t pma)
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv ar_arp = cpu_shadow[0];
+    TCGv ar_arp = cpu_tmp[0];
     TCGLabel *label = gen_new_label();
 
     gen_helper_ld_xar_arp(ar_arp, cpu_env);
@@ -492,7 +492,7 @@ static void gen_xbanz_pma_star_minus(DisasContext *ctx, uint32_t pma)
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv ar_arp = cpu_shadow[0];
+    TCGv ar_arp = cpu_tmp[0];
     TCGLabel *label = gen_new_label();
 
     gen_helper_ld_xar_arp(ar_arp, cpu_env);
@@ -514,8 +514,8 @@ static void gen_xbanz_pma_star0_plus(DisasContext *ctx, uint32_t pma)
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv ar_arp = cpu_shadow[0];
-    TCGv ar0 = cpu_shadow[1];
+    TCGv ar_arp = cpu_tmp[0];
+    TCGv ar0 = cpu_tmp[1];
     TCGLabel *label = gen_new_label();
 
     gen_ld_reg_half(ar0, cpu_xar[0], false);
@@ -538,8 +538,8 @@ static void gen_xbanz_pma_star0_minus(DisasContext *ctx, uint32_t pma)
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv ar_arp = cpu_shadow[0];
-    TCGv ar0 = cpu_shadow[1];
+    TCGv ar_arp = cpu_tmp[0];
+    TCGv ar0 = cpu_tmp[1];
     TCGLabel *label = gen_new_label();
 
     gen_ld_reg_half(ar0, cpu_xar[0], false);
@@ -562,7 +562,7 @@ static void gen_xbanz_pma_star_arpn(DisasContext *ctx, uint32_t pma, uint32_t n)
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv ar_arp = cpu_shadow[0];
+    TCGv ar_arp = cpu_tmp[0];
     TCGLabel *label = gen_new_label();
 
     gen_helper_ld_xar_arp(ar_arp, cpu_env);
@@ -581,7 +581,7 @@ static void gen_xbanz_pma_star_plus_arpn(DisasContext *ctx, uint32_t pma, uint32
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv ar_arp = cpu_shadow[0];
+    TCGv ar_arp = cpu_tmp[0];
     TCGLabel *label = gen_new_label();
 
     gen_helper_ld_xar_arp(ar_arp, cpu_env);
@@ -605,7 +605,7 @@ static void gen_xbanz_pma_star_minus_arpn(DisasContext *ctx, uint32_t pma, uint3
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv ar_arp = cpu_shadow[0];
+    TCGv ar_arp = cpu_tmp[0];
     TCGLabel *label = gen_new_label();
 
     gen_helper_ld_xar_arp(ar_arp, cpu_env);
@@ -629,8 +629,8 @@ static void gen_xbanz_pma_star0_plus_arpn(DisasContext *ctx, uint32_t pma, uint3
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv ar_arp = cpu_shadow[0];
-    TCGv ar0 = cpu_shadow[1];
+    TCGv ar_arp = cpu_tmp[0];
+    TCGv ar0 = cpu_tmp[1];
     TCGLabel *label = gen_new_label();
 
     gen_ld_reg_half(ar0, cpu_xar[0], false);
@@ -655,8 +655,8 @@ static void gen_xbanz_pma_star0_minus_arpn(DisasContext *ctx, uint32_t pma, uint
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv ar_arp = cpu_shadow[0];
-    TCGv ar0 = cpu_shadow[1];
+    TCGv ar_arp = cpu_tmp[0];
+    TCGv ar0 = cpu_tmp[1];
     TCGLabel *label = gen_new_label();
 
     gen_ld_reg_half(ar0, cpu_xar[0], false);
@@ -681,8 +681,8 @@ static void gen_xcall_al(DisasContext *ctx)
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv temp = cpu_shadow[0];
-    TCGv al = cpu_shadow[1];
+    TCGv temp = cpu_tmp[0];
+    TCGv al = cpu_tmp[1];
     //temp(21:0) = pc + 1
     tcg_gen_movi_i32(temp, (((uint32_t)ctx->base.pc_next >> 1) + 1) & 0x3fffff);
     //[sp]  = temp(15:0)
@@ -701,7 +701,7 @@ static void gen_xcall_pma_arpn(DisasContext *ctx, uint32_t pma, uint32_t n)
     gen_reset_rptc(ctx);
     ctx->base.is_jmp = DISAS_JUMP;
 
-    TCGv temp = cpu_shadow[0];
+    TCGv temp = cpu_tmp[0];
     //temp(21:0) = pc + 1
     tcg_gen_movi_i32(temp, (((uint32_t)ctx->base.pc_next >> 1) + 1) & 0x3fffff);
     //[sp]  = temp(15:0)
@@ -723,14 +723,14 @@ static void gen_xcall_pma_cond(DisasContext *ctx, uint32_t pma, uint32_t cond)
     ctx->base.is_jmp = DISAS_JUMP;
 
     TCGv cond_tcg = tcg_const_i32(cond);
-    TCGv test = cpu_shadow[0];
+    TCGv test = cpu_tmp[0];
 
     TCGLabel *label = gen_new_label();
 
     gen_helper_test_cond(test, cpu_env, cond_tcg);
     tcg_gen_brcondi_i32(TCG_COND_EQ, test, 0, label);
 
-    TCGv temp = cpu_shadow[1];
+    TCGv temp = cpu_tmp[1];
     //temp(21:0) = pc + 1
     tcg_gen_movi_i32(temp, (((uint32_t)ctx->base.pc_next >> 1) + 1) & 0x3fffff);
     //[sp]  = temp(15:0)
@@ -753,8 +753,8 @@ static void gen_xretc_cond(DisasContext *ctx, uint32_t cond)
     ctx->base.is_jmp = DISAS_JUMP;
 
     TCGv cond_tcg = tcg_const_i32(cond);
-    TCGv test = cpu_shadow[0];
-    TCGv addr = cpu_shadow[1];
+    TCGv test = cpu_tmp[0];
+    TCGv addr = cpu_tmp[1];
     TCGLabel *cond_false = gen_new_label();
 
     gen_helper_test_cond(test, cpu_env, cond_tcg);

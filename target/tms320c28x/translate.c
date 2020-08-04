@@ -63,17 +63,20 @@ static TCGv cpu_rb;
 static TCGv cpu_stf;
 static TCGv cpu_rh[8];
 static TCGv cpu_rptc;
-static TCGv cpu_shadow[8];
+// static TCGv cpu_tmp[8];
 static TCGv cpu_insn_length;
-// static TCGv cpu_tmp[8]; 
+static TCGv cpu_tmp[8];
 
 void tms320c28x_translate_init(void)
 {
     static const char * const regnames[] = {
         "xar0", "xar1", "xar2", "xar3", "xar4", "xar5", "xar6", "xar7",
     };
+    // static const char * const regnames2[] = {
+    //     "shadow0", "shadow1", "shadow2", "shadow3", "shadow4", "shadow5", "shadow6", "shadow7",
+    // };
     static const char * const regnames2[] = {
-        "shadow0", "shadow1", "shadow2", "shadow3", "shadow4", "shadow5", "shadow6", "shadow7",
+        "tmp0", "tmp1", "tmp2", "tmp3", "tmp4", "tmp5", "tmp6", "tmp7",
     };
     static const char * const regnames3[] = {
         "r0h", "r1h", "r2h", "r3h", "r4h", "r5h", "r6h", "r7h",
@@ -112,7 +115,8 @@ void tms320c28x_translate_init(void)
                                 offsetof(CPUTms320c28xState, stf), "stf");
     for (i = 0; i < 8; i++) {
         cpu_xar[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,xar[i]),regnames[i]);
-        cpu_shadow[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,shadow[i]),regnames2[i]);
+        // cpu_tmp[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,shadow[i]),regnames2[i]);
+        cpu_tmp[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,tmp[i]),regnames2[i]);
         cpu_rh[i] = tcg_global_mem_new(cpu_env,offsetof(CPUTms320c28xState,rh[i]),regnames3[i]);
     }
     cpu_insn_length = tcg_global_mem_new(cpu_env,

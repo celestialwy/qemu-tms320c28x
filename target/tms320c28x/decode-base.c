@@ -564,7 +564,7 @@ static void gen_sync_fpu_mem(uint32_t n)
     else if (n < 8)
     {
         tcg_gen_movi_i32(addr, 0xf12 + n * 4);
-        gen_st32u_swap(cpu_rb, addr);
+        gen_st32u_swap(cpu_rh[n], addr);
     }
     tcg_temp_free(addr);
 }

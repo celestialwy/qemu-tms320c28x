@@ -35,9 +35,9 @@ static void gen_dec_loc16(DisasContext *ctx, uint32_t mode)
 // SBBU ACC,loc16
 static void gen_sbbu_acc_loc16(DisasContext *ctx, uint32_t mode)
 {
-    TCGv c = cpu_shadow[0];
-    TCGv loc16 = cpu_shadow[1];
-    TCGv acc = cpu_shadow[2];
+    TCGv c = cpu_tmp[0];
+    TCGv loc16 = cpu_tmp[1];
+    TCGv acc = cpu_tmp[2];
 
     tcg_gen_mov_i32(acc, cpu_acc);
     gen_ld_loc16(loc16, mode);
@@ -55,7 +55,7 @@ static void gen_sbbu_acc_loc16(DisasContext *ctx, uint32_t mode)
 // SBRK #8bit
 static void gen_sbrk_8bit(DisasContext *ctx, uint32_t imm)
 {
-    TCGv tmp = cpu_shadow[0];
+    TCGv tmp = cpu_tmp[0];
     gen_helper_ld_xar_arp(tmp, cpu_env);
     tcg_gen_subi_i32(tmp, tmp, imm);
     gen_helper_st_xar_arp(cpu_env, tmp);

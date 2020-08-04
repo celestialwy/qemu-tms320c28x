@@ -998,16 +998,16 @@ static void gen_pop_t_st0(DisasContext *ctx) {
 static void gen_pread_loc16_xar7(DisasContext *ctx, uint32_t mode)
 {
     TCGv tmp = tcg_temp_local_new_i32();
-    tcg_gen_mov_i32(cpu_shadow[7], cpu_xar[7]);
+    tcg_gen_mov_i32(cpu_tmp[7], cpu_xar[7]);
 
     TCGLabel *begin = gen_new_label();
     TCGLabel *end = gen_new_label();
     gen_set_label(begin);
 
-    gen_ld16u_swap(tmp, cpu_shadow[7]);
+    gen_ld16u_swap(tmp, cpu_tmp[7]);
     gen_st_loc16(mode, tmp);
     gen_test_ax_N_Z(mode);
-    tcg_gen_addi_i32(cpu_shadow[7], cpu_shadow[7], 1);
+    tcg_gen_addi_i32(cpu_tmp[7], cpu_tmp[7], 1);
 
     tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
     tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
@@ -1170,15 +1170,15 @@ static void gen_pwrite_xar7_loc16(DisasContext *ctx, uint32_t mode)
     TCGv tmp = tcg_temp_local_new();
     if (mode == 0b10000111)//*XAR7++
     {
-        tcg_gen_addi_i32(cpu_shadow[7], cpu_xar[7], 1);
+        tcg_gen_addi_i32(cpu_tmp[7], cpu_xar[7], 1);
     }
     else if (mode == 0b10001111)//*--XAR7
     {
-        tcg_gen_subi_i32(cpu_shadow[7], cpu_xar[7], 1);
+        tcg_gen_subi_i32(cpu_tmp[7], cpu_xar[7], 1);
     }
     else
     {
-        tcg_gen_mov_i32(cpu_shadow[7], cpu_xar[7]);
+        tcg_gen_mov_i32(cpu_tmp[7], cpu_xar[7]);
     }
 
     TCGLabel *begin = gen_new_label();
@@ -1186,9 +1186,9 @@ static void gen_pwrite_xar7_loc16(DisasContext *ctx, uint32_t mode)
     gen_set_label(begin);
 
     gen_ld_loc16(tmp, mode);
-    gen_st16u_swap(tmp, cpu_shadow[7]);
+    gen_st16u_swap(tmp, cpu_tmp[7]);
 
-    tcg_gen_addi_i32(cpu_shadow[7], cpu_shadow[7], 1);
+    tcg_gen_addi_i32(cpu_tmp[7], cpu_tmp[7], 1);
 
     tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_rptc, 0, end);
     tcg_gen_subi_i32(cpu_rptc, cpu_rptc, 1);
@@ -1201,8 +1201,8 @@ static void gen_pwrite_xar7_loc16(DisasContext *ctx, uint32_t mode)
 // XPREAD loc16,*(pma)
 static void gen_xpwread_loc16_pma(DisasContext *ctx, uint32_t mode, uint32_t pma)
 {
-    TCGv addr = cpu_shadow[0];
-    TCGv value = cpu_shadow[1];
+    TCGv addr = cpu_tmp[0];
+    TCGv value = cpu_tmp[1];
     tcg_gen_movi_i32(value, 0x3f0000 | pma);
 
     TCGLabel *begin = gen_new_label();
@@ -1223,9 +1223,9 @@ static void gen_xpwread_loc16_pma(DisasContext *ctx, uint32_t mode, uint32_t pma
 // XPREAD loc16,*al
 static void gen_xpwread_loc16_al(DisasContext *ctx, uint32_t mode)
 {
-    TCGv addr = cpu_shadow[0];
-    TCGv value = cpu_shadow[1];
-    TCGv al = cpu_shadow[2];
+    TCGv addr = cpu_tmp[0];
+    TCGv value = cpu_tmp[1];
+    TCGv al = cpu_tmp[2];
     gen_ld_reg_half(al, cpu_acc, false);
     tcg_gen_xori_i32(addr, al, 0x3f0000);
 
@@ -1247,9 +1247,9 @@ static void gen_xpwread_loc16_al(DisasContext *ctx, uint32_t mode)
 //XPWRITE *AL,loc16
 static void gen_xpwrite_al_loc16(DisasContext *ctx, uint32_t mode)
 {
-    TCGv addr = cpu_shadow[0];
-    TCGv loc16 = cpu_shadow[1];
-    TCGv al = cpu_shadow[2];
+    TCGv addr = cpu_tmp[0];
+    TCGv loc16 = cpu_tmp[1];
+    TCGv al = cpu_tmp[2];
     gen_ld_reg_half(al, cpu_acc, false);
     tcg_gen_xori_i32(addr, al, 0x3f0000);
 

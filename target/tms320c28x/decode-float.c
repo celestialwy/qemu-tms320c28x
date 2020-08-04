@@ -7,7 +7,7 @@ static void gen_absf32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 // MOV16 mem16, RaH
 static void gen_mov16_mem16_rah(DisasContext *ctx, uint32_t mem16, uint32_t a)
 {
-    // TCGv tmp = cpu_shadow[0];
+    // TCGv tmp = cpu_tmp[0];
     // tcg_gen_andi_i32(tmp, cpu_rh[a], 0xffff);
     // get low 16bit in helper func
     gen_st_loc16(mem16, cpu_rh[a]);
@@ -17,8 +17,8 @@ static void gen_mov16_mem16_rah(DisasContext *ctx, uint32_t mem16, uint32_t a)
 // MOV32 RaH, ACC
 static void gen_mov32_addr16_loc32(DisasContext *ctx, uint32_t addr, uint32_t mode)
 {
-    TCGv tmp = cpu_shadow[0];
-    TCGv addr_param = cpu_shadow[1];
+    TCGv tmp = cpu_tmp[0];
+    TCGv addr_param = cpu_tmp[1];
     tcg_gen_movi_i32(addr_param, addr);
     //load loc32
     gen_ld_loc32(tmp, mode);
@@ -34,8 +34,8 @@ static void gen_mov32_addr16_loc32(DisasContext *ctx, uint32_t addr, uint32_t mo
 // MOV32 ACC, RaH
 static void gen_mov32_loc32_addr16(DisasContext *ctx, uint32_t addr, uint32_t loc32)
 {
-    TCGv tmp = cpu_shadow[0];
-    TCGv addr_param = cpu_shadow[0];
+    TCGv tmp = cpu_tmp[0];
+    TCGv addr_param = cpu_tmp[0];
     tcg_gen_movi_i32(addr_param, addr);
     gen_ld32u_swap(tmp, addr_param);
     gen_st_loc32(loc32, tmp);
@@ -58,10 +58,10 @@ static void gen_mov32_mem32_stf(DisasContext *ctx, uint32_t mem32)
 static void gen_mov32_rah_mem32_cndf(DisasContext *ctx, uint32_t a, uint32_t mem32, uint32_t cndf)
 {
     TCGLabel *done = gen_new_label();
-    TCGv test = cpu_shadow[0];
-    TCGv condf_tcg = cpu_shadow[1];
-    TCGv tmp = cpu_shadow[2];
-    TCGv tmp2 = cpu_shadow[3];
+    TCGv test = cpu_tmp[0];
+    TCGv condf_tcg = cpu_tmp[1];
+    TCGv tmp = cpu_tmp[2];
+    TCGv tmp2 = cpu_tmp[3];
     tcg_gen_movi_i32(condf_tcg, cndf);
     //if (CNDF == TRUE)
     gen_helper_test_condf(test, cpu_env, condf_tcg);

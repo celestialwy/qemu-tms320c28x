@@ -768,12 +768,12 @@ static void gen_qmpyxul_p_xt_loc32(DisasContext *ctx, uint32_t mode)
     TCGv_i64 v1 = tcg_temp_local_new_i64();
     TCGv_i64 v2 = tcg_temp_local_new_i64();
     //P = (signed XT * usigned loc32) >> 32
-    gen_ld_loc32(cpu_shadow[0], mode);
+    gen_ld_loc32(cpu_tmp[0], mode);
     tcg_gen_ext_i32_i64(v1, cpu_xt);
-    tcg_gen_extu_i32_i64(v2, cpu_shadow[0]);
+    tcg_gen_extu_i32_i64(v2, cpu_tmp[0]);
     tcg_gen_mul_i64(v1, v1, v2);
-    tcg_gen_extr_i64_i32(cpu_shadow[1], cpu_shadow[0], v1);
-    tcg_gen_mov_i32(cpu_p, cpu_shadow[0]);
+    tcg_gen_extr_i64_i32(cpu_tmp[1], cpu_tmp[0], v1);
+    tcg_gen_mov_i32(cpu_p, cpu_tmp[0]);
 
     tcg_temp_free_i64(v1);
     tcg_temp_free_i64(v2);
@@ -782,9 +782,9 @@ static void gen_qmpyxul_p_xt_loc32(DisasContext *ctx, uint32_t mode)
 //SQRA loc16
 static void gen_sqra_loc16(DisasContext *ctx, uint32_t mode)
 {
-    TCGv tmp = cpu_shadow[0];
-    TCGv tmp2 = cpu_shadow[1];
-    TCGv loc16 = cpu_shadow[2];
+    TCGv tmp = cpu_tmp[0];
+    TCGv tmp2 = cpu_tmp[1];
+    TCGv loc16 = cpu_tmp[2];
 
     TCGLabel *begin = gen_new_label();
     TCGLabel *end = gen_new_label();
@@ -811,9 +811,9 @@ static void gen_sqra_loc16(DisasContext *ctx, uint32_t mode)
 //SQRS loc16
 static void gen_sqrs_loc16(DisasContext *ctx, uint32_t mode)
 {
-    TCGv tmp = cpu_shadow[0];
-    TCGv tmp2 = cpu_shadow[1];
-    TCGv loc16 = cpu_shadow[2];
+    TCGv tmp = cpu_tmp[0];
+    TCGv tmp2 = cpu_tmp[1];
+    TCGv loc16 = cpu_tmp[2];
 
     TCGLabel *begin = gen_new_label();
     TCGLabel *end = gen_new_label();

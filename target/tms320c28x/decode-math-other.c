@@ -348,7 +348,7 @@ static void gen_sat_acc(DisasContext *ctx)
     TCGLabel *ovc_gt_0 = gen_new_label();
     TCGLabel *ovc_lt_0 = gen_new_label();
 
-    TCGv ovc = cpu_shadow[0];
+    TCGv ovc = cpu_tmp[0];
     gen_get_bit(ovc, cpu_st0, OVC_BIT, OVC_MASK);
     tcg_gen_brcondi_i32(TCG_COND_GT, ovc, 0b011111, ovc_lt_0);
     tcg_gen_brcondi_i32(TCG_COND_GT, ovc, 0, ovc_gt_0);
@@ -378,7 +378,7 @@ static void gen_sat64_acc_p(DisasContext *ctx)
     TCGLabel *ovc_gt_0 = gen_new_label();
     TCGLabel *ovc_lt_0 = gen_new_label();
 
-    TCGv ovc = cpu_shadow[0];
+    TCGv ovc = cpu_tmp[0];
     gen_get_bit(ovc, cpu_st0, OVC_BIT, OVC_MASK);
     tcg_gen_brcondi_i32(TCG_COND_GT, ovc, 0b011111, ovc_lt_0);
     tcg_gen_brcondi_i32(TCG_COND_GT, ovc, 0, ovc_gt_0);
@@ -406,7 +406,7 @@ static void gen_sat64_acc_p(DisasContext *ctx)
 //TBIT loc16,#bit
 static void gen_tbit_loc16_bit(DisasContext *ctx, uint32_t mode, uint32_t bit)
 {
-    TCGv tc = cpu_shadow[0];
+    TCGv tc = cpu_tmp[0];
     gen_ld_loc16(tc, mode);
     tcg_gen_shri_i32(tc, tc, bit);
     tcg_gen_andi_i32(tc, tc, 1);
@@ -416,8 +416,8 @@ static void gen_tbit_loc16_bit(DisasContext *ctx, uint32_t mode, uint32_t bit)
 //TBIT loc16,T
 static void gen_tbit_loc16_t(DisasContext *ctx, uint32_t mode)
 {
-    TCGv tc = cpu_shadow[0];
-    TCGv bit = cpu_shadow[1];
+    TCGv tc = cpu_tmp[0];
+    TCGv bit = cpu_tmp[1];
 
     gen_ld_reg_half(bit, cpu_xt, true);
     tcg_gen_andi_i32(bit, bit, 0xf);
@@ -432,8 +432,8 @@ static void gen_tbit_loc16_t(DisasContext *ctx, uint32_t mode)
 //TCLR loc16,#bit
 static void gen_tclr_loc16_bit(DisasContext *ctx, uint32_t mode, uint32_t bit)
 {
-    TCGv tc = cpu_shadow[0];
-    TCGv loc16 = cpu_shadow[1];
+    TCGv tc = cpu_tmp[0];
+    TCGv loc16 = cpu_tmp[1];
 
     if (is_reg_addressing_mode(mode, LOC16))
     {
@@ -448,7 +448,7 @@ static void gen_tclr_loc16_bit(DisasContext *ctx, uint32_t mode, uint32_t bit)
     }
     else 
     {
-        TCGv addr = cpu_shadow[2];
+        TCGv addr = cpu_tmp[2];
         gen_get_loc_addr(addr, mode, LOC16);
         gen_ld16u_swap(loc16, addr);
 
@@ -470,8 +470,8 @@ static void gen_test_acc(DisasContext *ctx)
 //TSET loc16,#bit
 static void gen_tset_loc16_bit(DisasContext *ctx, uint32_t mode, uint32_t bit)
 {
-    TCGv tc = cpu_shadow[0];
-    TCGv loc16 = cpu_shadow[1];
+    TCGv tc = cpu_tmp[0];
+    TCGv loc16 = cpu_tmp[1];
 
     if (is_reg_addressing_mode(mode, LOC16))
     {
@@ -486,7 +486,7 @@ static void gen_tset_loc16_bit(DisasContext *ctx, uint32_t mode, uint32_t bit)
     }
     else 
     {
-        TCGv addr = cpu_shadow[2];
+        TCGv addr = cpu_tmp[2];
         gen_get_loc_addr(addr, mode, LOC16);
         gen_ld16u_swap(loc16, addr);
 

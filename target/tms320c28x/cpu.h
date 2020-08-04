@@ -196,8 +196,8 @@ typedef struct CPUTms320c28xState {
     float_status fp_status;
 
     target_ulong rptc;
-    target_ulong shadow[8];
-    // target_ulong tmp[8];
+    // target_ulong shadow[8];
+    target_ulong tmp[8];
     /* Fields up to this point are cleared by a CPU reset */
     struct {} end_reset_fields;
 
