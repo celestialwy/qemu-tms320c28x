@@ -38,6 +38,7 @@ static void gen_ld32u_swap(TCGv value, TCGv addr_param)
 static void gen_st16u_swap(TCGv value, TCGv addr_param)
 {
     TCGv addr = tcg_temp_local_new();
+    // todo: if addr == 0xf00..., sync the fpu reg
     tcg_gen_shli_i32(addr, addr_param, 1);// addr*2
 
     TCGv_i32 tmp = tcg_const_i32(0);
@@ -57,6 +58,7 @@ static void gen_st16u_swap(TCGv value, TCGv addr_param)
 static void gen_st32u_swap(TCGv value, TCGv addr_param) 
 {
     TCGv addr = tcg_temp_local_new();
+    // todo: if addr == 0xf00..., sync the fpu reg
     tcg_gen_shli_i32(addr, addr_param, 1);// addr*2
 
     TCGv_i32 tmp = tcg_const_local_i32(0);
@@ -568,4 +570,35 @@ static void gen_sync_fpu_mem(uint32_t n)
         gen_st32u_swap(cpu_rh[n], addr);
     }
     tcg_temp_free(addr);
+}
+
+static void gen_test_nf_ni_zf_zi(TCGv rah)
+{
+    TCGLabel *rah3023_not_zero = gen_new_label();
+    TCGLabel *rah_not_zero = gen_new_label();
+    TCGv tmp = tcg_temp_local_new();
+    TCGv tmp2 = tcg_temp_local_new();
+
+    tcg_gen_andi_i32(tmp, rah, 0x7f800000);//get rh[30:23]
+    tcg_gen_shri_i32(tmp2, rah, 31);//rah[31]
+    // NF = RaH(31);
+    gen_set_bit(cpu_stf, NF_BIT, NF_MASK, tmp2);
+    // ZF = 0;
+    gen_seti_bit(cpu_stf, ZF_BIT, ZF_MASK, 0);
+    // if(RaH[30:23] == 0) { ZF = 1; NF = 0; }
+    tcg_gen_brcondi_i32(TCG_COND_NE, tmp, 0, rah3023_not_zero);
+    gen_seti_bit(cpu_stf, NF_BIT, NF_MASK, 0);
+    gen_seti_bit(cpu_stf, ZF_BIT, ZF_MASK, 1);
+    gen_set_label(rah3023_not_zero);
+    // NI = RaH[31];
+    gen_set_bit(cpu_stf, NI_BIT, NI_MASK, tmp2);
+    // ZI = 0;
+    gen_seti_bit(cpu_stf, ZI_BIT, ZI_MASK, 0);
+    // if(RaH[31:0] == 0) ZI = 1;
+    tcg_gen_brcondi_i32(TCG_COND_NE, rah, 0, rah_not_zero);
+    gen_seti_bit(cpu_stf, ZI_BIT, ZI_MASK, 1);
+    gen_set_label(rah_not_zero);
+
+    tcg_temp_free(tmp2);
+    tcg_temp_free(tmp);
 }

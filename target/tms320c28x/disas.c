@@ -3165,6 +3165,21 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             }
                             break;
                         }
+                        case 0b0010: //1110 0010 0010 ....
+                        {
+                            switch (insn & 0xf) {
+                                case 0b0011: //1110 0010 0010 0011 0000 0aaa mem32 MOVD32 RaH, mem32
+                                {
+                                    length = 4;
+                                    uint32_t a = (insn32 >> 8) & 0b111;
+                                    uint32_t mem32 = insn32 & 0xff;
+                                    get_loc_string(str, mem32, LOC32);
+                                    fprintf_func(stream, "0x%08x; MOVD32 R%dH,%s", insn32, a, str);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         case 0b1000: //1110 0010 1000 ....
                         {
                             switch (insn & 0xf) {
