@@ -548,6 +548,7 @@ static void gen_sync_fpu_reg(uint32_t addr, TCGv val_to_sync)
 
 }
 
+//-1: stf, -2:rb
 static void gen_sync_fpu_mem(uint32_t n)
 {
     TCGv addr = tcg_temp_local_new();

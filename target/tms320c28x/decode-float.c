@@ -101,3 +101,13 @@ static void gen_mov32_rah_mem32_cndf(DisasContext *ctx, uint32_t a, uint32_t mem
     gen_set_label(done);
     
 }
+
+// MOV32 STF, mem32
+static void gen_mov32_stf_mem32(DisasContext *ctx, uint32_t mem32)
+{
+    TCGv tmp = cpu_tmp[2];
+    gen_ld_loc32(tmp, mem32);
+    tcg_gen_andi_i32(tmp, tmp, 0x8000027f);//mask stf
+    tcg_gen_mov_i32(cpu_stf, tmp);//save to reg
+    gen_sync_fpu_mem(-1);//save to mem
+}
