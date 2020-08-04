@@ -2585,6 +2585,20 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     }
                     break;
                 }
+                case 0b1000: //1110 1000 .... .....
+                {
+                    switch((insn & 0x00f0) >> 4) {
+                        case 0b0000: //1110 1000 0000 0III IIII IIII IIII Iaaa MOVIZ RaH, #16FHiHex
+                        {
+                            length = 4;
+                            uint32_t a = insn2 & 0b111;
+                            uint32_t hi = ((insn2 >> 3) | (insn << 13)) & 0xffff;
+                            gen_moviz_rah_16fhihex(ctx, a, hi);
+                            break;
+                        }
+                    }
+                    break;
+                }
                 case 0b1010://1110 1010 LLLL LLLL SUBR loc16,AL
                 {
                     uint32_t mode = insn & 0xff;

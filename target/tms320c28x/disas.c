@@ -3241,6 +3241,20 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     }
                     break;
                 }
+                case 0b1000: //1110 1000 .... .....
+                {
+                    switch((insn & 0x00f0) >> 4) {
+                        case 0b0000: //1110 1000 0000 0III IIII IIII IIII Iaaa MOVIZ RaH, #16FHiHex
+                        {
+                            length = 4;
+                            uint32_t a = insn32 & 0b111;
+                            uint32_t hi = (insn32 >> 3) & 0xffff;
+                            fprintf_func(stream, "0x%08x; MOVIZ R%dH,#0x%4x", insn32, a, hi);
+                            break;
+                        }
+                    }
+                    break;
+                }
                 case 0b1010://1110 1010 LLLL LLLL SUBR loc16,AL
                 {
                     uint32_t mode = insn & 0xff;

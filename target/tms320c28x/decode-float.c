@@ -128,3 +128,14 @@ static void gen_movd32_rah_mem32(DisasContext *ctx, uint32_t a, uint32_t mem32)
     //modify stf
     gen_test_nf_ni_zf_zi(cpu_rh[a]);
 }
+
+
+// MOVIZ RaH, #16FHiHex
+static void gen_moviz_rah_16fhihex(DisasContext *ctx, uint32_t a, uint32_t hi)
+{
+    //RaH[31:16] = #16FHiHex
+    //RaH[15:0] = 0
+    hi = hi << 16;
+    tcg_gen_movi_i32(cpu_rh[a], hi);
+    gen_sync_fpu_mem(a);
+}
