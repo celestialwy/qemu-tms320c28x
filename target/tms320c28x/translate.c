@@ -2352,7 +2352,7 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_movb_xarn_8bit(ctx, imm, 6);
                     break;
                 }
-                case 0b1111: //1011 1111 loc32 iiii iiii iiii iiii MOV32 loc32,*(0:16bitAddr)/ MOV32 ACC,RaH /MOV32 P,RaH
+                case 0b1111: //1011 1111 loc32 iiii iiii iiii iiii MOV32 loc32,*(0:16bitAddr)/ MOV32 ACC,RaH /MOV32 P,RaH /MOV32 XARn, RaH/ MOV32 XT, RaH
                 {
                     length = 4;
                     uint32_t loc32 = insn & 0xff;

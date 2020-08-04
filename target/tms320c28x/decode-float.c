@@ -34,6 +34,8 @@ static void gen_mov32_addr16_loc32(DisasContext *ctx, uint32_t addr, uint32_t mo
 
 // MOV32 loc32, *(0:16bitAddr)
 // MOV32 ACC, RaH
+// MOV32 XARn, RaH
+// MOV32 XT, RaH
 static void gen_mov32_loc32_addr16(DisasContext *ctx, uint32_t addr, uint32_t loc32)
 {
     TCGv tmp = cpu_tmp[0];
