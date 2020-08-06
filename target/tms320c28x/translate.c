@@ -2259,6 +2259,12 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                     gen_xpwread_loc16_pma(ctx, mode, addr);
                     break;
                 }
+                case 0b1101: //1010 1101 FFFF FFFF MOVST0 FLAG
+                {
+                    uint32_t flag = insn & 0xff;
+                    gen_movst0_flag(ctx, flag);
+                    break;
+                }
                 case 0b1110: //1010 1110 LLLL LLLL SUB ACC,loc16<<#0
                 {
                     uint32_t mode = insn & 0xff;

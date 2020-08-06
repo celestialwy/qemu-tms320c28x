@@ -190,6 +190,44 @@ static void get_cond_string(char *str, uint32_t cond) {
     }
 }
 
+static void get_stf_bit_string(char *str, uint32_t mode) {
+    mode = mode & 0xff;
+    uint32_t i = 0;
+    if (((mode>>0) & 1) == 1) {
+        sprintf(str+i, "LVF,");
+        i += 4;
+    }
+    if (((mode>>1) & 1) == 1) {
+        sprintf(str+i, "LUF,");
+        i += 4;
+    }
+    if (((mode>>2) & 1) == 1) {
+        sprintf(str+i, "NF,");
+        i += 3;
+    }
+    if (((mode>>3) & 1) == 1) {
+        sprintf(str+i, "NI,");
+        i += 3;
+    }
+    if (((mode>>4) & 1) == 1) {
+        sprintf(str+i, "ZF,");
+        i += 3;
+    }
+    if (((mode>>5) & 1) == 1) {
+        sprintf(str+i, "ZI,");
+        i += 3;
+    }
+    if (((mode>>6) & 1) == 1) {
+        sprintf(str+i, "CI,");
+        i += 3;
+    }
+    if (((mode>>7) & 1) == 1) {
+        sprintf(str+i, "TF,");
+        i += 3;
+    }
+    str[i-1] = 0;
+}
+
 static void get_status_bit_string(char *str, uint32_t mode) {
     mode = mode & 0xff;
     uint32_t i = 0;
@@ -2828,6 +2866,13 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                     uint32_t addr = insn32 & 0xffff;
                     get_loc_string(str,mode,LOC16);
                     fprintf_func(stream, "0x%08x; XPREAD %s,*(#0x%x)", insn32, str, addr);
+                    break;
+                }
+                case 0b1101: //1010 1101 FFFF FFFF MOVST0 FLAG
+                {
+                    uint32_t flag = insn & 0xff;
+                    get_stf_bit_string(str, flag);
+                    fprintf_func(stream, "0x%04x;     MOVST0 %s", insn, str);
                     break;
                 }
                 case 0b1110: //1010 1110 LLLL LLLL SUB ACC,loc16<<#0
