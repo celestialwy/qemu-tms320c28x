@@ -236,3 +236,14 @@ static void gen_movst0_flag(DisasContext *ctx, uint32_t flag)
         gen_set_bit(cpu_st0, TC_BIT, TC_MASK, tmp);
     }
 }
+
+// MOVXI RaH, #16FHiHex
+static void gen_movxi_rah_16flohex(DisasContext *ctx, uint32_t a, uint32_t lo)
+{
+    // RaH[15:0] = #16FLoHex
+    // RaH[31:16] = Unchanged
+    lo = lo & 0xffff;
+    tcg_gen_andi_i32(cpu_rh[a], cpu_rh[a], 0xffff0000);
+    tcg_gen_ori_i32(cpu_rh[a], cpu_rh[a], lo);
+    gen_sync_fpu_mem(a);
+}
