@@ -1,7 +1,13 @@
 // ABSF32 RaH,RbH
 static void gen_absf32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
-    //todo
+    gen_helper_fpu_absf(cpu_rh[a], cpu_env, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
+    // NF = 0;
+    gen_seti_bit(cpu_stf, NF_BIT, NF_MASK, 0);
+    // ZF = 0;
+    // if ( RaH[30:23] == 0) ZF = 1;
+    gen_test_zf(cpu_rh[a]);
 }
 
 // MOV16 mem16, RaH

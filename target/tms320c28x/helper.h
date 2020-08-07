@@ -83,4 +83,5 @@ DEF_HELPER_1(cmp64_acc_p, void, env)// cmp64 ACC:P, test N,Z,V
 DEF_HELPER_2(maxcul_p_loc32, void, env, i32)// maxcul p,loc32
 DEF_HELPER_2(mincul_p_loc32, void, env, i32)// mincul p,loc32
 
-//bitop
+//fpu
+DEF_HELPER_2(fpu_absf, i32, env, i32)// ret = absf(value)
