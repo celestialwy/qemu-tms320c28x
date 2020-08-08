@@ -15,6 +15,14 @@ static void gen_addf32_rah_16fhi_rbh(DisasContext *ctx, uint32_t a, uint32_t hi,
     gen_sync_fpu_mem(a);
 }
 
+// ADDF32 RaH, RbH, RcH
+static void gen_addf32_rah_rbh_rch(DisasContext *ctx, uint32_t a, uint32_t b, uint32_t c)
+{
+    gen_helper_fpu_addf(cpu_rh[a], cpu_env, cpu_rh[b], cpu_rh[c]);
+    gen_sync_fpu_mem(a);
+}
+
+
 // MOV16 mem16, RaH
 static void gen_mov16_mem16_rah(DisasContext *ctx, uint32_t mem16, uint32_t a)
 {
