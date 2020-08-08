@@ -3166,6 +3166,24 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
         case 0b1110:
         {
             switch((insn & 0x0f00) >> 8) {
+                case 0b0000: //1110 0000 .... ....
+                {
+                    switch((insn & 0x00f0) >> 4) {
+                        case 0b0001: //1110 0000 0001 fffe eedd daaa mem32 ADDF32 RdH, ReH, RfH || MOV32 mem32, RaH
+                        {
+                            length = 4;
+                            uint32_t mem32 = insn32 & 0xff;
+                            uint32_t a = (insn32 >> 8) & 0b111;
+                            uint32_t d = (insn32 >> 11) & 0b111;
+                            uint32_t e = (insn32 >> 14) & 0b111;
+                            uint32_t f = (insn >> 1) & 0b111;
+                            get_loc_string(str, mem32, LOC32);
+                            fprintf_func(stream, "0x%08x; ADDF32 R%dH,R%dH,R%dH ||MOV32 %s,R%dH", insn32, d, e, f, str, a);
+                            break;
+                        }
+                    }
+                    break;
+                }
                 case 0b0010: //1110 0010 .... ....
                 {
                     switch((insn & 0x00f0) >> 4) {
