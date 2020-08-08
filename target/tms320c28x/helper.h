@@ -84,4 +84,5 @@ DEF_HELPER_2(maxcul_p_loc32, void, env, i32)// maxcul p,loc32
 DEF_HELPER_2(mincul_p_loc32, void, env, i32)// mincul p,loc32
 
 //fpu
-DEF_HELPER_2(fpu_absf, i32, env, i32)// ret = absf(value)
+DEF_HELPER_2(fpu_absf, i32, env, i32)// ret = absf(value), modify NF,ZF bit
+DEF_HELPER_3(fpu_addf, i32, env, i32, i32)// ret = addb(a,b), modify LUF,LVF bit

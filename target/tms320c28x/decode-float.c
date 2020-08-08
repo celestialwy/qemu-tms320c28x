@@ -3,11 +3,16 @@ static void gen_absf32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
     gen_helper_fpu_absf(cpu_rh[a], cpu_env, cpu_rh[b]);
     gen_sync_fpu_mem(a);
-    // NF = 0;
-    gen_seti_bit(cpu_stf, NF_BIT, NF_MASK, 0);
-    // ZF = 0;
-    // if ( RaH[30:23] == 0) ZF = 1;
-    gen_test_zf(cpu_rh[a]);
+}
+
+// ADDF32 RaH, #16FHi, RbH
+static void gen_addf32_rah_16fhi_rbh(DisasContext *ctx, uint32_t a, uint32_t hi, uint32_t b)
+{
+    TCGv tmp = cpu_tmp[0];
+    hi = hi << 16;
+    tcg_gen_movi_i32(tmp, hi);
+    gen_helper_fpu_addf(cpu_rh[a], cpu_env, tmp, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
 }
 
 // MOV16 mem16, RaH
