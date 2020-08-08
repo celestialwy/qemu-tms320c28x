@@ -593,7 +593,6 @@ void HELPER(st_loc16)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
     do_st_loc16(env, loc, value, st16_swap);
 }
 
-
 void HELPER(st_loc16_byte_addressing)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
 {
     bool is_byte_addressing = false;
@@ -630,6 +629,7 @@ void HELPER(st_loc16_byte_addressing)(CPUTms320c28xState *env, uint32_t loc, uin
     }
 }
 
+//todo: addr=0xf00... sync fpu reg
 void HELPER(st_loc32)(CPUTms320c28xState *env, uint32_t loc, uint32_t value)
 {
     uint32_t amode = CPU_GET_STATUS(st1, AMODE);

@@ -33,7 +33,23 @@ static void gen_addf32_rdh_reh_rfh_mov32_mem32_rah(DisasContext *ctx, uint32_t d
     gen_st_loc32(mem32, cpu_rh[a]);
     //add
     gen_helper_fpu_addf(cpu_rh[d], cpu_env, cpu_rh[e], cpu_rh[f]);
+    gen_sync_fpu_mem(d);
+}
+
+//ADDF32 RdH, ReH, RfH || MOV32  RaH,mem32
+static void gen_addf32_rdh_reh_rfh_mov32_rah_mem32(DisasContext *ctx, uint32_t d, uint32_t e, uint32_t f, uint32_t a, uint32_t mem32)
+{
+    if(is_reg_addressing_mode(mem32, LOC32))
+    {
+        return;
+    }
+    //save to rah
+    gen_ld_loc32(cpu_rh[a], mem32);
+    gen_test_nf_ni_zf_zi(cpu_rh[a]);
     gen_sync_fpu_mem(a);
+    //add
+    gen_helper_fpu_addf(cpu_rh[d], cpu_env, cpu_rh[e], cpu_rh[f]);
+    gen_sync_fpu_mem(d);
 }
 
 // MOV16 mem16, RaH
