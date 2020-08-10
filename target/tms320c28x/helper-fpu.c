@@ -46,3 +46,37 @@ uint32_t HELPER(fpu_addf)(CPUTms320c28xState *env, uint32_t a, uint32_t b)
     }
     return ret;
 }
+
+void HELPER(fpu_cmpf)(CPUTms320c28xState *env, uint32_t a, uint32_t b)
+{
+    //Negative zero will be treated as positive zero. ---------checked
+    //A denormalized value will be treated as positive zero.
+    env->fp_status.flush_inputs_to_zero = 1;
+    //Not-a-Number (NaN) will be treated as infinity.
+    if (a == 0x7FBFFFFF)
+        a = 0x7F800000;
+    if (b == 0x7FBFFFFF)
+        b = 0x7F800000;
+    //compare
+    int flag = float32_compare(a, b, &env->fp_status);
+    switch(flag)
+    {
+        case float_relation_less://If(RaH < RbH) {ZF=0, NF=1}
+            cpu_set_stf(env, 0, ZF_BIT, ZF_MASK);
+            cpu_set_stf(env, 1, NF_BIT, NF_MASK);
+            break;
+        case float_relation_equal://If(RaH == RbH) {ZF=1, NF=0}
+            cpu_set_stf(env, 1, ZF_BIT, ZF_MASK);
+            cpu_set_stf(env, 0, NF_BIT, NF_MASK);
+            break;
+        case float_relation_greater://If(RaH > RbH) {ZF=0, NF=0}
+            cpu_set_stf(env, 0, ZF_BIT, ZF_MASK);
+            cpu_set_stf(env, 0, NF_BIT, NF_MASK);
+            break;
+        case float_relation_unordered:
+        default:
+            g_assert_not_reached();
+    }
+    //restore status
+    env->fp_status.flush_inputs_to_zero = 0;
+}
