@@ -3363,6 +3363,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             }
                             break;
                         }
+                        case 0b0001: //1110 1000 0001 0III IIII IIII IIII Iaaa CMPF32 RaH,#16FHi
+                        {
+                            if (((insn >> 3) & 1) == 0)
+                            {
+                                length = 4;
+                                uint32_t imm = (insn32 >> 3) & 0xffff;
+                                uint32_t a = insn32 & 0b111;
+                                fprintf_func(stream, "0x%08x; CMPF32 R%dH,#0x%4x", insn32, a, imm);
+                            }
+                            break;
+                        }
                         case 0b1000:
                         case 0b1001:
                         case 0b1010:

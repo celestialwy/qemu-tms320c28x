@@ -2666,6 +2666,17 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             }
                             break;
                         }
+                        case 0b0001: //1110 1000 0001 0III IIII IIII IIII Iaaa CMPF32 RaH,#16FHi
+                        {
+                            if (((insn>>3) & 1) == 0)
+                            {
+                                length = 4;
+                                uint32_t imm = (insn << 13 | insn2 >> 3) & 0xffff;
+                                uint32_t a = insn2 & 0b111;
+                                gen_cmpf32_rah_16fhi(ctx, a, imm);
+                            }
+                            break;
+                        }
                         case 0b1000:
                         case 0b1001:
                         case 0b1010:
