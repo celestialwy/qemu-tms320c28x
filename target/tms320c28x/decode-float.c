@@ -66,6 +66,14 @@ static void gen_cmpf32_rah_16fhi(DisasContext *ctx, uint32_t a, uint32_t imm)
     gen_helper_fpu_cmpf(cpu_env, cpu_rh[a], tmp);
 }
 
+//CMPF32 RaH, #0.0
+static void gen_cmpf32_rah_0(DisasContext *ctx, uint32_t a)
+{
+    TCGv tmp = cpu_tmp[0];
+    tcg_gen_movi_i32(tmp, 0);
+    gen_helper_fpu_cmpf(cpu_env, cpu_rh[a], tmp);
+}
+
 // MOV16 mem16, RaH
 static void gen_mov16_mem16_rah(DisasContext *ctx, uint32_t mem16, uint32_t a)
 {
