@@ -80,3 +80,17 @@ void HELPER(fpu_cmpf)(CPUTms320c28xState *env, uint32_t a, uint32_t b)
     //restore status
     env->fp_status.flush_inputs_to_zero = 0;
 }
+
+uint32_t HELPER(fpu_f32toi16)(CPUTms320c28xState *env, uint32_t value)
+{
+    env->fp_status.float_rounding_mode = float_round_to_zero;
+    int ret = float32_to_int16(value, &env->fp_status);
+    return ret;
+}
+
+uint32_t HELPER(fpu_f32toi16r)(CPUTms320c28xState *env, uint32_t value)
+{
+    env->fp_status.float_rounding_mode = float_round_nearest_even;
+    int ret = float32_to_int16(value, &env->fp_status);
+    return ret;
+}

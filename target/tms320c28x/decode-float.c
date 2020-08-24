@@ -74,6 +74,18 @@ static void gen_cmpf32_rah_0(DisasContext *ctx, uint32_t a)
     gen_helper_fpu_cmpf(cpu_env, cpu_rh[a], tmp);
 }
 
+//F32TOI16 RaH,RbH
+static void gen_f32toi16_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
+{
+    gen_helper_fpu_f32toi16(cpu_rh[a], cpu_env, cpu_rh[b]);
+}
+
+//F32TOI16R RaH,RbH
+static void gen_f32toi16r_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
+{
+    gen_helper_fpu_f32toi16r(cpu_rh[a], cpu_env, cpu_rh[b]);
+}
+
 // MOV16 mem16, RaH
 static void gen_mov16_mem16_rah(DisasContext *ctx, uint32_t mem16, uint32_t a)
 {

@@ -3319,6 +3319,24 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                         case 0b10://1110 0110 10.. ....
                         {
                             switch (insn & 0x003f) {
+                                case 0b001100: 
+                                {
+                                    if (((insn32 & 0xffff) >> 6) == 0)//1110 0110 1000 1100 0000 0000 00bb baaa F32TOI16 RaH,RbH
+                                    {
+                                        uint32_t b = (insn32 >> 3) & 0b111;
+                                        uint32_t a = insn32 & 0b111;
+                                        fprintf_func(stream, "0x%08x; F32TOI16 R%dH,R%dH", insn32, a, b);
+                                        length = 4;
+                                    }
+                                    else if(((insn32 & 0xffff) >> 6) == 0b1000000000)//1110 0110 1000 1100 1000 0000 00bb baaa F32TOI16R RaH,RbH
+                                    {   
+                                        uint32_t b = (insn32 >> 3) & 0b111;
+                                        uint32_t a = insn32 & 0b111;
+                                        fprintf_func(stream, "0x%08x; F32TOI16R R%dH,R%dH", insn32, a, b);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b010101: //1110 0110 1001 0101 0000 0000 00bb baaa ABSF32 RaH,RbH
                                 {
                                     uint32_t b = (insn32 >> 3) & 0b111;
