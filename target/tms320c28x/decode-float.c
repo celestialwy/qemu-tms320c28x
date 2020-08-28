@@ -80,6 +80,12 @@ static void gen_einvf32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
     gen_helper_fpu_einvf(cpu_rh[a], cpu_env, cpu_rh[b]);
 }
 
+//EISQRTF32 RaH,RbH
+static void gen_eisqrtf32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
+{
+    gen_helper_fpu_eisqrtf(cpu_rh[a], cpu_env, cpu_rh[b]);
+}
+
 //F32TOI16 RaH,RbH
 static void gen_f32toi16_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {

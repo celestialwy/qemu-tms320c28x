@@ -2640,6 +2640,17 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b010010: //1110 0110 1001 0010 0000 0000 00bb baaa EISQRTF32 RaH,RbH
+                                {
+                                    if ((insn2 >> 6) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t a = insn2 & 0b111;
+                                        uint32_t b = (insn2 >> 3) & 0b111;
+                                        gen_eisqrtf32_rah_rbh(ctx, a, b);
+                                    }
+                                    break;
+                                }
                                 case 0b010011: //1110 0110 1001 0011 0000 0000 00bb baaa EINVF32 RaH,RbH
                                 {
                                     if ((insn2 >> 6) == 0)
