@@ -3325,7 +3325,18 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     {
                                         uint32_t b = (insn32 >> 3) & 0b111;
                                         uint32_t a = insn32 & 0b111;
-                                        fprintf_func(stream, "0x%08x; F32TO32 R%dH,R%dH", insn32, a, b);
+                                        fprintf_func(stream, "0x%08x; F32TOI32 R%dH,R%dH", insn32, a, b);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
+                                case 0b001010:
+                                {
+                                    if (((insn32 & 0xffff) >> 6) == 0)//1110 0110 1000 1010 0000 0000 00bb baaa F32TOUI32 RaH,RbH
+                                    {
+                                        uint32_t b = (insn32 >> 3) & 0b111;
+                                        uint32_t a = insn32 & 0b111;
+                                        fprintf_func(stream, "0x%08x; F32TOUI32 R%dH,R%dH", insn32, a, b);
                                         length = 4;
                                     }
                                     break;
