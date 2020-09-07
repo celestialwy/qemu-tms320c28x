@@ -89,5 +89,7 @@ DEF_HELPER_3(fpu_addf, i32, env, i32, i32)// ret = addf(a,b), modify LUF,LVF bit
 DEF_HELPER_3(fpu_cmpf, void, env, i32, i32)// cmp(a,b), modify NF,ZF bit
 DEF_HELPER_2(fpu_einvf, i32, env, i32)// einvf32, modify LUF,LVF bit
 DEF_HELPER_2(fpu_eisqrtf, i32, env, i32)// einvf32, modify LUF,LVF bit
+//fpu float to integer
 DEF_HELPER_2(fpu_f32toi16, i32, env, i32)//ret = f32toi16(a), round to zero
 DEF_HELPER_2(fpu_f32toi16r, i32, env, i32)//ret = f32toi16(a), round to nearest even
+DEF_HELPER_2(fpu_f32toi32, i32, env, i32)//ret = f32toi32(a), round to zero
