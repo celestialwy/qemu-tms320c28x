@@ -627,3 +627,17 @@ uint32_t HELPER(fpu_f32toi32)(CPUTms320c28xState *env, uint32_t value)
     int ret = float32_to_int32(value, &env->fp_status);
     return ret;
 }
+
+uint32_t HELPER(fpu_f32toui16)(CPUTms320c28xState *env, uint32_t value)
+{
+    env->fp_status.float_rounding_mode = float_round_to_zero;
+    int ret = float32_to_uint16(value, &env->fp_status);
+    return ret;
+}
+
+uint32_t HELPER(fpu_f32toui16r)(CPUTms320c28xState *env, uint32_t value)
+{
+    env->fp_status.float_rounding_mode = float_round_nearest_even;
+    int ret = float32_to_uint16(value, &env->fp_status);
+    return ret;
+}
