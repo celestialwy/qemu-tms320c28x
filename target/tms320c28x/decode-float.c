@@ -212,7 +212,26 @@ static void gen_mov32_rah_mem32_cndf(DisasContext *ctx, uint32_t a, uint32_t mem
         gen_test_nf_ni_zf_zi(cpu_rh[a]);
     }
     gen_set_label(done);
-    
+}
+
+// MOV32 RaH, RbH {, CNDF}
+static void gen_mov32_rah_rbh_cndf(DisasContext *ctx, uint32_t a, uint32_t b, uint32_t cndf)
+{
+    TCGLabel *done = gen_new_label();
+    TCGv test = cpu_tmp[0];
+    TCGv condf_tcg = cpu_tmp[1];
+    tcg_gen_movi_i32(condf_tcg, cndf);
+    //if (CNDF == TRUE)
+    gen_helper_test_condf(test, cpu_env, condf_tcg);
+    tcg_gen_brcondi_i32(TCG_COND_EQ, test, 0, done);
+    //if (CNDF == TRUE) RaH = RbH
+    tcg_gen_mov_i32(cpu_rh[a], cpu_rh[b]);//save to reg
+    //modify stf
+    if (cndf == 15) //UNCF
+    {
+        gen_test_nf_ni_zf_zi(cpu_rh[a]);
+    }
+    gen_set_label(done);
 }
 
 // MOV32 STF, mem32

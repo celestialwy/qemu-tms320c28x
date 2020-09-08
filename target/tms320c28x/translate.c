@@ -2727,8 +2727,35 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             }
                             break;
                         }
-                        case 0b11:
+                        case 0b11://1110 0110 11.. ....
                         {
+                            switch(((insn & 0x0030) >> 4))
+                            {
+                                case 0b00: //1110 0110 1100 CNDF 0000 0000 00bb baaa MOV32 RaH,RbH{,CNDF}
+                                {
+                                    if ((insn2 >> 6) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t b = (insn2 >> 3) & 0b111;
+                                        uint32_t a = insn2 & 0b111;
+                                        uint32_t cndf = insn & 0xf;
+                                        gen_mov32_rah_rbh_cndf(ctx, a, b, cndf);
+                                    }
+                                    break;
+                                }
+                                case 0b01:
+                                {
+                                    break;
+                                }
+                                case 0b10:
+                                {
+                                    break;
+                                }
+                                case 0b11:
+                                {
+                                    break;
+                                }
+                            }
                             break;
                         }
                     }
