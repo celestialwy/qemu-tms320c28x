@@ -122,6 +122,11 @@ static void gen_f32toui32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
     gen_helper_fpu_f32toui32(cpu_rh[a], cpu_env, cpu_rh[b]);
 }
 
+//FRACF32 RaH,RbH
+static void gen_fracf32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
+{
+    gen_helper_fpu_fracf32(cpu_rh[a], cpu_env, cpu_rh[b]);
+}
 
 // MOV16 mem16, RaH
 static void gen_mov16_mem16_rah(DisasContext *ctx, uint32_t mem16, uint32_t a)
