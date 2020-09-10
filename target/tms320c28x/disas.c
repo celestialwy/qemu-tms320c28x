@@ -3414,6 +3414,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                     break;
                                 }
+                                case 0b001111:
+                                {          
+                                    if (((insn32 & 0xffff) >> 6) == 0)//1110 0110 1000 1111 0000 0000 00bb baaa UI16TOF32 RaH,RbH
+                                    {
+                                        uint32_t b = (insn32 >> 3) & 0b111;
+                                        uint32_t a = insn32 & 0b111;
+                                        fprintf_func(stream, "0x%08x; UI16TOF32 R%dH,R%dH", insn32, a, b);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b010010: //1110 0110 1001 0010 0000 0000 00bb baaa EISQRTF32 RaH,RbH
                                 {
                                     if (((insn32 & 0xffff) >> 6) == 0)
