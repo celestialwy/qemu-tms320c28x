@@ -3254,6 +3254,30 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     fprintf_func(stream, "0x%08x; MOV32 STF,%s", insn32, str);
                                     break;
                                 }
+                                case 0b0100: //1110 0010 1000 0100 0000 0aaa mem32 UI32TOF32 RaH,mem32
+                                {
+                                    if (((insn32 & 0xffff) >> 11) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mem32 = insn32 & 0xff;
+                                        uint32_t a = (insn32 >> 8) & 0b111;
+                                        get_loc_string(str, mem32, LOC32);
+                                        fprintf_func(stream, "0x%08x; UI32TOF32 R%dH,%s", insn32, a, str);
+                                    }
+                                    break;
+                                }
+                                case 0b1000: //1110 0010 1000 1000 0000 0aaa mem32 I32TOF32 RaH,mem32
+                                {
+                                    if (((insn32 & 0xffff) >> 11) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mem32 = insn32 & 0xff;
+                                        uint32_t a = (insn32 >> 8) & 0b111;
+                                        get_loc_string(str, mem32, LOC32);
+                                        fprintf_func(stream, "0x%08x; I32TOF32 R%dH,%s", insn32, a, str);
+                                    }
+                                    break;
+                                }
                             }
                             break;
                         }
@@ -3356,6 +3380,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                     }
                                     break;
                                 }
+                                case 0b001001: 
+                                {
+                                    if (((insn32 & 0xffff) >> 6) == 0)//1110 0110 1000 1001 0000 0000 00bb baaa I32TOF32 RaH,RbH
+                                    {
+                                        uint32_t b = (insn32 >> 3) & 0b111;
+                                        uint32_t a = insn32 & 0b111;
+                                        fprintf_func(stream, "0x%08x; I32OTF32 R%dH,R%dH", insn32, a, b);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b001010:
                                 {
                                     if (((insn32 & 0xffff) >> 6) == 0)//1110 0110 1000 1010 0000 0000 00bb baaa F32TOUI32 RaH,RbH
@@ -3363,6 +3398,17 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                                         uint32_t b = (insn32 >> 3) & 0b111;
                                         uint32_t a = insn32 & 0b111;
                                         fprintf_func(stream, "0x%08x; F32TOUI32 R%dH,R%dH", insn32, a, b);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
+                                case 0b001011: 
+                                {
+                                    if (((insn32 & 0xffff) >> 6) == 0)//1110 0110 1000 1011 0000 0000 00bb baaa UI32TOF32 RaH,RbH
+                                    {
+                                        uint32_t b = (insn32 >> 3) & 0b111;
+                                        uint32_t a = insn32 & 0b111;
+                                        fprintf_func(stream, "0x%08x; UI32OTF32 R%dH,R%dH", insn32, a, b);
                                         length = 4;
                                     }
                                     break;

@@ -2561,6 +2561,28 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     gen_mov32_stf_mem32(ctx, mem32);
                                     break;
                                 }
+                                case 0b0100: //1110 0010 1000 0100 0000 0aaa mem32 UI32TOF32 RaH,mem32
+                                {
+                                    if ((insn2 >> 11) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mem32 = insn2 & 0xff;
+                                        uint32_t a = (insn2 >> 8) & 0b111;
+                                        gen_ui32tof32_rah_mem32(ctx, a, mem32);
+                                    }
+                                    break;
+                                }
+                                case 0b1000: //1110 0010 1000 1000 0000 0aaa mem32 I32TOF32 RaH,mem32
+                                {
+                                    if ((insn2 >> 11) == 0)
+                                    {
+                                        length = 4;
+                                        uint32_t mem32 = insn2 & 0xff;
+                                        uint32_t a = (insn2 >> 8) & 0b111;
+                                        gen_i32tof32_rah_mem32(ctx, a, mem32);
+                                    }
+                                    break;
+                                }
                             }
                             break;
                         }
@@ -2657,6 +2679,17 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                     }
                                     break;
                                 }
+                                case 0b001001: 
+                                {
+                                    if ((insn2 >> 6) == 0)//1110 0110 1000 1001 0000 0000 00bb baaa I32TOF32 RaH,RbH
+                                    {
+                                        uint32_t b = (insn2 >> 3) & 0b111;
+                                        uint32_t a = insn2 & 0b111;
+                                        gen_i32tof32_rah_rbh(ctx, a, b);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
                                 case 0b001010:
                                 {
                                     if ((insn2 >> 6) == 0)//1110 0110 1000 1010 0000 0000 00bb baaa F32TOUI32 RaH,RbH
@@ -2664,6 +2697,17 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                                         uint32_t b = (insn2 >> 3) & 0b111;
                                         uint32_t a = insn2 & 0b111;
                                         gen_f32toui32_rah_rbh(ctx, a, b);
+                                        length = 4;
+                                    }
+                                    break;
+                                }
+                                case 0b001011: 
+                                {
+                                    if ((insn2 >> 6) == 0)//1110 0110 1000 1001 0000 0000 00bb baaa UI32TOF32 RaH,RbH
+                                    {
+                                        uint32_t b = (insn2 >> 3) & 0b111;
+                                        uint32_t a = insn2 & 0b111;
+                                        gen_ui32tof32_rah_rbh(ctx, a, b);
                                         length = 4;
                                     }
                                     break;
