@@ -128,6 +128,14 @@ static void gen_fracf32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
     gen_helper_fpu_fracf32(cpu_rh[a], cpu_env, cpu_rh[b]);
 }
 
+//I16TOF32 RaH,RbH
+static void gen_i16tof32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
+{
+    TCGv tmp = cpu_tmp[0];
+    tcg_gen_andi_i32(tmp, cpu_rh[b], 0xffff);
+    gen_helper_fpu_i32tof32(cpu_rh[a], cpu_env, tmp);
+}
+
 // MOV16 mem16, RaH
 static void gen_mov16_mem16_rah(DisasContext *ctx, uint32_t mem16, uint32_t a)
 {

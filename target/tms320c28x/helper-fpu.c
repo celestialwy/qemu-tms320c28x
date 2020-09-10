@@ -654,3 +654,8 @@ uint32_t HELPER(fpu_fracf32)(CPUTms320c28xState *env, uint32_t value)
     float frac = *(float *)&value - (int)*(float *)&value;
     return *(uint32_t *)&frac;
 }
+
+uint32_t HELPER(fpu_i32tof32)(CPUTms320c28xState *env, uint32_t value)
+{
+    return int32_to_float32(value, &env->fp_status);
+}
