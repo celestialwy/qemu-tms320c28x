@@ -655,7 +655,22 @@ uint32_t HELPER(fpu_fracf32)(CPUTms320c28xState *env, uint32_t value)
     return *(uint32_t *)&frac;
 }
 
+uint32_t HELPER(fpu_i16tof32)(CPUTms320c28xState *env, uint32_t value)
+{
+    return int16_to_float32(value, &env->fp_status);
+}
+
+uint32_t HELPER(fpu_ui16tof32)(CPUTms320c28xState *env, uint32_t value)
+{
+    return uint16_to_float32(value, &env->fp_status);
+}
+
 uint32_t HELPER(fpu_i32tof32)(CPUTms320c28xState *env, uint32_t value)
 {
     return int32_to_float32(value, &env->fp_status);
+}
+
+uint32_t HELPER(fpu_ui32tof32)(CPUTms320c28xState *env, uint32_t value)
+{
+    return uint32_to_float32(value, &env->fp_status);
 }

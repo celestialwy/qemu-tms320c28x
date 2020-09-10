@@ -2573,6 +2573,30 @@ static int decode(Tms320c28xCPU *cpu , DisasContext *ctx, uint32_t insn, uint32_
                             gen_mov32_rah_mem32_cndf(ctx, a, mem32, condf);
                             break;
                         }
+                        case 0b1100: //1110 0010 1100 ....
+                        {
+                            if ((insn & 0xf) == 0b1000)//1110 0010 1100 1000 0000 0aaa mem16 I16TOF32 RaH,mem16
+                            {
+                                if ((insn2 >> 11) == 0)
+                                {
+                                    length = 4;
+                                    uint32_t mem16 = insn2 & 0xff;
+                                    uint32_t a = (insn2 >> 8) & 0b111;
+                                    gen_i16tof32_rah_mem16(ctx, a, mem16);
+                                }
+                            }
+                            else if ((insn & 0xf) == 0b0100)//1110 0010 1100 0100 0000 0aaa mem16 UI16TOF32 RaH,mem16
+                            {
+                                if ((insn2 >> 11) == 0)
+                                {
+                                    length = 4;
+                                    uint32_t mem16 = insn2 & 0xff;
+                                    uint32_t a = (insn2 >> 8) & 0b111;
+                                    gen_ui16tof32_rah_mem16(ctx, a, mem16);
+                                }
+                            }
+                            break;
+                        }
                     }
                     break;
                 }

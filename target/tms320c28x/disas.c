@@ -3269,6 +3269,32 @@ int print_insn_tms320c28x(bfd_vma addr, disassemble_info *info)
                             fprintf_func(stream, "0x%08x; MOV32 R%dH,%s,%s", insn32, a, str, str2);
                             break;
                         }
+                        case 0b1100: //1110 0010 1100 ....
+                        {
+                            if ((insn & 0xf) == 0b1000)//1110 0010 1100 1000 0000 0aaa mem16 I16TOF32 RaH,mem16
+                            {
+                                if (((insn32 & 0xffff) >> 11) == 0)
+                                {
+                                    length = 4;
+                                    uint32_t mem16 = insn32 & 0xff;
+                                    uint32_t a = (insn32 >> 8) & 0b111;
+                                    get_loc_string(str, mem16, LOC16);
+                                    fprintf_func(stream, "0x%08x; I32TOF32 R%dH,%s", insn32, a, str);
+                                }
+                            }
+                            if ((insn & 0xf) == 0b0100)//1110 0010 1100 0100 0000 0aaa mem16 UI16TOF32 RaH,mem16
+                            {
+                                if (((insn32 & 0xffff) >> 11) == 0)
+                                {
+                                    length = 4;
+                                    uint32_t mem16 = insn32 & 0xff;
+                                    uint32_t a = (insn32 >> 8) & 0b111;
+                                    get_loc_string(str, mem16, LOC16);
+                                    fprintf_func(stream, "0x%08x; UI32TOF32 R%dH,%s", insn32, a, str);
+                                }
+                            }
+                            break;
+                        }
                     }
                     break;
                 }

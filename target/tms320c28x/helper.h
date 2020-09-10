@@ -99,5 +99,8 @@ DEF_HELPER_2(fpu_f32toui16, i32, env, i32)//ret = f32toui16(a), round to zero
 DEF_HELPER_2(fpu_f32toui16r, i32, env, i32)//ret = f32toui16(a), round to nearest even
 DEF_HELPER_2(fpu_f32toui32, i32, env, i32)//ret = f32toui32(a), round to zero
 //fpu integer to float
+DEF_HELPER_2(fpu_i16tof32, i32, env, i32)
+DEF_HELPER_2(fpu_ui16tof32, i32, env, i32)
 DEF_HELPER_2(fpu_i32tof32, i32, env, i32)//ret = i32tof32(a)
+DEF_HELPER_2(fpu_ui32tof32, i32, env, i32)
 

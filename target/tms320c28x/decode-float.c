@@ -78,63 +78,90 @@ static void gen_cmpf32_rah_0(DisasContext *ctx, uint32_t a)
 static void gen_einvf32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
     gen_helper_fpu_einvf(cpu_rh[a], cpu_env, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
 }
 
 //EISQRTF32 RaH,RbH
 static void gen_eisqrtf32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
     gen_helper_fpu_eisqrtf(cpu_rh[a], cpu_env, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
 }
 
 //F32TOI16 RaH,RbH
 static void gen_f32toi16_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
     gen_helper_fpu_f32toi16(cpu_rh[a], cpu_env, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
 }
 
 //F32TOI16R RaH,RbH
 static void gen_f32toi16r_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
     gen_helper_fpu_f32toi16r(cpu_rh[a], cpu_env, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
 }
 
 //F32TOI32 RaH,RbH
 static void gen_f32toi32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
     gen_helper_fpu_f32toi32(cpu_rh[a], cpu_env, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
 }
 
 //F32TOUI16 RaH,RbH
 static void gen_f32toui16_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
     gen_helper_fpu_f32toui16(cpu_rh[a], cpu_env, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
 }
 
 //F32TOUI16R RaH,RbH
 static void gen_f32toui16r_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
     gen_helper_fpu_f32toui16r(cpu_rh[a], cpu_env, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
 }
 
 //F32TOUI32 RaH,RbH
 static void gen_f32toui32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
     gen_helper_fpu_f32toui32(cpu_rh[a], cpu_env, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
 }
 
 //FRACF32 RaH,RbH
 static void gen_fracf32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
     gen_helper_fpu_fracf32(cpu_rh[a], cpu_env, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
 }
 
 //I16TOF32 RaH,RbH
 static void gen_i16tof32_rah_rbh(DisasContext *ctx, uint32_t a, uint32_t b)
 {
-    TCGv tmp = cpu_tmp[0];
-    tcg_gen_andi_i32(tmp, cpu_rh[b], 0xffff);
-    gen_helper_fpu_i32tof32(cpu_rh[a], cpu_env, tmp);
+    gen_helper_fpu_i16tof32(cpu_rh[a], cpu_env, cpu_rh[b]);
+    gen_sync_fpu_mem(a);
 }
+
+//I16TOF32 RaH,mem16
+static void gen_i16tof32_rah_mem16(DisasContext *ctx, uint32_t a, uint32_t mem16)
+{
+    TCGv tmp = cpu_tmp[0];
+    gen_ld_loc16(tmp, mem16);
+    gen_helper_fpu_i16tof32(cpu_rh[a], cpu_env, tmp);
+    gen_sync_fpu_mem(a);
+}
+
+//UI16TOF32 RaH,mem16
+static void gen_ui16tof32_rah_mem16(DisasContext *ctx, uint32_t a, uint32_t mem16)
+{
+    TCGv tmp = cpu_tmp[0];
+    gen_ld_loc16(tmp, mem16);
+    gen_helper_fpu_ui16tof32(cpu_rh[a], cpu_env, tmp);
+    gen_sync_fpu_mem(a);
+}
+
 
 // MOV16 mem16, RaH
 static void gen_mov16_mem16_rah(DisasContext *ctx, uint32_t mem16, uint32_t a)
